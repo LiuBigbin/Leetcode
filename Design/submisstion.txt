@@ -1,0 +1,985 @@
+Find Median from Data Stream 
+Median is the middle value in an ordered integer list. If the size of the list is even, there is no middle value. So the median is the mean of the two middle value.Examples: [2,3,4] , the median is 3[2,3], the median is (2 + 3) / 2 = 2.5 Design a data structure that supports the following two operations:void addNum(int num) - Add a integer number from the data stream to the data structure.double findMedian() - Return the median of all elements so far.For example:add(1)add(2)findMedian() ->; 1.5add(3) findMedian() ->; 2
+Credits:Special thanks to @Louis1992 for adding this problem and creating all test cases.
+
+struct Node{
+        int value;
+        Node *next;
+        Node *pre;
+        Node(int val):value(val), next(NULL), pre(NULL){
+
+        }
+        
+    };
+class MedianFinder {
+public:
+    MedianFinder():length(0), head(NULL){
+       
+    }
+    
+    // Adds a number into the data structure.
+    void addNum(int num) {
+        if(head == NULL){
+            head = new Node(num);
+            length++;
+            medianNode = head;
+            return;
+        }
+        if(head->value > num){
+            Node *node = new Node(num);
+            node->next = head;
+            head->pre = node;
+            head = node;
+            if(length%2 != 0)
+                medianNode = medianNode->pre;
+            length++;
+            
+        }
+        else{
+            Node *pre, *cur;
+            //如果直接的使下面的两句，那么会超时
+            // pre = head;
+            // cur = head->next;
+            //这里根据medianNode的值来决将要插入的节点是在链表的前中部还是后半部，使得链表的遍历减半，必须修改成一下的程序才不会超时，
+            //直接的使用上面的两句来代替下面的程序的话，会超时。
+            if(medianNode->value > num){
+                pre = head;
+                cur = head->next;
+            }
+            else{
+                pre = medianNode;
+                cur = medianNode->next;
+            }
+            
+            while(cur != NULL && (cur->value <= num)){
+                pre = cur;
+                cur = cur->next;
+            }
+            if(cur == NULL){
+                Node *node = new Node(num);
+                node->pre = pre;
+                pre->next = node;
+                if(length%2 == 0)
+                    medianNode = medianNode->next;
+            }
+            else{
+                Node *node = new Node(num);
+                node->pre = pre;
+                pre->next = node;
+                node->next = cur;
+                cur->pre = node;
+                //插入点在medianNode的左边，
+                if(medianNode->value > num){
+                    if(length%2 != 0)
+                        medianNode = medianNode->pre;
+                }
+                else{
+                    //插入点在右边
+                    if(length%2 == 0)
+                        medianNode = medianNode->next;
+                }
+            }
+            length++;
+        }
+        
+        
+    }
+
+    // Returns the median of current data stream
+    double findMedian() {
+        if(length%2 == 0)
+            return medianNode->value + (double)(medianNode->next->value - medianNode->value)/2;
+        else
+            return (double)medianNode->value;
+        /*
+        int median = 0;
+        Node *medianNode = head;
+        //偶数的话
+        if(length %2 == 0){
+            while(++median < length/2 )
+                medianNode = medianNode->next;
+            return medianNode->value + (medianNode->next->value - medianNode->value) / 2;
+        }
+        else{
+            while(++median <= length/2 )
+                medianNode = medianNode->next;
+            return medianNode->value;
+        }
+        */
+    }
+private:
+    Node *head;
+    int length;
+    Node *medianNode;
+    
+};
+
+
+// Your MedianFinder object will be instantiated and called as such:
+// MedianFinder mf;
+// mf.addNum(1);
+// mf.findMedian()
+
+
+Peeking Iterator 
+Given an Iterator class interface with methods: next() and hasNext(), design and implement a PeekingIterator that support the peek() operation -- it essentially peek() at the element that will be returned by the next call to next().Here is an example. Assume that the iterator is initialized to the beginning of the list: [1, 2, 3].Call next() gets you 1, the first element in the list.Now you call peek() and it returns 2, the next element. Calling next() after that still return 2.You call next() the final time and it returns 3, the last element. Calling hasNext() after that should return false.  Think of "looking ahead". You want to cache the next element.  Is one variable sufficient? Why or why not?  Test your design with call order of peek() before next() vs next() before peek().  For a clean implementation, check out Google's guava library source code.Follow up: How would you extend your design to be generic and work with all types, not just integer?
+Credits:Special thanks to @porker2008 for adding this problem and creating all test cases.
+
+// Below is the interface for Iterator, which is already defined for you.
+// **DO NOT** modify the interface for Iterator.
+class Iterator {
+    struct Data;
+	Data* data;
+public:
+	Iterator(const vector<int>& nums);
+	Iterator(const Iterator& iter);
+	virtual ~Iterator();
+	// Returns the next element in the iteration.
+	int next();
+	// Returns true if the iteration has more elements.
+	bool hasNext() const;
+};
+
+
+class PeekingIterator : public Iterator {
+public:
+	PeekingIterator(const vector<int>& nums) : Iterator(nums),needNext(true), top(0) {
+	    // Initialize any member here.
+	    // **DO NOT** save a copy of nums and manipulate it directly.
+	    // You should only use the Iterator interface methods.
+	    
+	}
+
+    // Returns the next element in the iteration without advancing the iterator.
+	int peek() {
+        if(needNext){
+            top = Iterator::next();
+            needNext = false;
+        }
+        return top;
+	}
+
+	// hasNext() and next() should behave the same as in the Iterator interface.
+	// Override them if needed.
+	int next() {
+	    if(needNext)
+	        return Iterator::next();
+	    needNext = true;
+	    return top;
+	}
+
+	bool hasNext() const {
+	    if(needNext)
+	        return Iterator::hasNext();
+	    return true;
+	}
+private:
+    bool needNext;
+    int top;
+}
+
+
+Implement Queue using Stacks 
+Implement the following operations of a queue using stacks.push(x) -- Push element x to the back of queue.pop() -- Removes the element from in front of queue.peek() -- Get the front element.empty() -- Return whether the queue is empty.Notes:You must use only standard operations of a stack -- which means only push to top, peek/pop from top, size, and is empty operations are valid.Depending on your language, stack may not be supported natively. You may simulate a stack by using a list or deque (double-ended queue), as long as you use only standard operations of a stack.You may assume that all operations are valid (for example, no pop or peek operations will be called on an empty queue).
+
+class Queue {
+    
+public:
+    
+    // Push element x to the back of queue.
+    void push(int x) {
+        stackIn.push(x);
+    }
+
+    // Removes the element from in front of queue.
+    void pop(void) {
+        if(stackOut.empty()){
+            //这里要小心，不能直接i<stackIn.size(),因为在for循环中，stackIn有pop函数，这样stackIn.size()的大小会改变的。
+            int size = stackIn.size();
+            for(int i=0; i<size; i++){
+                stackOut.push(stackIn.top());
+                stackIn.pop();
+            }
+        }
+       
+        stackOut.pop();
+
+    }
+
+    // Get the front element.
+    int peek(void) {
+         if(stackOut.empty()){
+            int size = stackIn.size();
+            for(int i=0; i<size; i++){
+                stackOut.push(stackIn.top());
+                stackIn.pop();
+            }
+        }
+       
+        return stackOut.top();
+    }
+
+    // Return whether the queue is empty.
+    bool empty(void) {
+        return stackIn.empty() && stackOut.empty();
+    }
+    
+private:
+    stack<int> stackIn;
+    stack<int> stackOut;
+}
+
+
+Implement Stack using Queues 
+Implement the following operations of a stack using queues.push(x) -- Push element x onto stack.pop() -- Removes the element on top of the stack.top() -- Get the top element.empty() -- Return whether the stack is empty.Notes:You must use only standard operations of a queue -- which means only push to back, peek/pop from front, size, and is empty operations are valid.Depending on your language, queue may not be supported natively. You may simulate a queue by using a list or deque (double-ended queue), as long as you use only standard operations of a queue.You may assume that all operations are valid (for example, no pop or top operations will be called on an empty stack).Update (2015-06-11):The class name of the Java function had been updated to MyStack instead of Stack.
+Credits:Special thanks to @jianchao.li.fighter for adding this problem and all test cases.
+
+class Stack {
+public:
+    // Push element x onto stack.
+    void push(int x) {
+        if(queue1.empty() && queue2.empty()){
+            queue1.push(x);
+            front = x;
+        }
+        else{
+            if(queue1.empty()){
+                queue2.push(x);
+                front = x;
+            }
+            else{
+                queue1.push(x);
+                front = x;
+            }
+                
+        }
+    }
+
+    // Removes the element on top of the stack.
+   void pop() {
+        if(queue1.empty()){
+			int size = queue2.size();
+            for(int i=0; i<size-2; i++){
+                int val = queue2.front();
+                queue2.pop();
+                queue1.push(val);
+            }
+            if(queue2.size() == 2){
+                front = queue2.front();
+                queue2.pop();
+                queue1.push(front);
+            }
+                
+            queue2.pop();
+        }
+        else{
+			int size = queue1.size();
+            for(int i=0; i<size-2; i++){
+                int val = queue1.front();
+                queue1.pop();
+                queue2.push(val);
+            }
+            if(queue1.size() == 2){
+                front = queue1.front();
+                queue1.pop();
+                queue2.push(front);
+            }
+                
+            queue1.pop();
+
+        }
+    }
+
+    // Get the top element.
+    int top() {
+        return front;
+    }
+
+    // Return whether the stack is empty.
+    bool empty() {
+        return queue1.empty() && queue2.empty();
+    }
+    
+private:
+    queue<int> queue1;
+    queue<int> queue2;
+    int front;
+}
+
+
+Add and Search Word - Data structure design 
+Design a data structure that supports the following two operations:void addWord(word)bool search(word)search(word) can search a literal word or a regular expression string containing only letters a-z or .. A . means it can represent any one letter.For example:addWord("bad")addWord("dad")addWord("mad")search("pad") ->; falsesearch("bad") ->; truesearch(".ad") ->; truesearch("b..") ->; true
+Note:You may assume that all words are consist of lowercase letters a-z.click to show hint.You should be familiar with how a Trie works. If not, please work on this problem: Implement Trie (Prefix Tree) first.
+
+struct TrieNext; 
+struct TrieNode {
+	unordered_map<char, TrieNext*> letter;
+	TrieNode() :letter() {};
+};
+
+struct TrieNext {
+	bool isword;
+	TrieNode* next;
+	TrieNext() : isword(false), next(NULL) {};
+};
+
+class WordDictionary {
+public:
+	WordDictionary() {
+		root = new TrieNode();
+	}
+	// Adds a word into the data structure.
+	void addWord(string word) {
+		TrieNode *begin = root;
+		for (int i = 0; i<word.length(); i++) {
+			if (begin->letter.find(word[i]) != begin->letter.end()) {
+				if (i == word.length() - 1) {
+					begin->letter[word[i]]->isword = true;
+					return;
+				}
+				if (begin->letter[word[i]]->next == NULL) {
+					TrieNode *next = new TrieNode();
+					begin->letter[word[i]]->next = next;
+				}
+				begin = begin->letter[word[i]]->next;
+
+			}
+			else {
+				TrieNext *nodenext = new TrieNext();
+				begin->letter[word[i]] = nodenext;
+				if (i == word.length() - 1) {
+					nodenext->isword = true;
+				}
+				else {
+					TrieNode *node = new TrieNode();
+					nodenext->next = node;
+					begin = node;
+				}
+			}
+		}
+	}
+
+	// Returns if the word is in the data structure. A word could
+	// contain the dot character '.' to represent any one letter.
+	bool search(string word) {
+		TrieNode *begin = root;
+		return search(begin, word);
+	}
+
+	bool search(TrieNode *node, string word) {
+		if (node == NULL || word.length() == 0)
+			return false;
+		if (word[0] != '.') {
+			if (node->letter.find(word[0]) != node->letter.end()) {
+				if (word.length() == 1) {
+					if (node->letter[word[0]]->isword)
+						return true;
+					return false;
+				}
+				else {
+					return search(node->letter[word[0]]->next, word.substr(1, word.length() - 1));
+				}
+			}
+			return false;
+		}
+    	//处理模糊匹配.的情况
+		else {
+			
+			unordered_map<char, TrieNext*>::iterator it;
+			if (word.length() == 1)
+				for (it = node->letter.begin(); it != node->letter.end(); it++) {
+					if (it->second->isword)
+						return true;
+				}
+			else {
+				for (it = node->letter.begin(); it != node->letter.end(); it++) {
+					if (search(it->second->next, word.substr(1, word.length() - 1)))
+						return true;
+				}
+			}
+			
+			return false;
+		}
+	}
+private:
+	TrieNode *root;
+}
+
+
+Implement Trie (Prefix Tree) 
+Implement a trie with insert, search, and startsWith methods.
+Note:You may assume that all inputs are consist of lowercase letters a-z.
+
+//内存溢出
+/*
+class TrieNode {
+public:
+    // Initialize your data structure here.
+    TrieNode() {
+        isword = false;
+        children = NULL;
+    }
+    bool isword;
+    TrieNode** children;
+};
+
+class Trie {
+public:
+	Trie() {
+		root = new TrieNode();
+	}
+
+// Inserts a word into the trie.
+	void insert(string word) {
+		TrieNode *begin = root;
+		
+		for (int i = 0; i < word.length(); i++) {
+			if (begin->children == NULL) {
+				begin->children = new TrieNode*[26];
+				memset(begin->children, NULL, 26 * sizeof(TrieNode*));
+			}
+			if (begin->children[word[i] - 'a'] == NULL) {
+				TrieNode *next = new TrieNode();
+				begin->children[word[i] - 'a'] = next;
+				
+			}
+			begin = begin->children[word[i] - 'a'];
+			if (i == word.length() - 1)
+				begin->isword = true;
+		}
+			
+
+	}
+
+
+	// Returns if the word is in the trie.
+	bool search(string word) {
+		return search(root, word);
+	}
+
+	//查找当前节点与word[0] 匹配的子节点，然后循环查找
+	bool search(TrieNode* node, string word) {
+		if (node == NULL || word.length() == 0)
+			return false;
+		if (word[0] != '.') {
+			if (node->children == NULL)
+				return false;
+			TrieNode *next = node->children[word[0] - 'a'];
+			if (next == NULL)
+				return false;
+			if (word.length() == 1)
+				return next->isword;
+			return search(next, word.substr(1, word.length() - 1));
+		}
+		//模糊匹配. , 遍历当前节点的所children
+		else {
+			if (node->children == NULL)
+				return false;
+			for (int i = 0; i<26; i++) {
+				if (search(node->children[i], word.substr(1, word.length() - 1)))
+					return true;
+			}
+			return false;
+		}
+	}
+
+	// Returns if there is any word in the trie
+	// that starts with the given prefix.
+	bool startsWith(string prefix) {
+		return startsWith(root, prefix);
+	}
+
+	bool startsWith(TrieNode *node, string prefix) {
+		if (prefix.length() == 0)
+			return true;
+		if (node->children == NULL)
+			return false;
+		if (node->children[prefix[0] - 'a'] == NULL)
+			return false;
+		if (prefix[0] != '.') {
+			return startsWith(node->children[prefix[0] - 'a'], prefix.substr(1, prefix.length() - 1));
+		}
+
+		//匹配.
+		for (int i = 0; i<26; i++) {
+			if (startsWith(node->children[i], prefix.substr(1, prefix.length() - 1)))
+				return true;
+		}
+		return false;
+	}
+
+private:
+	TrieNode* root;
+};
+*/
+/*
+class TrieNode {
+public:
+    // Initialize your data structure here.
+    TrieNode(): isword(false), children() {
+    }
+    bool isword;
+    unordered_map<char, TrieNode*> children;
+};
+
+class Trie {
+public:
+	Trie() {
+		root = new TrieNode();
+	}
+
+	// Inserts a word into the trie.
+	void insert(string word) {
+		TrieNode *begin = root;
+		for (int i = 0; i < word.length(); i++) {
+			if (begin->children.count(word[i]) == 0) {
+				begin->children[word[i]] = new TrieNode();
+			}
+			begin = begin->children[word[i]];
+		}
+		begin->isword = true;
+
+	}
+
+
+	// Returns if the word is in the trie.
+	bool search(string word) {
+		return search(root, word);
+	}
+
+	//查找当前节点与word[0] 匹配的子节点，然后循环查找
+	bool search(TrieNode* node, string word) {
+		if (node == NULL || word.length() == 0)
+			return false;
+		if (word[0] != '.') {
+			if (node->children.count(word[0]) == 0) {
+				return false;
+			}
+			if (word.length() == 1)
+				return node->children[word[0]]->isword;
+			search(node->children[word[0]], word.substr(1, word.length() - 1));
+		}
+		//模糊匹配. , 遍历当前节点的所children
+		else {
+			unordered_map<char, TrieNode*>::iterator it;
+			for (it = node->children.begin(); it != node->children.end(); it++) {
+				if (search(it->second, word.substr(1, word.length() - 1)))
+					return true;
+			}
+			return false;
+		}
+	}
+
+	// Returns if there is any word in the trie
+	// that starts with the given prefix.
+	bool startsWith(string prefix) {
+		return startsWith(root, prefix);
+	}
+
+	bool startsWith(TrieNode *node, string prefix) {
+		if (prefix.length() == 0)
+			return true;
+		if (prefix[0] != '.') {
+			if (node->children.count(prefix[0]) == 0) {
+				return false;
+			}
+			return startsWith(node->children[prefix[0]], prefix.substr(1, prefix.length() - 1));
+		}
+
+		//匹配.
+		unordered_map<char, TrieNode*>::iterator it;
+		for (it = node->children.begin(); it != node->children.end(); it++) {
+			if (startsWith(it->second, prefix.substr(1, prefix.length() - 1)))
+				return true;
+		}
+		return false;
+	}
+
+private:
+	TrieNode* root;
+};
+*/
+
+class TrieNode {
+    public:
+        // Initialize your data structure here.
+// hash map with key as char and value as node .
+        unordered_map<char , TrieNode*> children ;
+        bool isleaf;
+// initialize them
+        TrieNode():isleaf(false),children() {}
+    };
+
+    class Trie {
+    public:
+        Trie() {
+            root = new TrieNode();
+        }
+        // Inserts a word into the trie.
+        void insert(string word) {
+            TrieNode *cur = root;
+            for(int i = 0 ; i < word.size();i++){
+// if node is empty , create new node and  insert children map of parent.
+                if(cur->children.count(word[i])==0){
+                    cur->children[word[i]] = new TrieNode();
+                }
+                cur = cur->children[word[i]];
+            }
+// make the last node as leaf after whole pattern is scanned.
+            cur->isleaf = true;
+        }
+
+        // Returns if the word is in the trie.
+        bool search(string word) {
+// if node is not null and it is a leaf , we found the word else return false
+            TrieNode *t = searchNode(word);
+            if(t && t->isleaf)
+                return true;
+            return false;
+        }
+
+        // Returns if there is any word in the trie
+        // that starts with the given prefix.
+        bool startsWith(string prefix) {
+// just find the word in the trie and return 
+            if(searchNode(prefix))
+                return true;
+            return false;
+        }
+
+        TrieNode *searchNode(string word){
+            unordered_map<char , TrieNode*> children = root->children;
+            TrieNode *t = NULL;
+            for(int i = 0 ; i < word.size();i++){
+// if there is no node with particular char , the word does;t exits.return NULL
+                if(children.count(word[i])==0){
+                    return NULL;
+                }
+                t = children[word[i]];
+                children = t->children;
+            }
+            return t;
+        }
+    private:
+        TrieNode* root;
+    };
+// Your Trie object will be instantiated and called as such:
+// Trie trie;
+// trie.insert("somestring");
+// trie.search("key")
+
+
+Binary Search Tree Iterator 
+Implement an iterator over a binary search tree (BST). Your iterator will be initialized with the root node of a BST.Calling next() will return the next smallest number in the BST.
+Note: next() and hasNext() should run in average O(1) time and uses O(h) memory, where h is the height of the tree. 
+Credits:Special thanks to @ts for adding this problem and creating all test cases.
+
+/**
+ * Definition for binary tree
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class BSTIterator {
+public:
+    BSTIterator(TreeNode *root) {
+        while(root != NULL){
+            iterator.push(root);
+            root = root->left;
+        }
+    }
+
+    /** @return whether we have a next smallest number */
+    bool hasNext() {
+        return !iterator.empty();
+    }
+
+    /** @return the next smallest number */
+    int next() {
+        TreeNode* node = iterator.top();
+        iterator.pop();
+        int ret = node->val;
+        if(node->right != NULL){
+            node = node->right;
+            while(node!=NULL){
+                iterator.push(node);
+                node = node->left;
+            }
+        }
+        return ret;
+    }
+private:
+    stack<TreeNode*> iterator;
+};
+
+/**
+ * Your BSTIterator will be called like this:
+ * BSTIterator i = BSTIterator(root);
+ * while (i.hasNext()) cout << i.next();
+ *
+
+
+Min Stack 
+Design a stack that supports push, pop, top, and retrieving the minimum element in constant time.push(x) -- Push element x onto stack.pop() -- Removes the element on top of the stack.top() -- Get the top element.getMin() -- Retrieve the minimum element in the stack.
+
+class MinStack {
+public:
+    void push(int x) {
+        minstack.push_back(x);
+        if(minstack[minIndex] > x)
+            minIndex = minstack.size()-1;
+    }
+
+    void pop() {
+        if(minstack.size() == 0)
+            return;
+        if(minIndex == minstack.size()-1){
+            minIndex = 0;
+            //这里要进行有符号的转换(int)(minstack.size()-2)，不然会以无符号的处理，当minstack-size()小于2时，所得到的值就不是负数的了
+            for(int i=0; i<=(int)(minstack.size()-2); i++)
+                if(minstack[minIndex] > minstack[i])
+                    minIndex = i;
+        }
+        minstack.erase(minstack.begin()+minstack.size()-1);
+    }
+
+    int top() {
+        if(minstack.size() == 0)
+            return NULL;
+        return minstack[minstack.size()-1];
+    }
+
+    int getMin() {
+        if(minstack.size() == 0)
+            return NULL;
+        return minstack[minIndex];
+    }
+    
+private:
+    vector<int> minstack;
+    int minIndex = 0;
+}
+
+
+LRU Cache 
+Design and implement a data structure for Least Recently Used (LRU) cache. It should support the following operations: get and set.get(key) - Get the value (will always be positive) of the key if the key exists in the cache, otherwise return -1.set(key, value) - Set or insert the value if the key is not already present. When the cache reached its capacity, it should invalidate the least recently used item before inserting a new item.
+
+struct myListNode {
+	int key;
+	//int f;
+	myListNode* next;
+	myListNode* pre;
+	myListNode(int key) : key(key), next(NULL), pre(NULL) {};
+};
+
+//最近没使用的元素在缓存满的时候，删除，跟元素的使用次数没关系，只跟最近使不使用有关
+class LRUCache {
+public:
+	LRUCache(int capacity) {
+		this->capacity = capacity;
+		head = NULL;
+		tail = NULL;
+	}
+
+	int get(int key) {
+		if (kv.count(key) != 0) {
+			/*跟次数没关系，只要元素被访问，就把他放到链表的尾端
+			kf[key]->f++;
+			if (kf[key]->next != NULL) {
+			if (kf[key]->f > kf[key]->next->f) {
+			myListNode* before_key = kf[key]->pre;
+			if (before_key == NULL) {
+			myListNode* after_key = kf[key]->next;
+			if (after_key == NULL)
+			return kv[key];
+			head = after_key;
+			myListNode *after_key_next = after_key->next;
+			if (after_key_next != NULL) {
+			kf[key]->next = after_key_next;
+			kf[key]->pre = after_key;
+			after_key_next->pre = kf[key];
+			after_key->next = kf[key];
+			after_key->pre = NULL;
+			}
+			else {
+			kf[key]->next = NULL;
+			kf[key]->pre = after_key;
+			after_key->next = kf[key];
+			after_key->pre = NULL;
+			}
+			}
+			else {
+			myListNode* after_key = kf[key]->next;
+			if (after_key == NULL)
+			return kv[key];
+			myListNode *after_key_next = after_key->next;
+			if (after_key_next != NULL) {
+			before_key->next = after_key;
+			after_key->next = kf[key];
+			after_key->pre = before_key;
+			kf[key]->next = after_key_next;
+			kf[key]->pre = after_key;
+			after_key_next->pre = kf[key];
+			}
+			else {
+			before_key->next = after_key;
+			after_key->next = kf[key];
+			after_key->pre = before_key;
+			kf[key]->next = NULL;
+			kf[key]->pre = after_key;
+			}
+			}
+			}
+			}
+			*/
+
+			//该元素刚被访问过，放在链表的尾部
+			if (kf[key] != tail) {
+				if (kf[key] != head) {
+					myListNode* before_key = kf[key]->pre;
+					myListNode* after_key = kf[key]->next;
+					before_key->next = after_key;
+					after_key->pre = before_key;
+					tail->next = kf[key];
+					kf[key]->pre = tail;
+					kf[key]->next = NULL;
+					tail = tail->next;
+				}
+				//该元素恰好在头部
+				else {
+					head = head->next;
+					head->pre = NULL;
+					tail->next = kf[key];
+					kf[key]->pre = tail;
+					kf[key]->next = NULL;
+					tail = tail->next;
+				}
+			}
+			return kv[key];
+		}
+		return -1;
+	}
+
+	void set(int key, int value) {
+		//插入操作
+		if (kv.count(key) == 0) {
+			//没有空间了
+			if (capacity == 0) {
+				myListNode* node = head;
+				head = head->next;
+				if (head == NULL)
+					tail == NULL;
+				int key = node->key;
+				kv.erase(key);
+				kf.erase(key);
+				delete node;
+				capacity++;
+			}
+			capacity--;
+			kv[key] = value;
+			myListNode *node = new myListNode(key);
+			kf[key] = node;
+			if (head == NULL) {
+				head = node;
+				tail = head;
+			}
+			else {
+				tail->next = node;
+				node->pre = tail;
+				tail = tail->next;
+			}
+
+		}
+		//更新操作
+		else {
+			kv[key] = value;
+			//该元素刚被访问过，放在链表的尾部
+			if (kf[key] != tail) {
+				if (kf[key] != head) {
+					myListNode* before_key = kf[key]->pre;
+					myListNode* after_key = kf[key]->next;
+					before_key->next = after_key;
+					after_key->pre = before_key;
+					tail->next = kf[key];
+					kf[key]->pre = tail;
+					kf[key]->next = NULL;
+					tail = tail->next;
+				}
+				//该元素恰好在头部
+				else {
+					head = head->next;
+					head->pre = NULL;
+					tail->next = kf[key];
+					kf[key]->pre = tail;
+					kf[key]->next = NULL;
+					tail = tail->next;
+				}
+
+
+				/*
+				kf[key]->f++;
+				if (kf[key]->next != NULL) {
+				if (kf[key]->f > kf[key]->next->f) {
+				myListNode* before_key = kf[key]->pre;
+				if (before_key == NULL) {
+				myListNode* after_key = kf[key]->next;
+				if (after_key == NULL)
+				return;
+				head = after_key;
+				myListNode *after_key_next = after_key->next;
+				if (after_key_next != NULL) {
+				kf[key]->next = after_key_next;
+				kf[key]->pre = after_key;
+				after_key_next->pre = kf[key];
+				after_key->next = kf[key];
+				after_key->pre = NULL;
+				}
+				else {
+				kf[key]->next = NULL;
+				kf[key]->pre = after_key;
+				after_key->next = kf[key];
+				after_key->pre = NULL;
+				}
+				}
+				else {
+				myListNode* after_key = kf[key]->next;
+				if (after_key == NULL)
+				return;
+				myListNode *after_key_next = after_key->next;
+				if (after_key_next != NULL) {
+				before_key->next = after_key;
+				after_key->next = kf[key];
+				after_key->pre = before_key;
+				kf[key]->next = after_key_next;
+				kf[key]->pre = after_key;
+				after_key_next->pre = kf[key];
+				}
+				else {
+				before_key->next = after_key;
+				after_key->next = kf[key];
+				after_key->pre = before_key;
+				kf[key]->next = NULL;
+				kf[key]->pre = after_key;
+				}
+
+				}
+				}
+				}
+				*/
+			}
+
+		}
+	}
+
+private:
+	unordered_map<int, int> kv;
+	unordered_map<int, myListNode*> kf;
+	myListNode* head;
+	myListNode* tail;
+	int capacity;
+}
+
+

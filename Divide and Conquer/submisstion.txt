@@ -1,0 +1,683 @@
+Expression Add Operators 
+Given a string that contains only digits 0-9 and a target value, return all possibilities to add binary operators (not unary) +, -, or * between the digits so they evaluate to the target value.Examples: "123", 6 ->; ["1+2+3", "1*2*3"] "232", 8 ->; ["2*3+2", "2+3*2"]"105", 5 ->; ["1*0+5","10-5"]"00", 0 ->; ["0+0", "0-0", "0*0"]"3456237490", 9191 ->; []
+Credits:Special thanks to @davidtan1890 for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    //深搜的方法，因为要输出所有的解，所以要遍历所有的情况.
+    //虽然target为int类型的，但是在计算的过程中有可能会溢出，并且负数的个数比正数的多一个，
+    //所以这里要采用long long 类型的变量作为中间的计算结果
+    vector<string> addOperators(string num, int target) {
+        vector<string> solution;
+        if(num.length() == 0)
+            return solution;
+		else if(num.length() == 1){
+			if(num[0]-'0' == target){
+				solution.push_back(num.substr(0,1));
+			}
+			return solution;
+				
+		}
+        else{
+            _addOperators(0, num, target, 0, "", solution, 0, 0);
+			return solution;
+        }
+    }
+    
+    void _addOperators(int start, string const &num, int const target, long long sum, string result, vector<string> &solution, long long pre, int op){
+        if(start==num.length()){
+            if(sum == target)
+                solution.push_back(result);
+            return ;
+        }
+        long long tempPre;
+        long long tempPre1 = pre;
+        long long tempSum = sum;
+        for(int count=1; count<=num.length()-start; count++){
+		
+			//第一个操作数
+			if(start == 0){
+				pre = getNumber(start, count, num);
+				_addOperators(start+count, num, target, pre, num.substr(start, count), solution, pre, 0);
+				 //当当前值为0时，只能为一个0，不能有01，001，0001之类的出现
+			    if(num[start] == '0')
+				    break;
+				continue;
+			}
+			
+            pre = tempPre1;
+            sum = tempSum;
+             for(int i=0; i<3; i++){
+             switch(i){
+                case 0:
+					tempPre = pre;
+                    pre = getNumber(start, count, num);
+                   
+                    _addOperators(start+count, num, target, sum+pre, result + "+" + num.substr(start, count), solution, pre, 0);
+                    pre = tempPre;
+                    break;
+                case 1:
+					
+					tempPre = pre;
+                     pre= getNumber(start, count, num);
+                     
+                    _addOperators(start+count, num, target, sum-pre, result + "-" + num.substr(start, count), solution, pre, 1);
+					pre = tempPre;
+                    break;
+                case 2:
+                    long long temp = getNumber(start, count, num);
+					tempPre = pre;
+                    //上一个操作为+号
+                    if(op==0){
+                        int tem = sum;
+                        tem = tem - pre;
+                        pre = pre * temp;
+                        _addOperators(start+count, num, target, tem+pre, result + "*" + num.substr(start, count), solution, pre, 0);
+						pre = tempPre;
+                        
+                    }
+                    else if(op == 1){
+                        long long temp = getNumber(start, count, num);
+                        //上一个操作为-号
+                        int tem = sum;
+                        tem = tem + pre;
+                        pre = pre * temp;
+                        _addOperators(start+count, num, target, tem-pre, result + "*" + num.substr(start, count), solution, pre, 1);
+						pre = tempPre;
+                    }
+                    break;
+            }
+                
+        }
+			 //当当前值为0时，只能为一个0，不能有01，001，0001之类的出现
+			 if(num[start] == '0')
+				break;
+        }
+        
+           
+        }
+        
+    
+    long long getNumber(int start, int count, string const &num){
+        long long sum =  0;
+        for(int i=0; i<count; i++){
+            sum = sum * 10 + (num[start+i]-'0');
+        }
+        return sum;
+        
+    }
+
+}
+
+
+Different Ways to Add Parentheses 
+Given a string of numbers and operators, return all possible results from computing all the different possible ways to group numbers and operators. The valid operators are +, - and *.Example 1Input: "2-1-1". ((2-1)-1) = 0(2-(1-1)) = 2Output: [0, 2]Example 2Input: "2*3-4*5" (2*(3-(4*5))) = -34((2*3)-(4*5)) = -14((2*(3-4))*5) = -10(2*((3-4)*5)) = -10(((2*3)-4)*5) = 10Output: [-34, -14, -10, -10, 10] 
+Credits:Special thanks to @mithmatt for adding this problem and creating all test cases.
+
+
+class Solution {
+public:
+    /*
+    //可以执行，但会出现重复，例如：2+4*5—6
+    //1:(2+4)*5-6 -> (2+4)*(5-6) -> ((2+4)*(5-6))
+    //2:2+4*(5-6) -> (2+4)*(5-6) -> ((2+4)*(5-6))
+    //虽然加括号的顺序不一样，但是最后的结果还是一样
+    vector<int> diffWaysToCompute(string input) {
+        vector<int> result;
+        if(input.size() == 0)
+            return result;
+        _diffWaysToCompute(input, result);
+        return result;
+        
+    }
+    
+    void _diffWaysToCompute(string input, vector<int> &result){
+        if(input.size() == 0)
+            return ;
+        if(input.size() == 1){
+            result.push_back(input[0]-'0');
+            return;
+        }
+            
+        //找出字符串中的符号
+        vector<char> opera;
+        for(int i=1; i<input.size(); i++){
+            if((input[i] == '+' || input[i] == '-' || input[i] == '*') && (48<=input[i-1] && input[i]<=57)){
+                opera.push_back(i);
+            }
+                
+        }
+        //找不到符号，说明已经没有操作符号了
+        if(opera.size() == 0){
+            result.push_back(stringToInt(input));
+        }
+        else{
+            int start = 0;
+            int end = 0;
+            for(int j=0; j<opera.size(); j++){
+                if(j!=0)
+                    start = opera[j-1]+1;
+                if(j!=opera.size()-1)
+                    end = opera[j+1]-1;
+                else
+                    end = input.size()-1;
+                int left = stringToInt(input.substr(start, opera[j]-start));
+                int right = stringToInt(input.substr(opera[j]+1, end-opera[j]));
+                int val = 0;
+                switch(input[opera[j]]){
+                    case '-':
+                            val = left-right;
+                            break;
+                    case '+':
+                            val = left+right;
+                            break;
+                    case '*':
+                            val = left*right;
+                            break;
+                        
+                }
+                
+                string newInput = input.substr(0, start) + intToString(val) + input.substr(end+1, input.size()-end);
+                _diffWaysToCompute(newInput, result);
+                
+            }
+        }
+        
+    }
+    
+    int stringToInt(string input){
+        if(input.size() == 0)
+            return 0;
+        int num = 0;
+        int sign = 1;
+        int index = 0;
+        if(input[0] == '-'){
+             sign = -1;
+             index++;
+        }
+           
+        for(; index<input.size(); index++){
+            num = num*10 + (input[index]-'0');
+        }
+        return num*sign;
+    }
+    
+    string intToString(int num){
+		if(num == 0)
+			return "0";
+        long long val = num;
+        bool native = false;
+        if(val<0){
+			native = true;
+			val = -val;
+		}
+        string result = ""; 
+        while(val){
+            result = (char)(val%10+'0') + result;
+            val /= 10;
+        }
+        return native? '-'+result: result;
+    }
+    
+    */
+    
+    
+    vector<int> diffWaysToCompute(string input) {
+        vector<int> result;
+        if(input.size() == 0)
+            return result;
+        int val = 0;
+        int i=0;
+        while(i<input.length() && isdigit(input[i])){
+            val = val*10 + input[i]-'0';
+            i++;
+        }
+        if(i == input.length())
+            return {val};
+        for(int i=0; i<input.length(); i++){
+            if(!isdigit(input[i])){
+                vector<int > left = diffWaysToCompute(input.substr(0, i));
+                vector<int>  right = diffWaysToCompute(input.substr(i+1, input.length()));
+                for(int n=0; n<left.size(); n++){
+                    for(int m=0; m<right.size(); m++){
+                        switch(input[i]){
+                            case '-':
+                                result.push_back(left[n]-right[m]);
+                                break;
+                             case '+':
+                                result.push_back(left[n]+right[m]);
+                                break;
+                             case '*':
+                                result.push_back(left[n]*right[m]);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+        
+    }
+};
+
+
+
+Search a 2D Matrix II 
+Write an efficient algorithm that searches for a value in an m x n matrix. This matrix has the following properties:Integers in each row are sorted in ascending from left to right.Integers in each column are sorted in ascending from top to bottom.For example,Consider the following matrix:[  [1,   4,  7, 11, 15],  [2,   5,  8, 12, 19],  [3,   6,  9, 16, 22],  [10, 13, 14, 17, 24],  [18, 21, 23, 26, 30]]Given target = 5, return true.Given target = 20, return false.
+
+class Solution {
+public:
+    //以右上角的元素作为标准，但右上角的元素大于target时，那么可以删除掉最右的一列元素，否则删掉最上面的一行元素
+    bool searchMatrix(vector<vector<int>>& matrix, int target) {
+        if(matrix.size() == 0)
+            return false;
+        int row = 0;
+        int col = matrix[0].size()-1;
+        while(row<matrix.size() && col>=0){
+            if(matrix[row][col] == target)
+                return true;
+            if(matrix[row][col] > target)
+                col--;
+            else
+                row++;
+        }
+        return false;
+    }
+}
+
+
+The Skyline Problem 
+A city's skyline is the outer contour of the silhouette formed by all the buildings in that city when viewed from a distance. Now suppose you are given the locations and height of all the buildings as shown on a cityscape photo (Figure A), write a program to output the skyline formed by these buildings collectively (Figure B).        The geometric information of each building is represented by a triplet of integers [Li, Ri, Hi], where Li and Ri are the x coordinates of the left and right edge of the ith building, respectively, and Hi is its height. It is guaranteed that 0 ≤ Li, Ri ≤ INT_MAX, 0 <; Hi ≤ INT_MAX, and Ri - Li >; 0. You may assume all buildings are perfect rectangles grounded on an absolutely flat surface at height 0.For instance, the dimensions of all buildings in Figure A are recorded as: [ [2 9 10], [3 7 15], [5 12 12], [15 20 10], [19 24 8] ] .The output is a list of "key points" (red dots in Figure B) in the format of [ [x1,y1], [x2, y2], [x3, y3], ... ] that uniquely defines a skyline. A key point is the left endpoint of a horizontal line segment. Note that the last key point, where the rightmost building ends, is merely used to mark the termination of the skyline, and always has zero height. Also, the ground in between any two adjacent buildings should be considered part of the skyline contour.For instance, the skyline in Figure B should be represented as:[ [2 10], [3 15], [7 12], [12 0], [15 10], [20 8], [24, 0] ].Notes: The number of buildings in any input list is guaranteed to be in the range [0, 10000]. The input list is already sorted in ascending order by the left x position Li.  The output list must be sorted by the x position.  There must be no consecutive horizontal lines of equal height in the output skyline. For instance, [...[2 3], [4 5], [7 5], [11 5], [12 7]...] is not acceptable; the three lines of height 5 should be merged into one in the final output as such: [...[2 3], [4 5], [12 7], ...]
+Credits:Special thanks to @stellari for adding this problem, creating these two awesome images and all test cases.
+
+class Solution {
+public:
+    //参考Discuss里面的讲解
+    //总体思想就是，将所有建筑物的起始点和终点按照升序排序，起始点的高度为建筑物的高度，终点的高度为建筑物高度的负数
+    //以作为该建筑物已走完的标记，在multimap中，所有键将升序排序，所有相同键的对已多个值将以升序排序
+    //这样的话，在遍到相同的键时，对于起始的节点，我们只选取最高的，所以在判断当前所选择的天际线
+    //是否可行的时候，需要使用p.first!=x来判断是否在相同的起点有更高的位置，当前的天际线是否可以，还要跟上一个
+    //可行的天际线对比，如果高度是一样的，那么当前的天际线不是可行解（类似4,5    7,5，这种情况）
+    //在遍历的时候，如果是一起点，那么将该点的高度加到multiset中，这里必须为multiset，因为建筑物高度
+    //有可能是一样的，而且在走完一栋建筑物的时候，我们会删除其在set中的高度，但是有可能相同高度的建筑物还没走完
+    //说以要保证有多个相同高度在set里面，注意建筑物有可能会比当前的天际线高或低，所以我们不能直接的将当前的建筑物的
+    //高度作为新的天际线的高度，而是要先将其高度放在set中，在选最大的作为新天际线的高度，（进入下一个建筑物时，要判断该天际线
+    //是否是可行的）！
+    vector<pair<int, int>> getSkyline(vector<vector<int>>& buildings) {
+        //将所有的building起始坐标以及终止坐标作为键值，值为该building的高度，对于终止节点，我们将
+        //高度设为负的
+        multimap<int, int> coords;
+        for(const vector<int> &building: buildings){
+            coords.emplace(building[0], building[2]);
+            coords.emplace(building[1], -building[2]);
+        }
+        
+        //之所以要加0，是因为单当建筑物之间有空格的时候，要以地平线作为天际线
+        multiset<int> heights = {0};
+        vector<pair<int, int>> ret;
+        //记住当前的天际线的起始点坐标
+        int x = -1;
+        int y = 0;
+        for(const pair<int, int> &p: coords){
+            //当前的天际线的坐标不能与当前的p一样，因为一样的话，说明有多个建筑物的起点一样，但是在coords
+            //中相同的键是以其对应值来升序排序的，相同的起点应该以最高高度作为天际线，所以应该忽略掉前面一个值
+            //而选取后面更大的值；还有另外一种情况就是，如果有多个建筑连在一起，而且高度是一样这样的话，只能以
+            //第一个建筑物的起点作为天际线的折点，后面的应该忽略
+            if((x!=-1 && p.first!=x) && (ret.empty() || ret.rbegin()->second != y)){
+                ret.emplace_back(x, y);
+            }
+            
+            //对于当前的p，如果其高度大于0，说明是建筑物的起点，可以加入到heights中
+            if(p.second > 0)
+                heights.insert(p.second);
+            //否则的话，当前的高度走完了，要跳到下一个高度
+            else
+                heights.erase(heights.find(-p.second));
+            x = p.first;
+            y = *heights.rbegin();
+        }
+        
+        if(!ret.empty() && ret.rbegin()->second!=0)
+            ret.emplace_back(x, 0);
+        return ret;
+    }
+}
+
+
+Kth Largest Element in an Array 
+Find the kth largest element in an unsorted array. Note that it is the kth largest element in the sorted order, not the kth distinct element.For example,Given [3,2,1,5,6,4] and k = 2, return 5.
+Note: You may assume k is always valid, 1 ≤ k ≤ array's length.
+Credits:Special thanks to @mithmatt for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    //利用快排的思想，该算法就是所谓的快速查找算法
+    int findKthLargest(vector<int>& nums, int k) {
+        q_select(nums, 0, nums.size()-1, k);
+        return nums[nums.size()-k];
+    }
+    
+    void q_select(vector<int>& nums, int left, int right, int k){
+        if(right<=left)
+            return;
+        //因为下面有j=right-1,然后在--j,所以必须保证right>left+1;也就是数组总共有三个以上
+        if(right == left +1){
+            if(nums[left]>nums[right])
+                swap(nums[left], nums[right]);
+            return;
+        }
+        //获得轴值,必须三个值以上
+        int medium = getMedium(nums, left, right);
+        int i=left;
+        int j=right-1;
+        while(true){
+            while(nums[++i]<medium);
+            while(nums[--j]>medium);
+            if(i<j)
+                swap(nums[i], nums[j]);
+            if(i>j)
+                break;
+        }
+        swap(nums[i], nums[right-1]);
+        if(i == nums.size()-k)
+            return ;
+        if(i<nums.size()-k)
+            q_select(nums, i+1, right, k);
+        else
+            q_select(nums, left, i-1, k);
+        
+    }
+    //前中后三个元素，找中间的值，顺便将最小的值放在left，最大的值放在right，将中间值与right-1交换。
+    int getMedium(vector<int> &nums, int left, int right){
+        int medium = left + (right-left)/2;
+        if(nums[left]>nums[medium])
+            swap(nums[left], nums[medium]);
+        if(nums[left]>nums[right])
+            swap(nums[left], nums[right]);
+        if(nums[medium]>nums[right])
+            swap(nums[medium], nums[right]);
+        //将轴值放在你倒数第二个位置
+        swap(nums[medium], nums[right-1]);
+        return nums[right-1];  
+    }
+    
+    void swap(int &a, int &b){
+        int temp = a;
+        a = b;
+        b = temp;
+    }
+}
+
+
+Majority Element 
+Given an array of size n, find the majority element. The majority element is the element that appears more than &amp;lfloor; n/2 &amp;rfloor; times.You may assume that the array is non-empty and the majority element always exist in the array.
+Credits:Special thanks to @ts for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    //两个不同的元素抵消掉，最后剩下的就是那个众数
+    int majorityElement(vector<int>& nums) {
+        if(nums.size()==1)
+            return nums[0];
+        int count = 0;
+        int start = 0; 
+        int index = 1;
+        for(; index<nums.size(); index++){
+            if(nums[start] == nums[index]){
+                count++;
+                if(count>nums.size()/2)
+                    return nums[start];
+            }
+                
+            else{
+                if(count == 0){
+                    start = ++index;
+                }
+                else{
+                    count--;
+                }
+            }
+        }
+         return nums[start];
+    }
+}
+
+
+Maximum Subarray 
+Find the contiguous subarray within an array (containing at least one number) which has the largest sum.For example, given the array [&amp;#8722;2,1,&amp;#8722;3,4,&amp;#8722;1,2,1,&amp;#8722;5,4],the contiguous subarray [4,&amp;#8722;1,2,1] has the largest sum = 6.click to show more practice.More practice:If you have figured out the O(n) solution, try coding another solution using the divide and conquer approach, which is more subtle.
+
+class Solution {
+public:
+    int maxSubArray(vector<int>& nums) {
+        if(nums.size() == 0)
+            return 0;
+        int largest = INT_MIN;
+        int pre = -1;
+        for(int i=0; i<nums.size(); i++){
+            if(pre>0){
+                pre += nums[i];
+               
+            }
+            else{
+                pre = nums[i];
+            }
+            if(largest<pre)
+                largest = pre;
+        }
+        return largest;
+    }
+}
+
+
+Merge k Sorted Lists 
+Merge k sorted linked lists and return it as one sorted list. Analyze and describe its complexity.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+ 
+class Solution {
+public:
+	//利用一般的选择算法会超时！超时! 超时！！！
+	//这个算法的思想是正确的，但是之所以会超时是因为每次在选取最小值的时候其实使用的是选择法，
+	//也就是说整一个排序用的是选择排序算法，所以时间复杂度为O(N^2), 就超时了！！！
+     
+    //新的算法使用堆来每次获得最小的节点
+	//全局变量，记录数组的长度，因为要建立堆，所以这里直接的将lists作为建堆的数组，这样可以使得整个算法的
+	//空间复杂度为O(1).
+	int num = 0;
+
+	ListNode* mergeKLists(vector<ListNode*>& lists) {
+		if (lists.size() == 0)
+			return NULL;
+		if (lists.size() == 1)
+			return lists[0];
+		ListNode *head = new ListNode(0);
+		ListNode *cur = head;
+		//这里有一个需要注意的地方，就是lists中有可能会出现空的节点，也就是说有空链表的存在，所以要先排除掉空链表
+		for (int i = 0; i<lists.size(); i++) {
+			if (lists[i] != NULL) {
+				lists[num] = lists[i];
+				num++;
+			}
+		}
+		//建堆
+		buildHeap(lists);
+		int index = 0;
+		while (num >= 1) {
+			ListNode *smallest = NULL;
+			/*
+			//很一般的选择算法，导致超时
+			for(int i=0; i<lists.size(); i++){
+			if(lists[i] == NULL){
+			num--;
+			continue;
+			}
+			if(smallest == NULL){
+			smallest = lists[i];
+			index = i;
+			continue;
+			}
+			if(smallest->val > lists[i]->val){
+			smallest = lists[i];
+			index = i;
+			}
+			}
+			*/
+
+			//这里采用堆排序的方法，时间复杂度为O(NlgN)
+			smallest = getSmallestFromHeap(lists);
+
+			//得到了lists中的最小的值
+			cur->next = smallest;
+			cur = smallest;
+			//lists[index] = smallest->next;
+		}
+		cur = head->next;
+		delete head;
+		return cur;
+	}
+
+	//建堆的过程,直接的使用lists，不需要自己开辟新的数组
+	//建堆的过程从数组的右边开始，对于下标i，其父节点的下标是(i-1)/2, 这里需要注意一点，对于每一个节点，其左右子节点的小标为
+	//左节点为奇数，右节点是偶数，所以对于最右边的数组节点，要判断其是否有兄弟节点，如果下标为偶数，那么可以与前一个节点构成
+	//兄弟节点，共同查找其父节点，如果是奇数的话，说明没有兄弟节点，不能跟前一个元素构成兄弟节点，对于没一个元素，如果其值大于
+	//该元素的左右子节点的最小值，那么要对该元素进行shiftdown操作
+	//类的属性num记录lists中有用的元素的个数
+	void buildHeap(vector<ListNode*>& lists) {
+		if (num <= 1)
+			return;
+		//这里要使用 i=num-1，不能直接的i = lists.size();
+		for (int i = num - 1; i>0; i--) {
+			//偶数
+			if (i % 2 == 0) {
+				int p = (i - 1) / 2;
+				int small = i;
+				if (lists[i]->val>lists[i - 1]->val)
+					small = i - 1;
+				if (lists[p]->val > lists[small]->val) {
+					shiftdown(lists, p);
+				}
+				i--;
+			}
+			//奇数
+			else {
+				int p = (i - 1) / 2;
+				if (lists[p]->val > lists[i]->val) {
+					shiftdown(lists, p);
+				}
+			}
+		}
+	}
+
+	void shiftdown(vector<ListNode*> &lists, int p) {
+		int left = p * 2 + 1;
+		int right = p * 2 + 2;
+		if (left >= num)
+			return;
+		int small = left;
+		if (right < num) {
+			if (lists[left]->val>lists[right]->val)
+				small = right;
+		}
+		if (lists[p]->val > lists[small]->val) {
+			ListNode *temp = lists[p];
+			lists[p] = lists[small];
+			lists[small] = temp;
+			shiftdown(lists, small);
+		}
+		else
+			return;
+	}
+	//从堆中拿出最小的值
+	ListNode* getSmallestFromHeap(vector<ListNode*>& lists) {
+		if (lists[0] == NULL) {
+			cout << endl;
+		}
+		ListNode *ret = lists[0];
+		//如果只有一行了，那么直接输出改行的第一个节点，num--使主程序退出循环
+		if (num == 1) {
+			num--;
+			return ret;
+		}
+		lists[0] = lists[0]->next;
+		//堆头换了，对堆重建
+		if (lists[0] == NULL) {
+			lists[0] = lists[num - 1];
+			num--;
+		}
+		int p = 0;
+		while (true) {
+			int left = p * 2 + 1;
+			int right = p * 2 + 2;
+			if (left >= num)
+				break;
+			int small = left;
+			if (right < num) {
+				if (lists[right]->val < lists[left]->val)
+					small = right;
+			}
+			if (lists[small]->val < lists[p]->val) {
+				ListNode *temp = lists[p];
+				lists[p] = lists[small];
+				lists[small] = temp;
+				p = small;
+			}
+			else
+				break;
+		}
+		return ret;
+	}
+}
+
+
+Median of Two Sorted Arrays 
+There are two sorted arrays nums1 and nums2 of size m and n respectively. Find the median of the two sorted arrays. The overall run time complexity should be O(log (m+n)).
+
+class Solution {
+public:
+    //将该问题 转换为寻找第K小的问题
+    /*
+    首先假设数组A和B的元素个数都大于k/2，我们比较A[k/2-1]和B[k/2-1]两个元素，这两个元素分别表示A的第k/2小的元素和B的第k/2小的元素。这两个元素比较共有三种情况：>、<和=。如果A[k/2-1]<B[k/2-1]，这表示A[0]到A[k/2-1]的元素都在A和B合并之后的前k小的元素中。换句话说，A[k/2-1]不可能大于两数组合并之后的第k小值，所以我们可以将其抛弃。
+
+    证明也很简单，可以采用反证法。假设A[k/2-1]大于合并之后的第k小值，我们不妨假定其为第（k+1）小值。由于A[k/2-1]小于B[k/2-1]，所以B[k/2-1]至少是第（k+2）小值。但实际上，在A中至多存在k/2-1个元素小于A[k/2-1]，B中也至多存在k/2-1个元素小于A[k/2-1]，所以小于A[k/2-1]的元素个数至多有k/2+ k/2-2，小于k，这与A[k/2-1]是第（k+1）的数矛盾。
+
+    当A[k/2-1]>B[k/2-1]时存在类似的结论。
+
+    当A[k/2-1]=B[k/2-1]时，我们已经找到了第k小的数，也即这个相等的元素，我们将其记为m。由于在A和B中分别有k/2-1个元素小于m，所以m即是第k小的数。(这里可能有人会有疑问，如果k为奇数，则m不是中位数。这里是进行了理想化考虑，在实际代码中略有不同，是先求k/2，然后利用k-k/2获得另一个数。)
+
+    通过上面的分析，我们即可以采用递归的方式实现寻找第k小的数。此外我们还需要考虑几个边界条件：
+
+    如果A或者B为空，则直接返回B[k-1]或者A[k-1]；
+    如果k为1，我们只需要返回A[0]和B[0]中的较小值；
+    如果A[k/2-1]=B[k/2-1]，返回其中一个；
+    */
+    double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {
+        int total = nums1.size() + nums2.size();
+        if(total & 1)
+            return findK(nums1, 0, nums2, 0, total/2+1 );
+        return (findK(nums1, 0, nums2, 0, total/2) + findK(nums1, 0, nums2, 0, total/2+1))/2;
+    }
+    
+    double findK(vector<int> &nums1, int start1, vector<int> &nums2, int start2, int k){
+        if(nums1.size()-start1 > nums2.size()-start2)
+            return findK(nums2, start2, nums1, start1, k);
+        if(start1 == nums1.size())
+            return nums2[start2+k-1];
+        if(k == 1)
+            return min(nums1[start1], nums2[start2]);
+        int ka = min(k/2, (int)nums1.size()-start1), kb = k - ka;
+        if(nums1[start1+ka-1] == nums2[start2+kb-1])
+            return nums1[start1+ka-1];
+        if(nums1[start1+ka-1] < nums2[start2+kb-1])
+            return findK(nums1, start1+ka, nums2, start2, k-ka);
+        return findK(nums1, start1, nums2, start2+kb, k-kb);
+    }
+}
+
+

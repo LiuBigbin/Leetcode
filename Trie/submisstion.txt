@@ -1,0 +1,594 @@
+Word Search II 
+Given a 2D board and a list of words from the dictionary, find all words in the board.Each word must be constructed from letters of sequentially adjacent cell, where "adjacent" cells are those horizontally or vertically neighboring. The same letter cell may not be used more than once in a word.For example,Given words = ["oath","pea","eat","rain"] and board = [  ['o','a','a','n'],  ['e','t','a','e'],  ['i','h','k','r'],  ['i','f','l','v']]Return ["eat","oath"].
+Note:You may assume that all inputs are consist of lowercase letters a-z.click to show hint.You would need to optimize your backtracking to pass the larger test. Could you stop backtracking earlier?If the current candidate does not exist in all words' prefix, you could stop backtracking immediately. What kind of data structure could answer such query efficiently? Does a hash table work? Why or why not? How about a Trie? If you would like to learn how to implement a basic trie, please work on this problem: Implement Trie (Prefix Tree) first.
+
+class TrieNode {
+public:
+    // Trie node with char value and two boolean values, 
+    // one for leaf status and one for found status
+    char val;
+    bool leaf;
+    bool found;
+    TrieNode *next[26]; //ptrs to nodes with letters a-z
+
+    TrieNode() : leaf(false), found(false)
+    {
+        memset(next, 0, sizeof(TrieNode*)*26);
+    }
+    TrieNode(char c) : val(c), leaf(false), found(false)
+    {
+        memset(next, 0, sizeof(TrieNode*)*26);
+    }
+};
+
+class Trie {
+public:
+    Trie() {
+        root = new TrieNode();
+    }
+
+    // Inserts a word into the trie.
+    void insert(string word) {
+        TrieNode *cur = root;
+
+        for(int i=0; i<word.size(); ++i) {
+            char next = word[i];
+            if(cur->next[next-'a'])
+                cur = cur->next[next-'a'];
+            else {
+                TrieNode *node = new TrieNode(next);
+                cur->next[next-'a'] = node;
+                cur = cur->next[next-'a'];
+            }
+        }
+
+        cur->leaf = true;
+    }
+
+    //returns pointer to root node
+    TrieNode *GetRoot() {
+        return root;
+    }
+private:
+    TrieNode* root;
+};
+
+class Solution {
+public:
+    //深搜
+    //会超时！！！
+    /*
+    vector<string> findWords(vector<vector<char>>& board, vector<string>& words) {
+        if(board.size() == 0 || board[0].size() == 0 || words.size() == 0)
+            return {};
+        unordered_map<char, vector<int>> starts;
+        
+        for(int i=0; i<board.size(); i++)
+            for(int j=0; j<board[0].size(); j++){
+                if(starts.count(board[i][j]) == 0){
+                    vector<int> temp;
+                    temp.push_back(i);
+                    temp.push_back(j);
+                    starts[board[i][j]] = temp;
+                }
+                else{
+                    starts[board[i][j]].push_back(i);
+                    starts[board[i][j]].push_back(j);
+                }
+            }
+        vector<string> ret;
+        set<string> wordsSet;
+        for(int i=0; i<words.size(); i++)
+            wordsSet.insert(words[i]);
+        set<string>::iterator it;
+        for(it=wordsSet.begin(); it!=wordsSet.end(); it++){
+            for(int i=0; i<starts[(*it)[0]].size(); i += 2){
+                if(exist(board, *it, starts[(*it)[0]][i], starts[(*it)[0]][i+1])){
+                    ret.push_back(*it);
+                    break;
+                }
+            }
+        }
+        
+        return ret;
+    }
+    
+    bool exist(vector<vector<char>>& board, string word, int row, int col){
+        if(word.length() == 1 && 0<=row && row<board.size() && 0<=col && col<board[0].size()){
+            return true;
+        }
+            
+        board[row][col] = '.';
+        if(row-1>=0 && board[row-1][col] == word[1]){
+            
+            if(exist(board, word.substr(1, word.length()-1), row-1, col)){
+                board[row][col] = word[0];
+                return true;
+            }
+           // board[row][col] = word[0];
+        }
+        
+        if(row+1<board.size()&& board[row+1][col] == word[1]){
+          //  board[row][col] = '.';
+            if(exist(board, word.substr(1, word.length()-1), row+1, col)){
+                board[row][col] = word[0];
+                return true;
+            }
+           // board[row][col] = word[0];
+        }
+        
+        if(col-1>=0 && board[row][col-1] == word[1]){
+          //  board[row][col] = '.';
+            if(exist(board, word.substr(1, word.length()-1), row, col-1)){
+                board[row][col] = word[0];
+                return true;
+            }
+           // board[row][col] = word[0];
+        }
+        
+        if(col+1<board[0].size() && board[row][col+1] == word[1]){
+           // board[row][col] = '.';
+            if(exist(board, word.substr(1, word.length()-1), row, col+1)){
+                board[row][col] = word[0];
+                return true;
+            }
+           // board[row][col] = word[0];
+        }
+        board[row][col] = word[0];
+        return false;
+    }
+    */
+    
+    //discuss 里面的代码，这个不是自己写的
+    //48ms
+    void find(const vector<vector<char>> &board, bool **path, string &curWord, TrieNode *node,
+                vector<string> &res, const int i, const int j, const int m, const int n) {
+
+        //if leaf node then we have found a word, so mark it as found and push back into res
+        if(node->leaf && !node->found) {
+            res.push_back(curWord);
+            node->found = true;
+        }
+
+        char next;
+        path[i][j] = true;     //mark path so we don't trace over letters that have already been used
+
+        //search up, down, left, and right if there are entries in the trie corresponding to those letters
+        if(i-1 >= 0) {
+            next = board[i-1][j];
+            if(node->next[next-'a'] && !path[i-1][j]) {
+                curWord.push_back(next);
+                find(board, path, curWord, node->next[next-'a'], res, i-1, j, m, n);
+                curWord.pop_back();
+            }
+        }
+
+        if(i+1 < m) {
+            next = board[i+1][j];
+            if(node->next[next-'a'] && !path[i+1][j]) {
+                curWord.push_back(next);
+                find(board, path, curWord, node->next[next-'a'], res, i+1, j, m, n);
+                curWord.pop_back();
+            }
+        }
+
+        if(j-1 >= 0) {
+            next = board[i][j-1];
+            if(node->next[next-'a'] && !path[i][j-1]) {
+                curWord.push_back(next);
+                find(board, path, curWord, node->next[next-'a'], res, i, j-1, m, n);
+                curWord.pop_back();
+            }
+        }
+
+        if(j+1 < n) {
+            next = board[i][j+1];
+            if(node->next[next-'a'] && !path[i][j+1]) {
+                curWord.push_back(next);
+                find(board, path, curWord, node->next[next-'a'], res, i, j+1, m, n);
+                curWord.pop_back();
+            }
+        }
+
+        path[i][j] = false;
+    }
+
+    vector<string> findWords(vector<vector<char>>& board, vector<string> &words) {
+
+        vector<string> res;
+        int m = board.size();
+        if(m == 0)
+            return res;
+        int n = board[0].size();
+        int wsize = words.size();
+        if(wsize == 0)
+            return res;
+
+        bool **path = new bool*[m];
+        for(int i=0; i<m; ++i) {
+            path[i] = new bool[n];
+            memset(path[i], false, sizeof(bool)*n);
+        }
+
+        //insert all words into Trie
+        Trie TR;
+        for(int i=0; i<wsize; ++i)
+            TR.insert(words[i]);
+
+        string curWord;
+        TrieNode *TriePtr = TR.GetRoot();
+        for(int i=0; i<m; ++i)
+            for(int j=0; j<n; ++j)
+                if(TriePtr->next[board[i][j]-'a']) {
+                    curWord.push_back(board[i][j]);     //push initial letter into current word
+                    find(board, path, curWord, TriePtr->next[board[i][j]-'a'], res, i, j, m, n);
+                    curWord.pop_back();                 //pop afterwards
+                }
+
+        return res;
+    }
+}
+
+
+Add and Search Word - Data structure design 
+Design a data structure that supports the following two operations:void addWord(word)bool search(word)search(word) can search a literal word or a regular expression string containing only letters a-z or .. A . means it can represent any one letter.For example:addWord("bad")addWord("dad")addWord("mad")search("pad") ->; falsesearch("bad") ->; truesearch(".ad") ->; truesearch("b..") ->; true
+Note:You may assume that all words are consist of lowercase letters a-z.click to show hint.You should be familiar with how a Trie works. If not, please work on this problem: Implement Trie (Prefix Tree) first.
+
+struct TrieNext; 
+struct TrieNode {
+	unordered_map<char, TrieNext*> letter;
+	TrieNode() :letter() {};
+};
+
+struct TrieNext {
+	bool isword;
+	TrieNode* next;
+	TrieNext() : isword(false), next(NULL) {};
+};
+
+class WordDictionary {
+public:
+	WordDictionary() {
+		root = new TrieNode();
+	}
+	// Adds a word into the data structure.
+	void addWord(string word) {
+		TrieNode *begin = root;
+		for (int i = 0; i<word.length(); i++) {
+			if (begin->letter.find(word[i]) != begin->letter.end()) {
+				if (i == word.length() - 1) {
+					begin->letter[word[i]]->isword = true;
+					return;
+				}
+				if (begin->letter[word[i]]->next == NULL) {
+					TrieNode *next = new TrieNode();
+					begin->letter[word[i]]->next = next;
+				}
+				begin = begin->letter[word[i]]->next;
+
+			}
+			else {
+				TrieNext *nodenext = new TrieNext();
+				begin->letter[word[i]] = nodenext;
+				if (i == word.length() - 1) {
+					nodenext->isword = true;
+				}
+				else {
+					TrieNode *node = new TrieNode();
+					nodenext->next = node;
+					begin = node;
+				}
+			}
+		}
+	}
+
+	// Returns if the word is in the data structure. A word could
+	// contain the dot character '.' to represent any one letter.
+	bool search(string word) {
+		TrieNode *begin = root;
+		return search(begin, word);
+	}
+
+	bool search(TrieNode *node, string word) {
+		if (node == NULL || word.length() == 0)
+			return false;
+		if (word[0] != '.') {
+			if (node->letter.find(word[0]) != node->letter.end()) {
+				if (word.length() == 1) {
+					if (node->letter[word[0]]->isword)
+						return true;
+					return false;
+				}
+				else {
+					return search(node->letter[word[0]]->next, word.substr(1, word.length() - 1));
+				}
+			}
+			return false;
+		}
+    	//处理模糊匹配.的情况
+		else {
+			
+			unordered_map<char, TrieNext*>::iterator it;
+			if (word.length() == 1)
+				for (it = node->letter.begin(); it != node->letter.end(); it++) {
+					if (it->second->isword)
+						return true;
+				}
+			else {
+				for (it = node->letter.begin(); it != node->letter.end(); it++) {
+					if (search(it->second->next, word.substr(1, word.length() - 1)))
+						return true;
+				}
+			}
+			
+			return false;
+		}
+	}
+private:
+	TrieNode *root;
+}
+
+
+Implement Trie (Prefix Tree) 
+Implement a trie with insert, search, and startsWith methods.
+Note:You may assume that all inputs are consist of lowercase letters a-z.
+
+//内存溢出
+/*
+class TrieNode {
+public:
+    // Initialize your data structure here.
+    TrieNode() {
+        isword = false;
+        children = NULL;
+    }
+    bool isword;
+    TrieNode** children;
+};
+
+class Trie {
+public:
+	Trie() {
+		root = new TrieNode();
+	}
+
+// Inserts a word into the trie.
+	void insert(string word) {
+		TrieNode *begin = root;
+		
+		for (int i = 0; i < word.length(); i++) {
+			if (begin->children == NULL) {
+				begin->children = new TrieNode*[26];
+				memset(begin->children, NULL, 26 * sizeof(TrieNode*));
+			}
+			if (begin->children[word[i] - 'a'] == NULL) {
+				TrieNode *next = new TrieNode();
+				begin->children[word[i] - 'a'] = next;
+				
+			}
+			begin = begin->children[word[i] - 'a'];
+			if (i == word.length() - 1)
+				begin->isword = true;
+		}
+			
+
+	}
+
+
+	// Returns if the word is in the trie.
+	bool search(string word) {
+		return search(root, word);
+	}
+
+	//查找当前节点与word[0] 匹配的子节点，然后循环查找
+	bool search(TrieNode* node, string word) {
+		if (node == NULL || word.length() == 0)
+			return false;
+		if (word[0] != '.') {
+			if (node->children == NULL)
+				return false;
+			TrieNode *next = node->children[word[0] - 'a'];
+			if (next == NULL)
+				return false;
+			if (word.length() == 1)
+				return next->isword;
+			return search(next, word.substr(1, word.length() - 1));
+		}
+		//模糊匹配. , 遍历当前节点的所children
+		else {
+			if (node->children == NULL)
+				return false;
+			for (int i = 0; i<26; i++) {
+				if (search(node->children[i], word.substr(1, word.length() - 1)))
+					return true;
+			}
+			return false;
+		}
+	}
+
+	// Returns if there is any word in the trie
+	// that starts with the given prefix.
+	bool startsWith(string prefix) {
+		return startsWith(root, prefix);
+	}
+
+	bool startsWith(TrieNode *node, string prefix) {
+		if (prefix.length() == 0)
+			return true;
+		if (node->children == NULL)
+			return false;
+		if (node->children[prefix[0] - 'a'] == NULL)
+			return false;
+		if (prefix[0] != '.') {
+			return startsWith(node->children[prefix[0] - 'a'], prefix.substr(1, prefix.length() - 1));
+		}
+
+		//匹配.
+		for (int i = 0; i<26; i++) {
+			if (startsWith(node->children[i], prefix.substr(1, prefix.length() - 1)))
+				return true;
+		}
+		return false;
+	}
+
+private:
+	TrieNode* root;
+};
+*/
+/*
+class TrieNode {
+public:
+    // Initialize your data structure here.
+    TrieNode(): isword(false), children() {
+    }
+    bool isword;
+    unordered_map<char, TrieNode*> children;
+};
+
+class Trie {
+public:
+	Trie() {
+		root = new TrieNode();
+	}
+
+	// Inserts a word into the trie.
+	void insert(string word) {
+		TrieNode *begin = root;
+		for (int i = 0; i < word.length(); i++) {
+			if (begin->children.count(word[i]) == 0) {
+				begin->children[word[i]] = new TrieNode();
+			}
+			begin = begin->children[word[i]];
+		}
+		begin->isword = true;
+
+	}
+
+
+	// Returns if the word is in the trie.
+	bool search(string word) {
+		return search(root, word);
+	}
+
+	//查找当前节点与word[0] 匹配的子节点，然后循环查找
+	bool search(TrieNode* node, string word) {
+		if (node == NULL || word.length() == 0)
+			return false;
+		if (word[0] != '.') {
+			if (node->children.count(word[0]) == 0) {
+				return false;
+			}
+			if (word.length() == 1)
+				return node->children[word[0]]->isword;
+			search(node->children[word[0]], word.substr(1, word.length() - 1));
+		}
+		//模糊匹配. , 遍历当前节点的所children
+		else {
+			unordered_map<char, TrieNode*>::iterator it;
+			for (it = node->children.begin(); it != node->children.end(); it++) {
+				if (search(it->second, word.substr(1, word.length() - 1)))
+					return true;
+			}
+			return false;
+		}
+	}
+
+	// Returns if there is any word in the trie
+	// that starts with the given prefix.
+	bool startsWith(string prefix) {
+		return startsWith(root, prefix);
+	}
+
+	bool startsWith(TrieNode *node, string prefix) {
+		if (prefix.length() == 0)
+			return true;
+		if (prefix[0] != '.') {
+			if (node->children.count(prefix[0]) == 0) {
+				return false;
+			}
+			return startsWith(node->children[prefix[0]], prefix.substr(1, prefix.length() - 1));
+		}
+
+		//匹配.
+		unordered_map<char, TrieNode*>::iterator it;
+		for (it = node->children.begin(); it != node->children.end(); it++) {
+			if (startsWith(it->second, prefix.substr(1, prefix.length() - 1)))
+				return true;
+		}
+		return false;
+	}
+
+private:
+	TrieNode* root;
+};
+*/
+
+class TrieNode {
+    public:
+        // Initialize your data structure here.
+// hash map with key as char and value as node .
+        unordered_map<char , TrieNode*> children ;
+        bool isleaf;
+// initialize them
+        TrieNode():isleaf(false),children() {}
+    };
+
+    class Trie {
+    public:
+        Trie() {
+            root = new TrieNode();
+        }
+        // Inserts a word into the trie.
+        void insert(string word) {
+            TrieNode *cur = root;
+            for(int i = 0 ; i < word.size();i++){
+// if node is empty , create new node and  insert children map of parent.
+                if(cur->children.count(word[i])==0){
+                    cur->children[word[i]] = new TrieNode();
+                }
+                cur = cur->children[word[i]];
+            }
+// make the last node as leaf after whole pattern is scanned.
+            cur->isleaf = true;
+        }
+
+        // Returns if the word is in the trie.
+        bool search(string word) {
+// if node is not null and it is a leaf , we found the word else return false
+            TrieNode *t = searchNode(word);
+            if(t && t->isleaf)
+                return true;
+            return false;
+        }
+
+        // Returns if there is any word in the trie
+        // that starts with the given prefix.
+        bool startsWith(string prefix) {
+// just find the word in the trie and return 
+            if(searchNode(prefix))
+                return true;
+            return false;
+        }
+
+        TrieNode *searchNode(string word){
+            unordered_map<char , TrieNode*> children = root->children;
+            TrieNode *t = NULL;
+            for(int i = 0 ; i < word.size();i++){
+// if there is no node with particular char , the word does;t exits.return NULL
+                if(children.count(word[i])==0){
+                    return NULL;
+                }
+                t = children[word[i]];
+                children = t->children;
+            }
+            return t;
+        }
+    private:
+        TrieNode* root;
+    };
+// Your Trie object will be instantiated and called as such:
+// Trie trie;
+// trie.insert("somestring");
+// trie.search("key")
+
+

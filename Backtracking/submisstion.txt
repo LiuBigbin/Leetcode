@@ -1,0 +1,1762 @@
+Combination Sum III 
+Find all possible combinations of k numbers that add up to a number n, given that only numbers from 1 to 9 can be used and each combination should be a unique set of numbers.Ensure that numbers within the set are sorted in ascending order. Example 1:Input:  k = 3,  n = 7Output: [[1,2,4]] Example 2:Input:  k = 3,  n = 9Output: [[1,2,6], [1,3,5], [2,3,4]]
+Credits:Special thanks to @mithmatt for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    //采用递归的方式
+    vector<vector<int>> combinationSum3(int k, int n) {
+        vector<vector<int> > ret;
+        if(k == 0 || n == 0)
+            return ret;
+        vector<int> temp;
+        _combinationSum3(ret, temp, 1, n, k);
+        return ret;
+        
+    }
+    
+    void _combinationSum3(vector<vector<int> > &ret, vector<int> &temp, int start, int n, int k){
+        if(n == 0 && k == 0){
+            ret.push_back(temp);
+            return;
+        }
+        if(start <=9 && start == n && k == 1){
+            temp.push_back(start);
+            ret.push_back(temp);
+            temp.pop_back();
+            return;
+        }
+        for(int i=start; i<=9; i++){
+            if(i>n || k<=0)
+                break;
+            temp.push_back(i);
+            _combinationSum3(ret, temp, i+1, n-i, k-1);
+            temp.pop_back();
+        }
+            
+    }
+}
+
+
+Word Search II 
+Given a 2D board and a list of words from the dictionary, find all words in the board.Each word must be constructed from letters of sequentially adjacent cell, where "adjacent" cells are those horizontally or vertically neighboring. The same letter cell may not be used more than once in a word.For example,Given words = ["oath","pea","eat","rain"] and board = [  ['o','a','a','n'],  ['e','t','a','e'],  ['i','h','k','r'],  ['i','f','l','v']]Return ["eat","oath"].
+Note:You may assume that all inputs are consist of lowercase letters a-z.click to show hint.You would need to optimize your backtracking to pass the larger test. Could you stop backtracking earlier?If the current candidate does not exist in all words' prefix, you could stop backtracking immediately. What kind of data structure could answer such query efficiently? Does a hash table work? Why or why not? How about a Trie? If you would like to learn how to implement a basic trie, please work on this problem: Implement Trie (Prefix Tree) first.
+
+class TrieNode {
+public:
+    // Trie node with char value and two boolean values, 
+    // one for leaf status and one for found status
+    char val;
+    bool leaf;
+    bool found;
+    TrieNode *next[26]; //ptrs to nodes with letters a-z
+
+    TrieNode() : leaf(false), found(false)
+    {
+        memset(next, 0, sizeof(TrieNode*)*26);
+    }
+    TrieNode(char c) : val(c), leaf(false), found(false)
+    {
+        memset(next, 0, sizeof(TrieNode*)*26);
+    }
+};
+
+class Trie {
+public:
+    Trie() {
+        root = new TrieNode();
+    }
+
+    // Inserts a word into the trie.
+    void insert(string word) {
+        TrieNode *cur = root;
+
+        for(int i=0; i<word.size(); ++i) {
+            char next = word[i];
+            if(cur->next[next-'a'])
+                cur = cur->next[next-'a'];
+            else {
+                TrieNode *node = new TrieNode(next);
+                cur->next[next-'a'] = node;
+                cur = cur->next[next-'a'];
+            }
+        }
+
+        cur->leaf = true;
+    }
+
+    //returns pointer to root node
+    TrieNode *GetRoot() {
+        return root;
+    }
+private:
+    TrieNode* root;
+};
+
+class Solution {
+public:
+    //深搜
+    //会超时！！！
+    /*
+    vector<string> findWords(vector<vector<char>>& board, vector<string>& words) {
+        if(board.size() == 0 || board[0].size() == 0 || words.size() == 0)
+            return {};
+        unordered_map<char, vector<int>> starts;
+        
+        for(int i=0; i<board.size(); i++)
+            for(int j=0; j<board[0].size(); j++){
+                if(starts.count(board[i][j]) == 0){
+                    vector<int> temp;
+                    temp.push_back(i);
+                    temp.push_back(j);
+                    starts[board[i][j]] = temp;
+                }
+                else{
+                    starts[board[i][j]].push_back(i);
+                    starts[board[i][j]].push_back(j);
+                }
+            }
+        vector<string> ret;
+        set<string> wordsSet;
+        for(int i=0; i<words.size(); i++)
+            wordsSet.insert(words[i]);
+        set<string>::iterator it;
+        for(it=wordsSet.begin(); it!=wordsSet.end(); it++){
+            for(int i=0; i<starts[(*it)[0]].size(); i += 2){
+                if(exist(board, *it, starts[(*it)[0]][i], starts[(*it)[0]][i+1])){
+                    ret.push_back(*it);
+                    break;
+                }
+            }
+        }
+        
+        return ret;
+    }
+    
+    bool exist(vector<vector<char>>& board, string word, int row, int col){
+        if(word.length() == 1 && 0<=row && row<board.size() && 0<=col && col<board[0].size()){
+            return true;
+        }
+            
+        board[row][col] = '.';
+        if(row-1>=0 && board[row-1][col] == word[1]){
+            
+            if(exist(board, word.substr(1, word.length()-1), row-1, col)){
+                board[row][col] = word[0];
+                return true;
+            }
+           // board[row][col] = word[0];
+        }
+        
+        if(row+1<board.size()&& board[row+1][col] == word[1]){
+          //  board[row][col] = '.';
+            if(exist(board, word.substr(1, word.length()-1), row+1, col)){
+                board[row][col] = word[0];
+                return true;
+            }
+           // board[row][col] = word[0];
+        }
+        
+        if(col-1>=0 && board[row][col-1] == word[1]){
+          //  board[row][col] = '.';
+            if(exist(board, word.substr(1, word.length()-1), row, col-1)){
+                board[row][col] = word[0];
+                return true;
+            }
+           // board[row][col] = word[0];
+        }
+        
+        if(col+1<board[0].size() && board[row][col+1] == word[1]){
+           // board[row][col] = '.';
+            if(exist(board, word.substr(1, word.length()-1), row, col+1)){
+                board[row][col] = word[0];
+                return true;
+            }
+           // board[row][col] = word[0];
+        }
+        board[row][col] = word[0];
+        return false;
+    }
+    */
+    
+    //discuss 里面的代码，这个不是自己写的
+    //48ms
+    void find(const vector<vector<char>> &board, bool **path, string &curWord, TrieNode *node,
+                vector<string> &res, const int i, const int j, const int m, const int n) {
+
+        //if leaf node then we have found a word, so mark it as found and push back into res
+        if(node->leaf && !node->found) {
+            res.push_back(curWord);
+            node->found = true;
+        }
+
+        char next;
+        path[i][j] = true;     //mark path so we don't trace over letters that have already been used
+
+        //search up, down, left, and right if there are entries in the trie corresponding to those letters
+        if(i-1 >= 0) {
+            next = board[i-1][j];
+            if(node->next[next-'a'] && !path[i-1][j]) {
+                curWord.push_back(next);
+                find(board, path, curWord, node->next[next-'a'], res, i-1, j, m, n);
+                curWord.pop_back();
+            }
+        }
+
+        if(i+1 < m) {
+            next = board[i+1][j];
+            if(node->next[next-'a'] && !path[i+1][j]) {
+                curWord.push_back(next);
+                find(board, path, curWord, node->next[next-'a'], res, i+1, j, m, n);
+                curWord.pop_back();
+            }
+        }
+
+        if(j-1 >= 0) {
+            next = board[i][j-1];
+            if(node->next[next-'a'] && !path[i][j-1]) {
+                curWord.push_back(next);
+                find(board, path, curWord, node->next[next-'a'], res, i, j-1, m, n);
+                curWord.pop_back();
+            }
+        }
+
+        if(j+1 < n) {
+            next = board[i][j+1];
+            if(node->next[next-'a'] && !path[i][j+1]) {
+                curWord.push_back(next);
+                find(board, path, curWord, node->next[next-'a'], res, i, j+1, m, n);
+                curWord.pop_back();
+            }
+        }
+
+        path[i][j] = false;
+    }
+
+    vector<string> findWords(vector<vector<char>>& board, vector<string> &words) {
+
+        vector<string> res;
+        int m = board.size();
+        if(m == 0)
+            return res;
+        int n = board[0].size();
+        int wsize = words.size();
+        if(wsize == 0)
+            return res;
+
+        bool **path = new bool*[m];
+        for(int i=0; i<m; ++i) {
+            path[i] = new bool[n];
+            memset(path[i], false, sizeof(bool)*n);
+        }
+
+        //insert all words into Trie
+        Trie TR;
+        for(int i=0; i<wsize; ++i)
+            TR.insert(words[i]);
+
+        string curWord;
+        TrieNode *TriePtr = TR.GetRoot();
+        for(int i=0; i<m; ++i)
+            for(int j=0; j<n; ++j)
+                if(TriePtr->next[board[i][j]-'a']) {
+                    curWord.push_back(board[i][j]);     //push initial letter into current word
+                    find(board, path, curWord, TriePtr->next[board[i][j]-'a'], res, i, j, m, n);
+                    curWord.pop_back();                 //pop afterwards
+                }
+
+        return res;
+    }
+}
+
+
+Add and Search Word - Data structure design 
+Design a data structure that supports the following two operations:void addWord(word)bool search(word)search(word) can search a literal word or a regular expression string containing only letters a-z or .. A . means it can represent any one letter.For example:addWord("bad")addWord("dad")addWord("mad")search("pad") ->; falsesearch("bad") ->; truesearch(".ad") ->; truesearch("b..") ->; true
+Note:You may assume that all words are consist of lowercase letters a-z.click to show hint.You should be familiar with how a Trie works. If not, please work on this problem: Implement Trie (Prefix Tree) first.
+
+struct TrieNext; 
+struct TrieNode {
+	unordered_map<char, TrieNext*> letter;
+	TrieNode() :letter() {};
+};
+
+struct TrieNext {
+	bool isword;
+	TrieNode* next;
+	TrieNext() : isword(false), next(NULL) {};
+};
+
+class WordDictionary {
+public:
+	WordDictionary() {
+		root = new TrieNode();
+	}
+	// Adds a word into the data structure.
+	void addWord(string word) {
+		TrieNode *begin = root;
+		for (int i = 0; i<word.length(); i++) {
+			if (begin->letter.find(word[i]) != begin->letter.end()) {
+				if (i == word.length() - 1) {
+					begin->letter[word[i]]->isword = true;
+					return;
+				}
+				if (begin->letter[word[i]]->next == NULL) {
+					TrieNode *next = new TrieNode();
+					begin->letter[word[i]]->next = next;
+				}
+				begin = begin->letter[word[i]]->next;
+
+			}
+			else {
+				TrieNext *nodenext = new TrieNext();
+				begin->letter[word[i]] = nodenext;
+				if (i == word.length() - 1) {
+					nodenext->isword = true;
+				}
+				else {
+					TrieNode *node = new TrieNode();
+					nodenext->next = node;
+					begin = node;
+				}
+			}
+		}
+	}
+
+	// Returns if the word is in the data structure. A word could
+	// contain the dot character '.' to represent any one letter.
+	bool search(string word) {
+		TrieNode *begin = root;
+		return search(begin, word);
+	}
+
+	bool search(TrieNode *node, string word) {
+		if (node == NULL || word.length() == 0)
+			return false;
+		if (word[0] != '.') {
+			if (node->letter.find(word[0]) != node->letter.end()) {
+				if (word.length() == 1) {
+					if (node->letter[word[0]]->isword)
+						return true;
+					return false;
+				}
+				else {
+					return search(node->letter[word[0]]->next, word.substr(1, word.length() - 1));
+				}
+			}
+			return false;
+		}
+    	//处理模糊匹配.的情况
+		else {
+			
+			unordered_map<char, TrieNext*>::iterator it;
+			if (word.length() == 1)
+				for (it = node->letter.begin(); it != node->letter.end(); it++) {
+					if (it->second->isword)
+						return true;
+				}
+			else {
+				for (it = node->letter.begin(); it != node->letter.end(); it++) {
+					if (search(it->second->next, word.substr(1, word.length() - 1)))
+						return true;
+				}
+			}
+			
+			return false;
+		}
+	}
+private:
+	TrieNode *root;
+}
+
+
+Word Break II 
+Given a string s and a dictionary of words dict, add spaces in s to construct a sentence where each word is a valid dictionary word.Return all such possible sentences.For example, givens = "catsanddog",dict = ["cat", "cats", "and", "sand", "dog"].A solution is ["cats and dog", "cat sand dog"].
+
+class Solution {
+public:
+    vector<string> wordBreak(string s, unordered_set<string>& wordDict) {
+        if(s.length() == 0)
+            return {};
+        bool *canbreak = new bool[s.length() + 1];
+        memset(canbreak, false, sizeof(bool)*s.length());
+        canbreak[s.length()] = true;
+        unordered_set<string>::iterator it;
+        int maxwordlength = 0;
+        for(it=wordDict.begin(); it!=wordDict.end(); it++){
+            if(maxwordlength < it->length())
+               maxwordlength = it->length();
+        }
+        /*
+        //这个方法理论上是可行的，只不过在最开始存储所有可能的解到最后有可能s是不可以break的，这样的话，前面的所有存储就白费了
+        //不仅浪费很多的空间而且还有很多的时间
+        //对于这例子：baaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa   [a, aa, aaa, aaaa, aaaaa]
+        //程序在计算可行解的时候会花很长的时间，因为有很多种解法，但其实字符串s不是可以
+        //break的。
+        
+        for(int i=s.length()-1; i>=0; i--){
+            for(int j=i; j<s.length() && j<maxwordlength+i; j++){
+                string word = s.substr(i, j-i+1);
+                if(wordDict.count(word) != 0){
+                    vector<string> pre = ret[j+1];
+                    for(int k=0; k<pre.size(); k++){
+                        ret[i].push_back(word+" "+pre[k]);
+                    }
+                }
+            }
+        }
+        */
+        
+        //先计算s是不是可以break的，可以的话，再来计所有的可行解
+         for(int i=s.length()-1; i>=0; i--){
+            for(int j=i; j<s.length() && j<maxwordlength+i; j++){
+                string word = s.substr(i, j-i+1);
+                if(wordDict.count(word) != 0){
+                    if(canbreak[j+1]){
+                        canbreak[i] = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if(!canbreak[0])
+            return {};
+        //计算所有的可行解
+        return getSolution(s, 0, wordDict, canbreak, maxwordlength);
+    }
+    
+   vector<string> getSolution(string s, int start, unordered_set<string>& wordDict, bool *canbreak, int maxwordlength) {
+		if (start >= s.length())
+			return{};
+		vector<string> ret;
+		for (int i = start; i < s.length() && i < start+maxwordlength; i++) {
+			string word = s.substr(start, i-start+1);
+			if (wordDict.count(word) != 0) {
+				if (canbreak[i+1]) {
+					vector<string> temp = getSolution(s, i+1, wordDict, canbreak, maxwordlength);
+					if (temp.size() != 0) {
+						for (int j = 0; j<temp.size(); j++) {
+							ret.push_back(word + " " + temp[j]);
+						}
+					}
+					else {
+						ret.push_back(word);
+					}
+				}
+			}
+		}
+		return ret;
+	}
+}
+
+
+Palindrome Partitioning 
+Given a string s, partition s such that every substring of the partition is a palindrome.Return all possible palindrome partitioning of s.For example, given s = "aab",Return  [    ["aa","b"],    ["a","a","b"]  ]
+
+class Solution {
+public:
+	vector<vector<string>> partition(string s) {
+		vector<vector<vector<string>>> vec(s.size());
+		vector<vector<string>> temp;
+		vector<string> end;
+		end.push_back(s.substr(s.size() - 1, 1));
+		temp.push_back(end);
+		vec[s.size() - 1] = temp;
+		
+		partition(s, vec, 0);
+		return vec[0];
+
+	}
+	void partition(string &s, vector<vector<vector<string>>> &vec, int start) {
+		if (vec[start].size() != 0)
+			return;
+		vector<vector<string>> medium;
+		for (int i = start; i<s.size() - 1; i++) {
+			if (isPalindrom(s, start, i)) {
+				if (vec[i + 1].size() == 0)
+					partition(s, vec, i + 1);
+
+				for (int j = 0; j<vec[i + 1].size(); j++) {
+					vector<string> temp;
+					temp.push_back(s.substr(start, i - start + 1));
+					for (int k = 0; k<vec[i + 1][j].size(); k++)
+						temp.push_back(vec[i + 1][j][k]);
+					medium.push_back(temp);
+				}
+
+			}
+		}
+		if (isPalindrom(s, start, s.size() - 1)) {
+			vector<string> temp;
+			temp.push_back(s.substr(start, s.size() - start));
+			medium.push_back(temp);
+		}
+
+		vec[start] = medium;
+	}
+	bool isPalindrom(string &s, int start, int end) {
+		for (int i = start, j = end; i<j; i++, j--) {
+			if (s[i] != s[j])
+				return false;
+		}
+		return true;
+	}
+}
+
+
+Word Ladder II 
+Given two words (beginWord and endWord), and a dictionary's word list, find all shortest transformation sequence(s) from beginWord to endWord, such that:Only one letter can be changed at a timeEach intermediate word must exist in the word listFor example,Given:beginWord = "hit"endWord = "cog"wordList = ["hot","dot","dog","lot","log"]Return  [    ["hit","hot","dot","dog","cog"],    ["hit","hot","lot","log","cog"]  ]
+Note:All words have the same length.All words contain only lowercase alphabetic characters.
+
+class Solution {
+public:
+    /*
+	//先找出最短的转换长度，再根据这个长度来计算可行的解，可以利用这个长度进行剪枝，这样可以减少不需要的空间和时间
+	vector<vector<string>> findLadders(string beginWord, string endWord, unordered_set<string> &wordList) {
+		if (beginWord == endWord)
+			return{ { beginWord, endWord } };
+		wordList.insert(endWord);
+		int shortest = getShortestLength(beginWord, endWord, wordList);
+		vector<vector<string>>ret;
+		if (shortest == -1)
+			return ret;
+		unordered_set<string> visited;
+		vector<string> temp;
+		temp.push_back(beginWord);
+		visited.insert(beginWord);
+		findLadders(beginWord, endWord, wordList, visited, ret, temp, shortest-1);
+		return ret;
+	}
+
+	//广搜
+	int getShortestLength(string beginWord, string endWord, unordered_set<string> &wordList) {
+		int length = 1;
+		queue<string> cur;
+		
+		unordered_set<string> visited;
+		cur.push(beginWord);
+		visited.insert(beginWord);
+		while (cur.size() != 0) {
+			queue<string> next;
+			while (cur.size() != 0) {
+				string word = cur.front();
+				cur.pop();
+				for (int i = 0; i<word.length(); i++) {
+					char wordi = word[i];
+					for (int j = 0; j<26; j++) {
+						word[i] = 'a' + j;
+						if (word == endWord)
+							return length + 1;
+						if (wordList.count(word) != 0 && visited.count(word) == 0) {
+							visited.insert(word);
+							next.push(word);
+						}
+					}
+					word[i] = wordi;
+				}
+			}
+			length++;
+			cur = next;
+		}
+		return -1;
+	}
+	//深搜找出所有可能解,超时！！！
+
+	void findLadders(string beginWord, string endWord, unordered_set<string> &wordList, unordered_set<string> &visited, vector<vector<string>> &ret, vector<string>&temp, int length) {
+		if (length == 0)
+			return;
+		
+		for (int i = 0; i<beginWord.length(); i++) {
+			char wordi = beginWord[i];
+			vector<string> bt;
+			for (int j = 0; j<26; j++) {
+				beginWord[i] = 'a' + j;
+				if (beginWord == endWord) {
+					temp.push_back(beginWord);
+					ret.push_back(temp);
+					temp.pop_back();
+					return;
+				}
+				if (wordList.count(beginWord) != 0 && visited.count(beginWord) == 0) {
+					temp.push_back(beginWord);
+					visited.insert(beginWord);
+					bt.push_back(beginWord);
+					findLadders(beginWord, endWord, wordList, visited, ret, temp, length - 1);
+					temp.pop_back();
+					//visited.erase(beginWord);
+				}
+			}
+			for(int i=0; i<bt.size(); i++)
+			    visited.erase(bt[i]);
+			beginWord[i] = wordi;
+		}
+	}
+	*/
+	//与上一个不同的是这里直接的使用在广搜时所用的unordered_map<string, int> visited;在进行深搜的时候直接的利用
+	//这其来对节点进行剪枝，也就是说深搜时，只搜索visited中的节点。visited中的int存储的是对应的word在广搜时所出现的
+	//深度，如果在深搜的时候有对应的word出现在visited中但是其深度不是visited中的值的时候也可以对其进行剪枝处理
+	/*TMD   还是超时啊！！！！
+	vector<vector<string>> findLadders(string beginWord, string endWord, unordered_set<string> &wordList) {
+		if (beginWord == endWord)
+			return{ { beginWord, endWord } };
+		wordList.insert(endWord);
+		unordered_map<string, int> visited;
+		int shortest = getShortestLength(beginWord, endWord, wordList, visited);
+		vector<vector<string>>ret;
+		if (shortest == -1)
+			return ret;
+
+		vector<string> temp;
+		temp.push_back(beginWord);
+		findLadders(beginWord, endWord, visited, ret, temp, shortest - 1, 2);
+		return ret;
+	}
+
+	//广搜
+	int getShortestLength(string beginWord, string endWord, unordered_set<string> &wordList, unordered_map<string, int> &visited) {
+		int length = 1;
+		queue<string> cur;
+		cur.push(beginWord);
+		visited[beginWord] = 1;
+		while (cur.size() != 0) {
+			queue<string> next;
+			while (cur.size() != 0) {
+				string word = cur.front();
+				cur.pop();
+				for (int i = 0; i<word.length(); i++) {
+					char wordi = word[i];
+					for (int j = 0; j<26; j++) {
+						word[i] = 'a' + j;
+						if (word == endWord)
+							return length + 1;
+						if (wordList.count(word) != 0 && visited.count(word) == 0) {
+							visited[word] = length + 1;
+							next.push(word);
+						}
+					}
+					word[i] = wordi;
+				}
+			}
+			length++;
+			cur = next;
+		}
+		return -1;
+	}
+	//深搜找出所有可能解
+	void findLadders(string beginWord, string endWord, unordered_map<string, int> &visited, vector<vector<string>> &ret, vector<string>&temp, int length, int deep) {
+		if (deep - 1 > length)
+			return;
+
+		for (int i = 0; i<beginWord.length(); i++) {
+			char wordi = beginWord[i];
+			vector<string> bt;
+			for (int j = 0; j<26; j++) {
+				beginWord[i] = 'a' + j;
+				if (beginWord == endWord) {
+					temp.push_back(beginWord);
+					ret.push_back(temp);
+					temp.pop_back();
+					return;
+				}
+				if (visited.count(beginWord) != 0 && visited[beginWord] == deep) {
+					temp.push_back(beginWord);
+
+					bt.push_back(beginWord);
+					findLadders(beginWord, endWord,  visited, ret, temp, length, deep + 1);
+					temp.pop_back();
+					//visited.erase(beginWord);
+				}
+			}
+
+			beginWord[i] = wordi;
+		}
+	}
+	*/
+	//另外一个思路，在广搜查找最短的转换路径长度时，记录每一个访问到的节点的前驱节点，这样的话
+	//只需要从endWord节点开始，深搜其前驱节点知道beginWord为止，所有路径都是可行解，这样的深搜
+	//完全没有冗余
+    vector<vector<string>> findLadders(string beginWord, string endWord, unordered_set<string> &wordList) {
+		if (beginWord == endWord)
+			return{ { beginWord, endWord } };
+		wordList.insert(endWord);
+		unordered_map<string, vector<string>> preword;
+		int shortest = getShortestLength(beginWord, endWord, wordList, preword);
+		vector<vector<string>>ret;
+		if (shortest == -1)
+			return ret;
+
+		vector<string> temp(shortest);
+		temp[shortest-1] = endWord;
+		findLadders(beginWord, endWord, ret, temp, preword, shortest-2);
+		return ret;
+	}
+
+	//广搜
+	int getShortestLength(string beginWord, string endWord, unordered_set<string> &wordList, unordered_map<string, vector<string>> &preword) {
+		int length = 1;
+		queue<string> cur;
+		cur.push(beginWord);
+		unordered_map<string, int> visited;
+		visited[beginWord] = 1;
+		int retlength = 0;
+		bool getthelength = false;
+		while (cur.size() != 0) {
+			queue<string> next;
+			while (cur.size() != 0) {
+				string word = cur.front();
+				string temp = word;
+				cur.pop();
+				getthelength = false;
+				for (int i = 0; i<word.length(); i++) {
+					char wordi = word[i];
+					if(getthelength)
+					    break;
+					for (int j = 0; j<26; j++) {
+						word[i] = 'a' + j;
+						//为了得到endword的所有前驱word，在的到最短的长度后，还要继续遍历该层所剩下的其他word
+						if (word == endWord) {
+							preword[word].push_back(temp);
+							retlength = length+1;
+							getthelength = true;
+							break;
+						}
+
+						if (wordList.count(word) != 0) {
+							if (visited.count(word) == 0 || (visited.count(word) != 0 && visited[word] == length + 1))
+								preword[word].push_back(temp);
+							if (visited.count(word) == 0) {
+								visited[word] = length + 1;
+								next.push(word);
+							}
+						}
+					}
+					word[i] = wordi;
+				}
+			}
+			if(retlength != 0)
+			    return retlength;
+			length++;
+			cur = next;
+		}
+		return -1;
+	}
+	//深搜找出所有可能解
+	void findLadders(string endWord, string word, vector<vector<string>> &ret, vector<string>&temp, unordered_map<string, vector<string>> &preword, int index) {
+		if (word == endWord) {
+			ret.push_back(temp);
+			return;
+		}
+		vector<string> prevec = preword[word];
+		for (int i = 0; i<prevec.size(); i++) {
+			temp[index] = prevec[i];
+			findLadders(endWord, prevec[i], ret, temp, preword, index-1);
+ 
+		}
+
+	}
+}
+
+
+Restore IP Addresses 
+Given a string containing only digits, restore it by returning all possible valid IP address combinations.For example:Given "25525511135",return ["255.255.11.135", "255.255.111.35"]. (Order does not matter)
+
+class Solution {
+public:
+    vector<string> restoreIpAddresses(string s) {
+        if(s.size()<=3)
+            return {};
+        vector<string> ret;
+        string temp = "";
+        restoreIpAddresses(ret, temp, s, 0, 0);
+        return ret;
+        
+    }
+    
+    void restoreIpAddresses(vector<string> &ret, string temp, string &s, int start, int count){
+        if((s.size()-start)>(4-count)*3 || start == s.size())
+            return;
+        if(count == 3){
+            if(s.size()-start>=4 || (start<s.size()-1 && s[start] == '0'))
+                return;
+            if(getnumber(s.substr(start, s.size()-start)) <= 255)
+                ret.push_back(temp+s.substr(start, s.size()-start));
+            return;
+        }
+        if(s[start] == '0')
+            restoreIpAddresses(ret, temp + "0" + "." , s, start+1, count+1);
+        else{
+            string medium = s.substr(start, 1);
+            restoreIpAddresses(ret, temp + medium + "." , s, start+1, count+1);
+            medium = s.substr(start, 2);
+            restoreIpAddresses(ret, temp + medium + "." , s, start+2, count+1);
+            medium = s.substr(start, 3);
+            if(getnumber(medium)<=255)
+                restoreIpAddresses(ret, temp + medium + "." , s, start+3, count+1);
+        }
+        
+    }
+    
+    int getnumber(string s){
+        int num = 0;
+        for(int i=0; i<s.size(); i++)
+            num = num*10 + s[i]-'0';
+        return num;
+    }
+}
+
+
+Subsets II 
+Given a collection of integers that might contain duplicates, nums, return all possible subsets.
+Note:Elements in a subset must be in non-descending order.The solution set must not contain duplicate subsets.For example,If nums = [1,2,2], a solution is:[  [2],  [1],  [1,2,2],  [2,2],  [1,2],  []]
+
+class Solution {
+public:
+    //这道题总体的算法与没有出现重复的题目是一样的，只不过在出现重复的元素的时候
+    //对于重复的元素，只能往前选择格式，而不能跳着选
+    //例如：对于1,2,2,2,2,3,4     在选择2的时候，有五种选法，0到4个2，如果选一个2，
+    //那么只能选择第一个，选两个2只能选择前面的两个，以此类推，不能在前面有没有选择
+    //的2出现的情况下，选择后面的2
+    vector<vector<int>> subsetsWithDup(vector<int>& nums) {
+        sort(nums.begin(), nums.end());
+        vector<vector<int>> ret;
+        vector<int> temp;
+        subsetsWithDup(ret, nums, 0, temp);
+        return ret;
+    }
+    
+    void subsetsWithDup(vector<vector<int>> &ret, vector<int> &nums, int start, vector<int> &temp){
+        if(start == nums.size()){
+            ret.push_back(temp);
+            return ;
+        }
+        if(start == nums.size()-1 || nums[start] != nums[start+1]){
+            subsetsWithDup(ret, nums, start+1, temp);
+            temp.push_back(nums[start]);
+            subsetsWithDup(ret, nums, start+1, temp);
+            temp.pop_back();
+        }
+        else{
+            //对于出现重复的元素，只能按顺序选择个数，不能跳着选择
+            int index = start+1;
+            while(index<nums.size() && nums[index] == nums[start]) index++;
+            for(int i = 0; i<=index-start; i++){
+                subsetsWithDup(ret, nums, index, temp);
+                temp.push_back(nums[start]);
+            }
+            for(int i=0; i<=index-start; i++)
+               temp.pop_back();
+        }
+    }
+}
+
+
+Gray Code 
+The gray code is a binary numeral system where two successive values differ in only one bit.Given a non-negative integer n representing the total number of bits in the code, print the sequence of gray code. A gray code sequence must begin with 0.For example, given n = 2, return [0,1,3,2]. Its gray code sequence is:00 - 001 - 111 - 310 - 2
+Note:For a given n, a gray code sequence is not uniquely defined.For example, [0,2,3,1] is also a valid gray code sequence according to the above definition.For now, the judge is able to judge based on one instance of gray code sequence. Sorry about that.
+
+class Solution {
+public:
+
+    //使用格雷码的数学公式，对于第i个格雷码，其编码为：(i>>1)^i
+    vector<int> grayCode(int n) {
+        if(n == 0)
+            return {0};
+        int size = 1<<n;
+        vector<int> ret;
+        for(int i=0; i<size; i++){
+            int graycode = (i>>1)^i;
+            ret.push_back(graycode);
+        }
+        return ret;
+    }
+}
+
+
+Word Search 
+Given a 2D board and a word, find if the word exists in the grid.The word can be constructed from letters of sequentially adjacent cell, where "adjacent" cells are those horizontally or vertically neighboring. The same letter cell may not be used more than once.For example,Given board = [  ['A','B','C','E'],  ['S','F','C','S'],  ['A','D','E','E']]word = "ABCCED", ->; returns true,word = "SEE", ->; returns true,word = "ABCB", ->; returns false.
+
+class Solution {
+public:
+    //深搜
+    bool exist(vector<vector<char>>& board, string word) {
+        if(board.size() == 0 || board[0].size() == 0 || word.length() == 0)
+            return false;
+        vector<int> starts;
+        for(int i=0; i<board.size(); i++){
+            for(int j=0; j<board[0].size(); j++){
+                if(board[i][j] == word[0]){
+                    starts.push_back(i);
+                    starts.push_back(j);
+                }
+            }
+        }
+        for(int i=0; i<starts.size(); i=i+2){
+            int row = starts[i];
+            int col = starts[i+1];
+            if(exist(board, word, row, col))
+                return true;
+        }
+        return false;
+    }
+    
+    bool exist(vector<vector<char>>& board, string word, int row, int col){
+        if(word.length() == 1 && 0<=row && row<board.size() && 0<=col && col<board[0].size())
+            return true;
+        //找出当前节点四个邻居是否可以遍历
+        if(row-1 >= 0 && board[row-1][col] == word[1]){
+            board[row][col] = '.';
+            if(exist(board, word.substr(1, word.length()-1), row-1, col)){
+                board[row][col] = word[0];
+                return true;
+            }
+            board[row][col] = word[0];
+        }
+        if(row+1 < board.size() && board[row+1][col] == word[1]){
+            board[row][col] = '.';
+            if(exist(board, word.substr(1, word.length()-1), row+1, col)){
+                board[row][col] = word[0];
+                return true;
+            }
+            board[row][col] = word[0];
+        }
+        if(col-1 >= 0 && board[row][col-1] == word[1]){
+            board[row][col] = '.';
+            if(exist(board, word.substr(1, word.length()-1), row, col-1)){
+                board[row][col] = word[0];
+                return true;
+            }
+            board[row][col] = word[0];
+        }
+        if(col+1 < board[0].size() && board[row][col+1] == word[1]){
+            board[row][col] = '.';
+            if(exist(board, word.substr(1, word.length()-1), row, col+1)){
+                board[row][col] = word[0];
+                return true;
+            }
+            board[row][col] = word[0];
+        }
+        return false;
+    }
+}
+
+
+Subsets 
+Given a set of distinct integers, nums, return all possible subsets.
+Note:Elements in a subset must be in non-descending order.The solution set must not contain duplicate subsets.For example,If nums = [1,2,3], a solution is:[  [3],  [1],  [2],  [1,2,3],  [1,3],  [2,3],  [1,2],  []]
+
+class Solution {
+public:
+   //递归，8ms
+   /*
+    vector<vector<int>> subsets(vector<int>& nums) {
+        if(nums.size() == 0)
+            return {};
+        vector<vector<int> > ret;
+        vector<int> temp;
+        sort(nums.begin(), nums.end());
+        _subsets(ret, temp, nums, 0);
+        return ret;
+    }
+    void _subsets(vector<vector<int> > &ret, vector<int> &temp, vector<int> &nums, int index){
+        if(index == nums.size())
+            ret.push_back(temp);
+        else{
+            _subsets(ret, temp, nums, index+1);
+            
+            temp.push_back(nums[index]);
+            _subsets(ret, temp, nums, index+1);
+            temp.pop_back();
+        }
+    }
+    */
+    //非递归方式 4ms
+    vector<vector<int>> subsets(vector<int>& nums) {
+        sort(nums.begin(),nums.end());
+
+        vector<int> s;
+        vector<vector<int>> result(1,s);
+        int n = nums.size(),j;
+
+        for(int i = 0 ; i+1<1<<n;i++)
+        {
+            for(j = 0; (i>>j)&1;j++) s.pop_back();
+            s.push_back(nums[n - j - 1]);
+            result.push_back(s);
+        }
+
+        return result;
+    }
+}
+
+
+Combinations 
+Given two integers n and k, return all possible combinations of k numbers out of 1 ... n.For example,If n = 4 and k = 2, a solution is:[  [2,4],  [3,4],  [2,3],  [1,2],  [1,3],  [1,4],]
+
+class Solution {
+public:
+    vector<vector<int>> combine(int n, int k) {
+        if(k>n || k==0)
+            return {};
+        vector<int> nums;
+        for(int i=0; i<n; i++)
+            nums.push_back(i+1);
+        vector<vector<int> > ret;
+        vector<int> temp;
+        _combine(ret, temp, nums, 0, k);
+        return ret;
+        
+    }
+    
+    void _combine(vector<vector<int> > &ret, vector<int> &temp, vector<int> &nums, int start, int k){
+        if(k == 0){
+            ret.push_back(temp);
+            return;
+        }
+        for(int i=start; i<=nums.size()-k; i++){
+            temp.push_back(nums[i]);
+            //swap(nums[start], nums[i]);
+            _combine(ret, temp, nums, i+1, k-1);
+            //swap(nums[i], nums[start]);
+            temp.pop_back();
+        }
+    }
+}
+
+
+Permutation Sequence 
+The set [1,2,3,&amp;#8230;,n] contains a total of n! unique permutations.By listing and labeling all of the permutations in order,We get the following sequence (ie, for n = 3):"123""132""213""231""312""321"Given n and k, return the kth permutation sequence.
+Note: Given n will be between 1 and 9 inclusive.
+
+class Solution {
+public:
+    string getPermutation(int n, int k) {
+        int *a = new int[n];
+        for(int i=0; i<n; i++)
+            a[i] = i+1;
+        string ret = "";
+        int m = n;
+        while(k){
+            int rest = getnumber(--m);
+            int index = k/rest;
+            if(k%rest == 0)
+                index--;
+            ret += getval(a, index, n);
+            k %= rest;
+        }
+        for(int i=n-1; i>=0; i--){
+            if(a[i] != -1)
+                ret += ('0'+a[i]);
+        }
+        return ret;
+    }
+    
+    int getnumber(int n){
+        int ret = 1;
+        for(int i=1; i<=n; i++){
+            ret *= i;
+        }
+        return ret;
+    }
+    
+    char getval(int *a, int index, int n){
+        for(int i=0; i<n; i++){
+            if(a[i] == -1)
+                continue;
+            if(index == 0){
+                int temp = a[i];
+                a[i] = -1;
+                return temp+'0';
+            }
+            else
+               index--;
+        }
+    }
+}
+
+
+N-Queens II 
+Follow up for N-Queens problem.Now, instead outputting board configurations, return the total number of distinct solutions.
+
+class Solution {
+public:
+/* 4ms
+    //采用回溯的方法，在判断皇后是否重复的时候，有两种方法。
+    //1：每放一个皇后后，就将与其冲突的位置进行标记，后面就可以根据标记来判别是否某个位置可以放置皇后。
+    //2：用一个数组来存储前面所放置的皇后的位置，然后对于每一个新的位置，根据前面所存储的皇后的位置来判断是否冲突。
+    //本算法采用第二种方法！！！
+    int totalNQueens(int n) {
+        if(n == 0)
+            return 0;
+        int *a = new int[n];
+        int total = 0;
+        for(int i=0; i<n; i++)
+            a[i] = -1;
+        _solveNQueens(n, 0, total, a);
+         
+         return total;  
+        
+    }
+    
+    void _solveNQueens(int n, int start, int &total, int *a){
+            for(int i=0; i<n; i++){
+               if(!isAvaliable(a, start, i, n))
+                   continue;
+               //得到解
+               if(start == n-1){
+                   total++;
+                   continue;
+               }
+               //还不是解
+               a[start] = i;
+               _solveNQueens(n, start+1, total, a);
+               a[start] = -1;
+            }
+        }
+    bool isAvaliable(int *a, int row, int col, int number){
+        //判断列是否冲突
+        for(int j=0; j<row; j++){
+            if(a[j] == col)
+                return false;
+        }
+        //判断主对角线是否有冲突
+        int n=row-1;
+        int m = col-1;
+        while(n>=0 && m>=0){
+            if(a[n] == m)
+                return false;
+            n--;
+            m--;
+        }
+        //判断副对角线是否宇冲突
+        n = row-1;
+        m = col+1;
+        while(n>=0&& m<number){
+            if(a[n] == m)
+                return false;
+            n--;
+            m++;
+        }
+        
+        return true;
+    }
+    */
+    
+    
+    
+
+    
+    void procedure(int &res, vector<int> &isvalid, int i, int n)//res用引用，表示res唯一只有一个
+{
+    if (i == n)
+    {
+        ++res;
+        return;
+    }
+    int j;
+    for (j = 0; j < n; ++j)
+    {
+        if (isvalid[j] && isvalid[n + i + j] && isvalid[4 * n - 2 - i + j])
+        {
+            isvalid[j] = isvalid[n + i + j] = isvalid[4 * n - 2 - i + j] = 0;
+            procedure(res, isvalid, i + 1, n);
+            isvalid[j] = isvalid[n + i + j] = isvalid[4 * n - 2 - i + j] = 1;
+        }
+    }
+    return;
+}
+int totalNQueens(int n) 
+{
+    if (!n)
+        return 0;
+    int res = 0;
+    vector<int> isvalid(n + 2 * (2 * n + 1), 1);
+    procedure(res, isvalid, 0, n);
+    return res;
+}
+    
+}
+
+
+N-Queens 
+The n-queens puzzle is the problem of placing n queens on an n×n chessboard such that no two queens attack each other.Given an integer n, return all distinct solutions to the n-queens puzzle.Each solution contains a distinct board configuration of the n-queens' placement, where 'Q' and '.' both indicate a queen and an empty space respectively.For example,There exist two distinct solutions to the 4-queens puzzle:[ [".Q..",  // Solution 1  "...Q",  "Q...",  "..Q."], ["..Q.",  // Solution 2  "Q...",  "...Q",  ".Q.."]]
+
+class Solution {
+public:
+    //采用回溯的方法，在判断皇后是否重复的时候，有两种方法。
+    //1：每放一个皇后后，就将与其冲突的位置进行标记，后面就可以根据标记来判别是否某个位置可以放置皇后。
+    //2：用一个数组来存储前面所放置的皇后的位置，然后对于每一个新的位置，根据前面所存储的皇后的位置来判断是否冲突。
+    //本算法采用第二种方法！！！
+    vector<vector<string>> solveNQueens(int n) {
+        if(n == 0)
+            return {};
+        int *a = new int[n];
+        vector<vector<string> > ret;
+        vector<string> temp;
+        string line = "";
+        for(int i=0; i<n; i++)
+            line += '.';
+        for(int i=0; i<n; i++)
+            temp.push_back(line);
+        for(int i=0; i<n; i++)
+            a[i] = -1;
+        _solveNQueens(n, 0, ret, temp, a);
+         
+         return ret;  
+        
+    }
+    
+    void _solveNQueens(int n, int start, vector<vector<string> > &ret, vector<string> &temp, int *a){
+            for(int i=0; i<n; i++){
+               if(!isAvaliable(a, start, i, n))
+                   continue;
+               //得到解
+               if(start == n-1){
+                   temp[start][i] = 'Q';
+                   ret.push_back(temp);
+                   temp[start][i] = '.';
+                   continue;
+               }
+               //还不是解
+               temp[start][i] = 'Q';
+               a[start] = i;
+               _solveNQueens(n, start+1, ret, temp, a);
+               a[start] = -1;
+               temp[start][i] = '.';
+            }
+        }
+    bool isAvaliable(int *a, int row, int col, int number){
+        //判断列是否冲突
+        for(int j=0; j<row; j++){
+            if(a[j] == col)
+                return false;
+        }
+        //判断主对角线是否有冲突
+        int n=row-1;
+        int m = col-1;
+        while(n>=0 && m>=0){
+            if(a[n] == m)
+                return false;
+            n--;
+            m--;
+        }
+        //判断副对角线是否宇冲突
+        n = row-1;
+        m = col+1;
+        while(n>=0&& m<number){
+            if(a[n] == m)
+                return false;
+            n--;
+            m++;
+        }
+        
+        return true;
+    }
+}
+
+
+Permutations II 
+Given a collection of numbers that might contain duplicates, return all possible unique permutations.For example,[1,1,2] have the following unique permutations:[1,1,2], [1,2,1], and [2,1,1].
+
+class Solution {
+public:
+    vector<vector<int>> permuteUnique(vector<int>& nums) {
+        if(nums.size() == 0)
+            return {};
+        vector<vector<int> > ret;
+        vector<int> temp;
+        sort(nums.begin(), nums.end());
+        _permute(nums, ret, temp, 0);
+        return ret;
+    }
+    
+    void _permute(vector<int> &nums, vector<vector<int> > &ret, vector<int> &temp, int start){
+        if(start == nums.size()-1){
+            temp.push_back(nums[start]);
+            ret.push_back(temp);
+            temp.pop_back();
+            return;
+        }
+        for(int i=start; i<nums.size(); i++){
+            //如果没有重复元素的话，不需要这一行判断的程序
+            if(i>start && nums[start] == nums[i])
+                continue;
+            temp.push_back(nums[i]);
+            //每一次交换其实相当于把当前的元素放在最前面，然后对剩下的元素进行处理，所以到最后，整一个数组的最后
+            //一个元素已经放在了nums[start]上，其他元素相对位置不变，只是位置都后移了一位
+            swap(nums[start], nums[i]);
+            _permute(nums, ret, temp, start+1);
+            //这里不需要交换
+            //swap(nums[i], nums[start]);
+            temp.pop_back();
+        }
+        //恢复数组原来的模样
+        int startnum = nums[start];
+        for(int i=start; i<nums.size()-1; i++){
+            nums[i] = nums[i+1];
+        }
+        nums[nums.size()-1] = startnum;
+    }
+}
+
+
+Permutations 
+Given a collection of distinct numbers, return all possible permutations.For example,[1,2,3] have the following permutations:[1,2,3], [1,3,2], [2,1,3], [2,3,1], [3,1,2], and [3,2,1].
+
+class Solution {
+public:
+    vector<vector<int>> permute(vector<int>& nums) {
+        if(nums.size() == 0)
+            return {};
+        vector<vector<int> > ret;
+        vector<int> temp;
+        _permute(nums, ret, temp, 0);
+        return ret;
+        
+    }
+    
+    void _permute(vector<int> &nums, vector<vector<int> > &ret, vector<int> &temp, int start){
+        if(start == nums.size() -1){
+            temp.push_back(nums[start]);
+            ret.push_back(temp);
+            temp.pop_back();
+            return;
+        }
+        for(int i=start; i<nums.size(); i++){
+            temp.push_back(nums[i]);
+            swap(nums[start], nums[i]);
+            _permute(nums, ret, temp, start+1);
+            temp.pop_back();
+            swap(nums[i], nums[start]);
+        }
+    }
+}
+
+
+Wildcard Matching 
+Implement wildcard pattern matching with support for '?' and '*'.'?' Matches any single character.'*' Matches any sequence of characters (including the empty sequence).The matching should cover the entire input string (not partial).The function prototype should be:bool isMatch(const char *s, const char *p)Some examples:isMatch("aa","a") → falseisMatch("aa","aa") → trueisMatch("aaa","aa") → falseisMatch("aa", "*") → trueisMatch("aa", "a*") → trueisMatch("ab", "?*") → trueisMatch("aab", "c*a*b") → false
+
+class Solution {
+public:
+    //动态规划f[i][j]存储p[i:-1]能否匹配s[j:-1]
+    //状态转换方程：
+    //if(p[i] = [a-z]) f[i][j] = p[i]==s[j]&&f[i+1][j+1]
+    //if(p[i] == '?') f[i][j] = f[i+1][j+1]
+    //if(p[i] == '*') for(j<=k<=s.length) if(f[i+1][k]) f[i+1][j] = true
+    bool isMatch(string s, string p) {
+        if(s.length()==0 && p.length()==0)
+            return true;
+        if(p.length() == 0)
+            return false;
+        bool **f = new bool*[p.length()+1];
+        for(int i=0; i<=p.length(); i++)
+            f[i] = new bool[s.length()+1];
+        for(int i=0; i<p.length(); i++)
+            f[i][s.length()] = false;
+        for(int i=0; i<s.length(); i++)
+            f[p.length()][i] = false;
+        f[p.length()][s.length()] = true;
+        //处理p='****', s=""类型的情况
+        int length = p.length()-1;
+        while(p[length] == '*'){
+            f[length][s.length()] = true;
+            length--;
+        }
+        for(int i=p.length()-1; i>=0; i--){
+            for(int j=s.length()-1; j>=0; j--){
+                if(p[i] == '?')
+                    f[i][j] = f[i+1][j+1];
+                else if('a'<=p[i] && p[i]<='z')
+                    f[i][j] = p[i]==s[j]&&f[i+1][j+1];
+                else{
+                    f[i][j] = false;
+                    for(int k=j; k<=s.length(); k++){
+                        if(f[i+1][k]){
+                            f[i][j] = true;
+                            break;
+                        }
+                    }
+                    
+                }
+            }
+        }
+        return f[0][0];
+    }
+}
+
+
+Combination Sum II 
+Given a collection of candidate numbers (C) and a target number (T), find all unique combinations in C where the candidate numbers sums to T.Each number in C may only be used once in the combination.
+Note:All numbers (including target) will be positive integers.Elements in a combination (a1, a2, … , ak) must be in non-descending order. (ie, a1 ≤ a2 ≤ … ≤ ak).The solution set must not contain duplicate combinations.For example, given candidate set 10,1,2,7,6,1,5 and target 8, A solution set is: [1, 7] [1, 2, 5] [2, 6] [1, 1, 6] 
+
+class Solution {
+public:
+    vector<vector<int>> combinationSum2(vector<int>& candidates, int target) {
+        if(candidates.size() == 0)
+            return {};
+        sort(candidates.begin(), candidates.end());
+        vector<vector<int> > ret;
+        vector<int> temp;
+        _combinationSum2(candidates, target, ret, temp, 0);
+        return ret;
+    }
+    
+    void _combinationSum2(vector<int> &candidates, int target, vector<vector<int> > &ret, vector<int> temp, int start){
+        if(target == 0){
+            ret.push_back(temp);
+            return;
+        }
+        for(int i=start; i<candidates.size(); i++){
+            //在同一个循环中要去重
+            if(i>start && candidates[i] == candidates[i-1])
+                continue;
+            if(candidates[i] > target)
+                return;
+            temp.push_back(candidates[i]);
+            _combinationSum2(candidates, target-candidates[i], ret, temp, i+1);
+            temp.pop_back();
+        }
+    }
+}
+
+
+Combination Sum 
+Given a set of candidate numbers (C) and a target number (T), find all unique combinations in C where the candidate numbers sums to T. The same repeated number may be chosen from C unlimited number of times.
+Note:All numbers (including target) will be positive integers.Elements in a combination (a1, a2, … , ak) must be in non-descending order. (ie, a1 ≤ a2 ≤ … ≤ ak).The solution set must not contain duplicate combinations.For example, given candidate set 2,3,6,7 and target 7, A solution set is: [7] [2, 2, 3] 
+
+class Solution {
+public:
+    //递归，遍历candidates,对于每一个元素，如果小于target的话，加进去，计入下一个循环，此循环从当前元素开始
+    vector<vector<int>> combinationSum(vector<int>& candidates, int target) {
+        if(candidates.size() == 0)
+            return {};
+        vector<vector<int> > ret;
+        vector<int> temp;
+        sort(candidates.begin(), candidates.end());
+        _combinationSum(candidates, target, 0, temp, ret);
+        return ret;
+    }
+    
+    void _combinationSum(vector<int> &candidates, int target, int start, vector<int>& temp, vector<vector<int> >& ret){
+        if(target == 0){
+            ret.push_back(temp);
+            return ;
+        }
+        for(int i=start; i<candidates.size(); i++){
+            if(candidates[i]<=target){
+                temp.push_back(candidates[i]);
+                _combinationSum(candidates, target-candidates[i], i, temp, ret);
+                temp.pop_back();
+            } 
+            else
+                return ;
+        }
+    }
+}
+
+
+Sudoku Solver 
+Write a program to solve a Sudoku puzzle by filling the empty cells.Empty cells are indicated by the character '.'.You may assume that there will be only one unique solution.A sudoku puzzle......and its solution numbers marked in red.
+
+class Solution {
+public:
+    //深度搜索加回溯，效率有点低 444ms
+    /*
+    void solveSudoku(vector<vector<char>>& board) {
+        if(board.size() != 9 || board[0].size() != 9)
+            return ;
+        bool can_return = false;
+        backtrace(board, 0, 0, can_return);
+    }
+    
+    void backtrace(vector<vector<char>>& board, int row, int col, bool &can_return){
+        if(row == 9 && col == 0){
+            can_return  = true;
+            return ;
+        }
+        if(board[row][col] != '.')
+            backtrace(board, col==8? row+1: row, col==8? 0: col+1, can_return);
+        else{
+            set<char> canchoose = getChoose(board, row, col);
+            set<char>::iterator it = canchoose.begin();
+            for(; it!=canchoose.end(); it++){
+                if(can_return)
+                    return;
+                board[row][col] = *it;
+                backtrace(board, col==8? row+1: row, col==8? 0: col+1, can_return);
+                if(!can_return)
+                    board[row][col] = '.';
+            }
+        }
+    }
+    
+    set<char> getChoose(vector<vector<char>>& board, int row, int col){
+        set<char> ret = {'1','2','3','4','5','6','7','8','9'};
+        //获得行的可行解
+        for(int i=0; i<9; i++)
+            if(ret.find(board[row][i]) != ret.end())
+                ret.erase(board[row][i]);
+        //获得列的可行解
+        for(int i=0; i<9; i++)
+            if(ret.find(board[i][col]) != ret.end())
+                ret.erase(board[i][col]);
+        //获得小方块的可行解
+        int startrow = row/3;
+        int startcol = col/3;
+        for(int i=startrow*3; i<startrow*3+3; i++)
+            for(int j=startcol*3; j<startcol*3+3; j++){
+                if(ret.find(board[i][j]) != ret.end())
+                    ret.erase(board[i][j]);
+            }
+        return ret;
+    }
+    */
+    
+    
+    //跟上面的算法一样，只不过这里采用标记的方式来记录当前的可行解，而不是每一次都要通过行、列、小方格的方式来获得可行解
+    //严重啊，这个算法就改一下标记最后的运行时间才4ms，靠靠靠靠靠！！！
+    bool colm[10][10], rowm[10][10], fm[10][10];
+    void solveSudoku(vector<vector<char>>& board) {
+        if(board.size() != 9 || board[0].size() != 9)
+            return ;
+        bool can_return = false;
+        memset(colm,false,sizeof(colm));
+        memset(rowm,false,sizeof(rowm));
+        memset(fm,false,sizeof(fm));
+        for(int i=0; i<9; i++){
+            for(int j=0; j<9; j++)
+               if(board[i][j] != '.'){
+                   int n = board[i][j] - '0';
+                   int temp = 3*(i/3)+j/3;
+                   colm[j][n] = rowm[i][n] = fm[temp][n] = true;
+               }
+                   
+        }
+        backtrace(board, 0, 0, can_return);
+    }
+    
+    void backtrace(vector<vector<char>>& board, int row, int col, bool &can_return){
+        if(row == 9 && col == 0){
+            can_return  = true;
+            return ;
+        }
+        if(board[row][col] != '.')
+            backtrace(board, col==8? row+1: row, col==8? 0: col+1, can_return);
+        else{
+            int temp = 3*(row/3)+col/3;
+            for(int i=1; i<=9; i++){
+                if(!colm[col][i] && !rowm[row][i] && !fm[temp][i]){
+                    if(can_return)
+                        return;
+                    board[row][col] = i+'0';
+                    colm[col][i] = rowm[row][i] = fm[temp][i] = true;
+                    backtrace(board, col==8? row+1: row, col==8? 0: col+1, can_return);
+                    colm[col][i] = rowm[row][i] = fm[temp][i] = false;
+                }
+                    
+            }
+            if(!can_return)
+                board[row][col] = '.';
+                
+        }
+    }
+}
+
+
+Generate Parentheses 
+Given n pairs of parentheses, write a function to generate all combinations of well-formed parentheses.For example, given n = 3, a solution set is:"((()))", "(()())", "(())()", "()(())", "()()()"
+
+class Solution {
+public:
+    vector<string> generateParenthesis(int n) {
+        if(n == 0)
+            return {};
+        
+        vector<string> ret;
+        _generateParenthesis(ret, "", n, 0);
+        return ret;
+    }
+    
+    void _generateParenthesis(vector<string> &ret, string s, int left, int right ){
+        if(left>0){
+            _generateParenthesis(ret, s+'(', left-1, right+1);
+        }
+        if(right>0){
+            _generateParenthesis(ret, s+')', left, right-1);
+        }
+        if(left == 0 && right == 0)
+            ret.push_back(s);
+    }
+}
+
+
+Letter Combinations of a Phone Number 
+Given a digit string, return all possible letter combinations that the number could represent.A mapping of digit to letters (just like on the telephone buttons) is given below.Input:Digit string "23"Output: ["ad", "ae", "af", "bd", "be", "bf", "cd", "ce", "cf"].
+Note:Although the above answer is in lexicographical order, your answer could be in any order you want.
+
+class Solution {
+public:
+    vector<string> letterCombinations(string digits) {
+        if(digits.size() == 0)
+            return {};
+        for(int i=0; i<digits.size(); i++)
+            if(digits[i] == '0' || digits[i] == 1)
+                return {};
+                
+        vector<vector<char>> dtl;
+        vector<char> v2;
+        v2.push_back('a');
+        v2.push_back('b');
+        v2.push_back('c');
+         vector<char> v3;
+        v3.push_back('d');
+        v3.push_back('e');
+        v3.push_back('f');
+         vector<char> v4;
+        v4.push_back('g');
+        v4.push_back('h');
+        v4.push_back('i');
+         vector<char> v5;
+        v5.push_back('j');
+        v5.push_back('k');
+        v5.push_back('l');
+         vector<char> v6;
+        v6.push_back('m');
+        v6.push_back('n');
+        v6.push_back('o');
+         vector<char> v7;
+        v7.push_back('p');
+        v7.push_back('q');
+        v7.push_back('r');
+        v7.push_back('s');
+         vector<char> v8;
+        v8.push_back('t');
+        v8.push_back('u');
+        v8.push_back('v');
+         vector<char> v9;
+        v9.push_back('w');
+        v9.push_back('x');
+        v9.push_back('y');
+        v9.push_back('z');
+        dtl.push_back(v2);
+        dtl.push_back(v3);
+        dtl.push_back(v4);
+        dtl.push_back(v5);
+        dtl.push_back(v6);
+        dtl.push_back(v7);
+        dtl.push_back(v8);
+        dtl.push_back(v9);
+        vector<string> ret;
+        
+        _letterCombinations(digits, 0, "", ret, dtl);
+        return ret;
+        
+    }
+    
+    void _letterCombinations(string &digits, int start, string temp, vector<string> &ret, vector<vector<char> > &dtl){
+        if(start == digits.size()){
+            ret.push_back(temp);
+            return ;
+        }
+            
+        int index = digits[start]-'0'-2;
+        for(int i=0; i<dtl[index].size(); i++){
+            _letterCombinations(digits, start+1, temp+dtl[index][i], ret, dtl);
+        }
+    }
+}
+
+
+Regular Expression Matching 
+Implement regular expression matching with support for '.' and '*'.'.' Matches any single character.'*' Matches zero or more of the preceding element.The matching should cover the entire input string (not partial).The function prototype should be:bool isMatch(const char *s, const char *p)Some examples:isMatch("aa","a") → falseisMatch("aa","aa") → trueisMatch("aaa","aa") → falseisMatch("aa", "a*") → trueisMatch("aa", ".*") → trueisMatch("ab", ".*") → trueisMatch("aab", "c*a*b") → true
+
+class Solution {
+public:
+    //动态规划的方法
+    //转换方程：f[i][j]表示字符串p从i开始能不能匹配字符串s从j开始
+    //f[i][j] = if(p[i] == '.' then = f[i+1][j+1]) else if(a<=p[i]<=z then =  p[i] == s[j]&&P[i+1][j+1]) else 
+    //if(p[i-1] == '.') then f[i-1][j] = f[i+1][h](j<=h<=s.length-1)
+    //if(a<=p[i-1]<=z) then f[i-1][j] = f[i+1][k](j<=k<=s.length-1 && s[k] == p[i-1])
+    bool isMatch(string s, string p) {
+        //s、p长度为0的时候返回true
+        if(s.length() ==0 && p.length() == 0)
+            return true;
+   	    if (p.length() == 0)
+			return false;
+		bool **f = new bool*[p.length() + 1];
+		for (int i = 0; i<=p.length(); i++) {
+			f[i] = new bool[s.length() + 1];
+		}
+		for (int i = s.length() - 1; i >= 0; i--)
+			f[p.length()][i] = false;
+		for (int i = p.length() - 1; i >= 0; i--)
+			f[i][s.length()] = false;
+
+		f[p.length()][s.length()] = true;
+		//p的最后一个元素独立出来计算，方便后面的循环在使用p[i+1]是不需要进行字符串溢出判断
+		for (int j = s.length() - 1; j >= 0; j--) {
+			f[p.length() - 1][j] = p[p.length() - 1] == s[j] && f[p.length()][j + 1];
+		}
+		//对于以[a-z]*/.*结尾的情况进行独立判断，以处理[a-z]*/.*适合s=""的情况 
+		//例如p=ab*  s=a
+		if(p.length()>=2 && p[p.length()-1] == '*'){
+		    if(p[p.length()-2] != '.')
+		        f[p.length()-2][s.length()] = true;
+		    else{
+		        for(int i=s.length(); i>=0; i--)
+		            f[p.length()-2][i] = true;
+		    }
+		}
+        for(int i=p.length()-1; i>=0; i--){
+            //当前元素为'*',直接跳过
+            if(p[i] == '*'){
+                continue;
+            }
+            //这里需要j=s.length(), 不能为j=s.length()-1, 因为对于s="", 而p="f*F*"的情况，结果是true
+            //如果是j=s.length()-1的话，那么将不会进入循环，最后返回的值将是false
+            for(int j=s.length(); j>=0; j--){
+                //如果后面的元素不是'*',那么直接的单个元素匹配
+                if(p[i+1] != '*' ){
+                    if(p[i] == '.')
+                        f[i][j] = f[i+1][j+1];
+                    else 
+                        f[i][j] = p[i]==s[j]&&f[i+1][j+1];
+                }
+                //p[i+1] = '*'的情况,进行模式匹配
+                else{
+                    //对于.*，这种情况，只要f[i+2][k]有一个为true，那么f[i][j]就为true
+                    //j<=k<s.length()
+                    if(p[i] == '.'){
+                        for(int k=j; k<=s.length(); k++)
+                            if(f[i+2][k]){
+                                f[i][j] = true;
+                                break;
+                            }
+                    }
+                    //对于[a-z]*,这种情况，那么如果f[i+2][j]为true,那么就为true，如果不是的话
+                    //在p[i] == s[k]的情况下，只要f[i+2][k+1]为true的话，那么f[i][j]就为true
+                    else{
+                        if(f[i+2][j])
+                            f[i][j] = true;
+                        else{
+                            for (int k = j; k <= s.length(); k++) {
+								if (p[i] == s[k]) {
+									if (f[i + 2][k + 1]) {
+										f[i][j] = true;
+										break;
+									}
+								}
+                                else{
+                                    f[i][j] = false;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                    }
+                }
+            }
+        }
+        return f[0][0];
+    }
+}
+
+

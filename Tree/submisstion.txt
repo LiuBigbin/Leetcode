@@ -1,0 +1,1716 @@
+Binary Tree Paths 
+Given a binary tree, return all root-to-leaf paths.For example, given the following binary tree:   1 /   \2     3 \  5All root-to-leaf paths are:["1->;2->;5", "1->;3"]
+Credits:Special thanks to @jianchao.li.fighter for adding this problem and creating all test cases.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+
+    Solution():path(""){
+        
+    }
+    
+    vector<string> binaryTreePaths(TreeNode* root) {
+        if(root == NULL)
+            return result;
+        if(root->left == NULL && root->right == NULL){
+            path += numToString(root->val);
+            result.push_back(path);
+        }
+        string temp = path;
+        if(root->left != NULL){
+            path += numToString(root->val);
+            path += "->";
+            binaryTreePaths(root->left);
+            path = temp;
+        }
+        if(root->right != NULL){
+            path += numToString(root->val);
+            path += "->";
+            binaryTreePaths(root->right);
+            
+        }
+        return result;
+        
+    }
+    
+    string numToString(int num){
+        string result = "";
+        bool sign = false;
+        if(num<0){
+            sign = true;
+            num = -num;
+        }
+        while(num != 0){
+            result += (num%10 + '0');
+            num = num/10;
+        }
+        string _result = "";
+        for(int j=result.size()-1; j>=0; j--)
+            _result+=result[j];
+        
+        return sign?'-'+_result:_result;
+    }
+private:
+    vector<string> result;
+    string path;
+    
+}
+
+
+Lowest Common Ancestor of a Binary Tree 
+Given a binary tree, find the lowest common ancestor (LCA) of two given nodes in the tree.According to the definition of LCA on Wikipedia: “The lowest common ancestor is defined between two nodes v and w as the lowest node in T that has both v and w as descendants (where we allow a node to be a descendant of itself).”        _______3______       /              \    ___5__          ___1__   /      \        /      \   6      _2       0       8         /  \         7   4For example, the lowest common ancestor (LCA) of nodes 5 and 1 is 3. Another example is LCA of nodes 5 and 4 is 5, since a node can be a descendant of itself according to the LCA definition.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    /*以下算法还是有一点问题,原因应该是以为节点的值相同就是对应的节点，在树中有很多的节点的值可能相同的，所以不能只看节点的值
+    //应该严格的以节点的指针相来判断节点是否是同一个节点
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        if(root == NULL)
+            return NULL;
+        if(q == p)
+            return p;
+        getMedianOrder(root);
+        int start = 0;
+        int end = medianOrder.size()-1;
+        int pIndex = -1, qIndex = -1;
+        int min = 2^31-1;
+        if(p->val != q->val){
+            for(int i=0; i<=end; i++){
+            if(medianOrder[i] == p->val)
+                pIndex = i;
+            if(medianOrder[i] == q->val)
+                qIndex = i;
+            if(min > abs(pIndex-qIndex) && pIndex != -1 && qIndex != -1){
+                min = abs(pIndex-qIndex);
+                goodPIndex = pIndex;
+                goodQIndex = qIndex;
+            }
+        }
+        }
+        else{
+             for(int i=0; i<=end; i++){
+                if(medianOrder[i] == p->val && pIndex == -1){
+                    pIndex = i;
+                    continue;
+                }
+                if(medianOrder[i] == q->val){
+                    qIndex = i;
+                    if(min > abs(pIndex-qIndex) && pIndex != -1 && qIndex != -1){
+                        min = abs(pIndex-qIndex);
+                        goodPIndex = pIndex;
+                        goodQIndex = qIndex;
+                        pIndex = qIndex;
+                    }  
+                }
+             }
+            
+        }
+        
+        small = goodPIndex>goodQIndex? goodQIndex: goodPIndex;
+        large = goodPIndex>goodQIndex? goodPIndex: goodQIndex;
+        while(root != NULL){
+           	int i = isAncestor(root, start, end);
+            if(i == 1)
+                return root;
+            if(i == 0){
+                root = root->left;
+                
+            }
+			else{
+			    root = root->right;
+			}
+        }
+        return NULL;
+        
+    }
+    
+    void getMedianOrder(TreeNode *root){
+         if(root == NULL)
+             return;
+         getMedianOrder(root->left);
+         medianOrder.push_back(root->val);
+         getMedianOrder(root->right);
+         
+         
+    }
+    //判断p和q节点是不是在root节点的左右，是的话，返回1， 如果都在root节点的左边，则返回0， 都在右边返回2
+    int isAncestor(TreeNode *root, int &start, int &end){
+        int rootIndex=0;
+        for(int i=start; i<=end; i++){
+            if(medianOrder[i] == root->val)
+                rootIndex = i;
+        }
+        
+        if((small<rootIndex && large>rootIndex) || rootIndex == small || rootIndex == large)
+            return 1;
+        if(small > rootIndex){
+             start = rootIndex + 1;
+             return 2;
+        }
+        end = rootIndex - 1;
+        return 0; 
+    } 
+private:
+    vector<int> medianOrder;
+    int small;
+    int large;
+    int goodPIndex;
+    int goodQIndex;
+*/
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        if(root == NULL)
+            return NULL;
+        if(root == p || root == q)
+            return root;
+        TreeNode *left = lowestCommonAncestor(root->left, p, q);
+        TreeNode *right = lowestCommonAncestor(root->right, p, q);
+        return (left && right)? root : (left? left:right);
+    }
+    
+}
+
+
+Lowest Common Ancestor of a Binary Search Tree 
+Given a binary search tree (BST), find the lowest common ancestor (LCA) of two given nodes in the BST.According to the definition of LCA on Wikipedia: “The lowest common ancestor is defined between two nodes v and w as the lowest node in T that has both v and w as descendants (where we allow a node to be a descendant of itself).”        _______6______       /              \    ___2__          ___8__   /      \        /      \   0      _4       7       9         /  \         3   5For example, the lowest common ancestor (LCA) of nodes 2 and 8 is 6. Another example is LCA of nodes 2 and 4 is 2, since a node can be a descendant of itself according to the LCA definition.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        if(root == NULL)
+            return NULL;
+        TreeNode *smaller = p->val>q->val?q:p;
+        TreeNode* larger = p->val>q->val?p:q;
+        while(root != NULL){
+            if((smaller->val<root->val && root->val<larger->val) || root->val==smaller->val||root->val==larger->val)
+                return root;
+             if(root->val < smaller->val)
+                root = root->right;
+            else
+                root = root->left;
+        }
+        return NULL;
+        
+    }
+}
+
+
+Kth Smallest Element in a BST 
+Given a binary search tree, write a function kthSmallest to find the kth smallest element in it.
+Note: You may assume k is always valid, 1 ≤ k ≤ BST's total elements.Follow up:What if the BST is modified (insert/delete operations) often and you need to find the kth smallest frequently? How would you optimize the kthSmallest routine?  Try to utilize the property of a BST.  What if you could modify the BST node's structure?  The optimal runtime complexity is O(height of BST).
+Credits:Special thanks to @ts for adding this problem and creating all test cases.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    int kthSmallest(TreeNode* root, int k) {
+        if(root == NULL)
+            return 0;
+        if(root->left != NULL){
+            int num = kthSmallest(root->left, k);
+            if(count == k)
+                return num;
+        }
+        if(++count == k)
+            return root->val;
+        
+        if(root->right != NULL){
+            int num = kthSmallest(root->right, k);
+            if(count == k)
+                return num;
+        }
+       return 0;
+        
+    }
+    
+private:
+    int count = 0;
+}
+
+
+Invert Binary Tree 
+Invert a binary tree.     4   /   \  2     7 / \   / \1   3 6   9to     4   /   \  7     2 / \   / \9   6 3   1Trivia:This problem was inspired by this original tweet by Max Howell:Google: 90% of our engineers use the software you wrote (Homebrew), but you can’t invert a binary tree on a whiteboard so fuck off.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    TreeNode* invertTree(TreeNode* root) {
+        if(root == NULL)
+            return NULL;
+        invertTree(root->left);
+        invertTree(root->right);
+        TreeNode *temp = root->left;
+        root->left = root->right;
+        root->right = temp;
+        return root;
+    }
+}
+
+
+Count Complete Tree Nodes 
+Given a complete binary tree, count the number of nodes.Definition of a complete binary tree from Wikipedia:In a complete binary tree every level, except possibly the last, is completely filled, and all nodes in the last level are as far left as possible. It can have between 1 and 2h nodes inclusive at the last level h.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    //对于一个节点，只要其最左的高度个最右的高度一样，那么该树为满二叉树，直接使用公式计算节点个数，
+    //如果不相等，那么则递归的计算其左子树的节点数和右子树的节点数，再加上1就是该节点树的节点个数，
+    //该算法的时间之所以少，是应为只要一个节点的最左高度等于最右高度，那么节点树的节点个数就出来了，不用
+    //再计算该节点数的其他节点了。对于完全二叉树来说，有很多的节点树是满二叉树，所以该算法可以减少很多节点的
+    //计算量
+    int countNodes(TreeNode* root) {
+        if(root == NULL)
+            return 0;
+        TreeNode *l = root->left, *r = root->right;
+        int lh = 1, rh = 1;
+        while(l != NULL){
+            lh++;
+            l = l->left;
+        }
+        while(r != NULL){
+            rh++;
+            r = r->right;
+        }
+        if(rh == lh)
+            return pow(2, lh)-1;
+        return 1+countNodes(root->left)+countNodes(root->right);
+    }
+}
+
+
+Binary Tree Right Side View 
+Given a binary tree, imagine yourself standing on the right side of it, return the values of the nodes you can see ordered from top to bottom.For example:Given the following binary tree,   1            <;--- /   \2     3         <;--- \     \  5     4       <;---You should return [1, 3, 4].
+Credits:Special thanks to @amrsaqr for adding this problem and creating all test cases.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    //宽度搜索，只记录每一层最右边的节点的值
+    vector<int> rightSideView(TreeNode* root) {
+        if(root == NULL)
+            return {};
+        vector<int> ret;
+        vector<TreeNode *> cur;
+        vector<TreeNode *> next;
+        cur.push_back(root);
+        while(cur.size() > 0){
+            ret.push_back(cur[cur.size()-1]->val);
+            next.clear();
+            for(int i=0; i<cur.size(); i++){
+                if(cur[i]->left != NULL)
+                    next.push_back(cur[i]->left);
+                if(cur[i]->right != NULL)
+                    next.push_back(cur[i]->right);
+            }
+            cur = next;
+        }
+    return ret;
+    }
+}
+
+
+Binary Search Tree Iterator 
+Implement an iterator over a binary search tree (BST). Your iterator will be initialized with the root node of a BST.Calling next() will return the next smallest number in the BST.
+Note: next() and hasNext() should run in average O(1) time and uses O(h) memory, where h is the height of the tree. 
+Credits:Special thanks to @ts for adding this problem and creating all test cases.
+
+/**
+ * Definition for binary tree
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class BSTIterator {
+public:
+    BSTIterator(TreeNode *root) {
+        while(root != NULL){
+            iterator.push(root);
+            root = root->left;
+        }
+    }
+
+    /** @return whether we have a next smallest number */
+    bool hasNext() {
+        return !iterator.empty();
+    }
+
+    /** @return the next smallest number */
+    int next() {
+        TreeNode* node = iterator.top();
+        iterator.pop();
+        int ret = node->val;
+        if(node->right != NULL){
+            node = node->right;
+            while(node!=NULL){
+                iterator.push(node);
+                node = node->left;
+            }
+        }
+        return ret;
+    }
+private:
+    stack<TreeNode*> iterator;
+};
+
+/**
+ * Your BSTIterator will be called like this:
+ * BSTIterator i = BSTIterator(root);
+ * while (i.hasNext()) cout << i.next();
+ *
+
+
+Binary Tree Postorder Traversal 
+Given a binary tree, return the postorder traversal of its nodes' values.For example:Given binary tree {1,#,2,3},   1    \     2    /   3return [3,2,1].
+Note: Recursive solution is trivial, could you do it iteratively?
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    //跟前序遍历差不多的实现方式，只不过对于从stack弹出的元素，
+    //要先看看上一个val进入vector的元素是该元素的什么节点：
+    //如果是左的话，当该元素的右子节点为NULL，那么直接将该元素val放进vector，否则的话直接将右子节点进栈
+    //如果是右子节点的话，那么直接的将元素的val放进vector
+    vector<int> postorderTraversal(TreeNode* root) {
+        if(root == NULL)
+            return {};
+        vector<int> ret;
+        stack<TreeNode*> postorder;
+        TreeNode *pre = NULL;
+        postorder.push(root);
+        while(postorder.size()){
+            TreeNode *node = postorder.top();
+            if(node->left==NULL && node->right ==NULL){
+                ret.push_back(node->val);
+                postorder.pop();
+                pre = node;
+                continue;
+            }
+            if(node->left == pre && node->right == NULL){
+                ret.push_back(node->val);
+                postorder.pop();
+                pre = node;
+                continue;
+            } 
+            if(node->right != NULL && node->right == pre){
+                ret.push_back(node->val);
+                postorder.pop();
+                pre = node;
+                continue;
+            }
+            if(node->right != NULL)
+                postorder.push(node->right);
+            if(node->left != NULL)
+                postorder.push(node->left);
+        }
+        return ret;
+    }
+}
+
+
+Binary Tree Preorder Traversal 
+Given a binary tree, return the preorder traversal of its nodes' values.For example:Given binary tree {1,#,2,3},   1    \     2    /   3return [1,2,3].
+Note: Recursive solution is trivial, could you do it iteratively?
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    vector<int> preorderTraversal(TreeNode* root) {
+        if(root == NULL)
+            return {};
+        vector<int> ret;
+        stack<TreeNode*> preorder;
+        preorder.push(root);
+        while(preorder.size()){
+            TreeNode *node = preorder.top();
+            preorder.pop();
+            ret.push_back(node->val);
+            if(node->right != NULL)
+                preorder.push(node->right);
+            if(node->left != NULL)
+                preorder.push(node->left);
+            
+        }
+        return ret;
+    }
+}
+
+
+Sum Root to Leaf Numbers 
+Given a binary tree containing digits from 0-9 only, each root-to-leaf path could represent a number.An example is the root-to-leaf path 1->;2->;3 which represents the number 123.Find the total sum of all root-to-leaf numbers.For example,    1   / \  2   3The root-to-leaf path 1->;2 represents the number 12.The root-to-leaf path 1->;3 represents the number 13.Return the sum = 12 + 13 = 25.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    int sumNumbers(TreeNode* root) {
+        if(root == NULL)
+            return 0;
+        vector<int> temp;
+        int sum = 0;
+        sumNumber(root, temp, sum);
+        return sum;
+        
+    }
+    
+    void sumNumber(TreeNode *root, vector<int> &temp, int &sum){
+        if(root == NULL)
+            return;
+        if(root->left== NULL && root->right==NULL){
+            int val = getValFromVector(temp);
+            sum += (val*10 +root->val);
+            return;
+        }
+        temp.push_back(root->val);
+        sumNumber(root->left, temp, sum);
+        sumNumber(root->right, temp, sum);
+        temp.pop_back();
+    }
+    
+    int getValFromVector(vector<int> &temp){
+        int ret = 0;
+        for(int i=0; i<temp.size(); i++){
+            if(temp[i] == 0 && ret == 0)
+                continue;
+            ret = ret*10 + temp[i];
+        }
+        return ret;
+    }
+}
+
+
+Binary Tree Maximum Path Sum 
+Given a binary tree, find the maximum path sum.For this problem, a path is defined as any sequence of nodes from some starting node to any node in the tree along the parent-child connections. The path does not need to go through the root.For example:Given the below binary tree,       1      / \     2   3Return 6.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    int maxPathSum(TreeNode* root) {
+        if(root == NULL)
+            return 0;
+        int sum = INT_MIN;
+        maxPathSum(root, sum);
+        return sum;
+    }
+    
+    int maxPathSum(TreeNode *root, int &sum){
+        if(root == NULL)
+            return INT_MIN;
+        int left = maxPathSum(root->left, sum);
+        int right = maxPathSum(root->right, sum);
+        int pathsum = root->val;
+        pathsum += (left>0? left: 0);
+        pathsum += (right>0? right: 0);
+        int largest = right>left? right: left;
+        int leftOrright = largest;
+        largest = largest>pathsum? largest: pathsum;
+        if(sum<largest)
+            sum = largest;
+        return leftOrright>0? (root->val+leftOrright): root->val;
+            
+        
+    }
+}
+
+
+Populating Next Right Pointers in Each Node II 
+Follow up for problem "Populating Next Right Pointers in Each Node".What if the given tree could be any binary tree? Would your previous solution still work?
+Note:You may only use constant extra space.For example,Given the following binary tree,         1       /  \      2    3     / \    \    4   5    7After calling your function, the tree should look like:         1 ->; NULL       /  \      2 ->; 3 ->; NULL     / \    \    4->; 5 ->; 7 ->; NULL
+
+/**
+ * Definition for binary tree with next pointer.
+ * struct TreeLinkNode {
+ *  int val;
+ *  TreeLinkNode *left, *right, *next;
+ *  TreeLinkNode(int x) : val(x), left(NULL), right(NULL), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    void connect(TreeLinkNode *root) {
+        if(root == NULL)
+            return;
+        root->next = NULL;
+        connectHelper(root);
+    }
+    
+    void connectHelper(TreeLinkNode *root){
+        if(root == NULL)
+            return;
+        if(root->left != NULL){
+            root->left->next = getnext(root, 'l');
+        }
+        if(root->right != NULL)
+            root->right->next = getnext(root, 'r');
+        //这里需要先处理右节点，才可以处理左节点，因为左节点的next需要依赖于父节点的next，
+        //而next是指向右边的，所以，此时必须保证所有的右边的节点的next都已近处理好，不然的
+        //话，会出现next指不到对应的节点
+        connectHelper(root->right);
+        connectHelper(root->left);
+    }
+    
+    TreeLinkNode* getnext(TreeLinkNode *parent, char flag){
+        if(flag == 'l' && parent->right != NULL)
+            return parent->right;
+        else{
+            TreeLinkNode* node = parent->next;
+            while(node != NULL){
+                if(node->left != NULL)
+                    return node->left;
+                if(node->right != NULL)
+                    return node->right;
+                node = node->next;
+            }
+            return NULL;
+        }
+    }
+}
+
+
+Populating Next Right Pointers in Each Node 
+Given a binary tree    struct TreeLinkNode {      TreeLinkNode *left;      TreeLinkNode *right;      TreeLinkNode *next;    }Populate each next pointer to point to its next right node. If there is no next right node, the next pointer should be set to NULL.Initially, all next pointers are set to NULL.
+Note:You may only use constant extra space.You may assume that it is a perfect binary tree (ie, all leaves are at the same level, and every parent has two children).For example,Given the following perfect binary tree,         1       /  \      2    3     / \  / \    4  5  6  7After calling your function, the tree should look like:         1 ->; NULL       /  \      2 ->; 3 ->; NULL     / \  / \    4->;5->;6->;7 ->; NULL
+
+/**
+ * Definition for binary tree with next pointer.
+ * struct TreeLinkNode {
+ *  int val;
+ *  TreeLinkNode *left, *right, *next;
+ *  TreeLinkNode(int x) : val(x), left(NULL), right(NULL), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    void connect(TreeLinkNode *root) {
+        if(root == NULL)
+            return ;
+        queue<TreeLinkNode*> cur;
+        cur.push(root);
+        while(cur.size() != 0){
+            queue<TreeLinkNode*> next;
+            while(cur.size() != 0){
+                TreeLinkNode *temp = cur.front();
+                cur.pop();
+                if(cur.size()!=0)
+                    temp->next = cur.front();
+                else
+                    temp->next = NULL;
+                if(temp->left != NULL)
+                    next.push(temp->left);
+                if(temp->right != NULL)
+                    next.push(temp->right);
+            }
+            cur = next;
+        }
+       
+    }
+}
+
+
+Flatten Binary Tree to Linked List 
+Given a binary tree, flatten it to a linked list in-place.For example,Given         1        / \       2   5      / \   \     3   4   6The flattened tree should look like:   1    \     2      \       3        \         4          \           5            \             6click to show hints.Hints:If you notice carefully in the flattened tree, each node's right child points to the next node of a pre-order traversal.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    void flatten(TreeNode* root) {
+        if(root == NULL)
+            return ;
+        TreeNode *leftnode = NULL;
+        flatten(root, leftnode);
+    }
+    //这里采用递归的方式，对于每一个节点，获得其左子树的最后节点，使其右指针指向该节点的右子树，如果节点的左指针为空
+    //这跳过对左子树的遍历。这里的关键在于TreeNode *&leftnode，这里是引用！！！
+    //变成链表时，每一个树节点都是右指针指向下一个节点，树的节点的左指针必须赋值为NULL！！！
+    void flatten(TreeNode *root, TreeNode *&leftnode){
+        if(root == NULL)
+            return ;
+        if(root->left == NULL && root->right == NULL){
+            leftnode = root;
+            return;
+        }
+        if(root->left != NULL){
+            flatten(root->left, leftnode);
+            if(leftnode != NULL)
+                leftnode->right = root->right;
+            flatten(root->right, leftnode);
+            root->right = root->left;
+            root->left = NULL;
+        }
+        else
+            flatten(root->right, leftnode);
+    }
+}
+
+
+Path Sum II 
+Given a binary tree and a sum, find all root-to-leaf paths where each path's sum equals the given sum.For example:Given the below binary tree and sum = 22,              5             / \            4   8           /   / \          11  13  4         /  \    / \        7    2  5   1return[   [5,4,11,2],   [5,8,4,5]]
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    //深度搜索，因为节点的值有可能为负数，所以不可以采用剪枝的方法
+    vector<vector<int>> pathSum(TreeNode* root, int sum) {
+        if(root == NULL)
+            return {};
+        vector<vector<int>> ret;
+        vector<int> temp;
+        pathSum(root, ret, temp, sum, 0);
+        return ret;
+    }
+    
+    void pathSum(TreeNode *root, vector<vector<int>> &ret, vector<int> &temp, int target, int cursum){
+        if(root == NULL)
+            return;
+        if(root->left == NULL && root->right == NULL && cursum+root->val == target){
+            temp.push_back(root->val);
+            ret.push_back(temp);
+            temp.pop_back();
+        }
+        else{
+            temp.push_back(root->val);
+            pathSum(root->left, ret, temp, target, cursum+root->val);
+            
+            pathSum(root->right, ret, temp, target, cursum+root->val);
+            temp.pop_back();
+        }
+    }
+}
+
+
+Path Sum 
+Given a binary tree and a sum, determine if the tree has a root-to-leaf path such that adding up all the values along the path equals the given sum.For example:Given the below binary tree and sum = 22,              5             / \            4   8           /   / \          11  13  4         /  \      \        7    2      1return true, as there exist a root-to-leaf path 5->;4->;11->;2 which sum is 22.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    bool hasPathSum(TreeNode* root, int sum) {
+        if(root == NULL)
+            return false;
+        if(root->left == NULL && root->right == NULL && sum == root->val)
+            return true;
+       return hasPathSum(root->left, sum-root->val) || hasPathSum(root->right, sum-root->val);
+    }
+}
+
+
+Minimum Depth of Binary Tree 
+Given a binary tree, find its minimum depth.The minimum depth is the number of nodes along the shortest path from the root node down to the nearest leaf node.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    int minDepth(TreeNode* root) {
+        if(root == NULL)
+            return 0;
+        queue<TreeNode *> cur;
+        
+        cur.push(root);
+        int depth = 1;
+        TreeNode *temp = NULL;
+        while(true){
+            queue<TreeNode *> next;
+            while(!cur.empty()){
+            temp = cur.front();
+            cur.pop();
+            if(temp->left == NULL && temp->right == NULL)
+                return depth;
+            if(temp->left != NULL)
+                next.push(temp->left);
+            if(temp->right != NULL)
+                next.push(temp->right);
+        }
+        cur = next;
+        depth++;
+        }
+        
+    }
+}
+
+
+Balanced Binary Tree 
+Given a binary tree, determine if it is height-balanced.For this problem, a height-balanced binary tree is defined as a binary tree in which the depth of the two subtrees of every node never differ by more than 1.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    bool isBalanced(TreeNode* root) {
+        return _isBalanced(root) >= 0;
+    }
+    
+private :
+    int _isBalanced(TreeNode *root){
+        if(root == NULL)
+            return 0;
+        int depthLeft = _isBalanced(root->left);
+        int depthRight = _isBalanced(root->right);
+        
+        if(depthLeft<0 || depthRight<0 || abs(depthLeft-depthRight) > 1)
+            return -1;
+        return max(depthLeft, depthRight) + 1;
+    }
+}
+
+
+Convert Sorted Array to Binary Search Tree 
+Given an array where elements are sorted in ascending order, convert it to a height balanced BST.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    TreeNode* sortedArrayToBST(vector<int>& nums) {
+        if(nums.size() == 0)
+            return NULL;
+        return sortedArrayToBST(nums, 0, nums.size()-1);
+    }
+    
+    TreeNode* sortedArrayToBST(vector<int> &nums, int start, int end){
+        if(start > end)
+            return NULL;
+        if(start == end)
+            return new TreeNode(nums[start]);
+        int medium = start + (end-start)/2;
+        TreeNode* root = new TreeNode(nums[medium]);
+        root->left = sortedArrayToBST(nums, start, medium-1);
+        root->right = sortedArrayToBST(nums, medium+1, end);
+        return root;
+    }
+}
+
+
+Binary Tree Level Order Traversal II 
+Given a binary tree, return the bottom-up level order traversal of its nodes' values. (ie, from left to right, level by level from leaf to root).For example:Given binary tree {3,9,20,#,#,15,7},    3   / \  9  20    /  \   15   7return its bottom-up level order traversal as:[  [15,7],  [9,20],  [3]]confused what "{1,#,2,3}" means? >; read more on how binary tree is serialized on OJ.OJ's Binary Tree Serialization:The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.Here's an example:   1  / \ 2   3    /   4    \     5The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}". 
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    vector<vector<int>> levelOrderBottom(TreeNode* root) {
+        vector<vector<int> > result;
+        if(root == NULL)
+            return result;
+        queue<TreeNode*> cur;
+        cur.push(root);
+        _levelOrderBottom(result, cur);
+        return result;
+    }
+    
+    void _levelOrderBottom(vector<vector<int> > &result, queue<TreeNode*> cur) {
+        if(cur.empty())
+            return;
+        vector<int> level;
+        queue<TreeNode*> next;
+        TreeNode *temp;
+        while(!cur.empty()){
+            temp = cur.front();
+            cur.pop();
+            level.push_back(temp->val);
+            if(temp->left != NULL)
+                next.push(temp->left);
+            if(temp->right != NULL)
+                next.push(temp->right);
+        }
+         _levelOrderBottom(result, next);
+        result.push_back(level);
+        
+    }
+    
+}
+
+
+Construct Binary Tree from Inorder and Postorder Traversal 
+Given inorder and postorder traversal of a tree, construct the binary tree.
+Note:You may assume that duplicates do not exist in the tree.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    TreeNode* buildTree(vector<int>& inorder, vector<int>& postorder) {
+        if(inorder.size() == 0 && postorder.size() == 0 || inorder.size() != postorder.size())
+            return NULL;
+        return buildTree(inorder, postorder, 0, inorder.size()-1, 0, postorder.size()-1);
+    }
+    
+    TreeNode* buildTree(vector<int>& inorder, vector<int>& postorder, int instart, int inend, int poststart, int postend){
+        if(instart > inend)
+            return NULL;
+        if(instart == inend)
+            return new TreeNode(inorder[instart]);
+        int index = instart;
+        for(; index<=inend; index++)
+            if(inorder[index] == postorder[postend])
+                break;
+        TreeNode *root = new TreeNode(inorder[index]);
+        root->left = buildTree(inorder, postorder, instart, index-1, poststart, poststart+index-instart-1);
+        root->right = buildTree(inorder, postorder, index+1, inend, poststart+index-instart, postend-1);
+        
+        return root;
+    }
+}
+
+
+Construct Binary Tree from Preorder and Inorder Traversal 
+Given preorder and inorder traversal of a tree, construct the binary tree.
+Note:You may assume that duplicates do not exist in the tree.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder) {
+        if(preorder.size() == 0 && inorder.size() == 0 || preorder.size() != inorder.size())
+            return NULL;
+        return buildTree(preorder, inorder, 0, preorder.size()-1, 0, inorder.size()-1);
+    }
+    
+    TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder, int prestart, int preend, int instart, int inend){
+        if(prestart > preend)
+            return NULL;
+        if(prestart == preend)
+            return new TreeNode(preorder[prestart]);
+        TreeNode* root = new TreeNode(preorder[prestart]);
+        int index = instart;
+        for(; index<=inend; index++)
+            if(inorder[index] == preorder[prestart])
+                break;
+        root->left = buildTree(preorder, inorder, prestart+1, prestart+index-instart, instart, index-1);
+        root->right = buildTree(preorder, inorder, prestart+index-instart+1, preend, index+1, inend);
+        return root;
+    }
+}
+
+
+Maximum Depth of Binary Tree 
+Given a binary tree, find its maximum depth.The maximum depth is the number of nodes along the longest path from the root node down to the farthest leaf node.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    int maxDepth(TreeNode* root) {
+        if(root == NULL)
+            return 0;
+        int left = maxDepth(root->left);
+        int right = maxDepth(root->right);
+        return max(left, right)+1;
+    }
+}
+
+
+Binary Tree Zigzag Level Order Traversal 
+Given a binary tree, return the zigzag level order traversal of its nodes' values. (ie, from left to right, then right to left for the next level and alternate between).For example:Given binary tree {3,9,20,#,#,15,7},    3   / \  9  20    /  \   15   7return its zigzag level order traversal as:[  [3],  [20,9],  [15,7]]confused what "{1,#,2,3}" means? >; read more on how binary tree is serialized on OJ.OJ's Binary Tree Serialization:The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.Here's an example:   1  / \ 2   3    /   4    \     5The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}". 
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
+        vector<vector<int>> ret;
+        if(root == NULL){
+            return ret;
+        }
+        stack<TreeNode *> curstack;
+        bool lefttoright = true;
+        curstack.push(root);
+        while(curstack.size()){
+           stack<TreeNode *> nextstack;
+            vector<int> temp;
+            while(curstack.size()){
+                TreeNode *node = curstack.top();
+                curstack.pop();
+                if(lefttoright){
+                    if(node->left != NULL)
+                        nextstack.push(node->left);
+                    if(node->right != NULL)
+                        nextstack.push(node->right);
+                    
+                }
+                else{
+                    if(node->right != NULL)
+                        nextstack.push(node->right);
+                    if(node->left != NULL)
+                        nextstack.push(node->left);
+                }
+                temp.push_back(node->val);
+            }
+            ret.push_back(temp);
+            curstack = nextstack;
+            if(lefttoright)
+                lefttoright = false;
+            else
+                lefttoright = true;
+        }
+        return ret;
+    }
+}
+
+
+Binary Tree Level Order Traversal 
+Given a binary tree, return the level order traversal of its nodes' values. (ie, from left to right, level by level).For example:Given binary tree {3,9,20,#,#,15,7},    3   / \  9  20    /  \   15   7return its level order traversal as:[  [3],  [9,20],  [15,7]]confused what "{1,#,2,3}" means? >; read more on how binary tree is serialized on OJ.OJ's Binary Tree Serialization:The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.Here's an example:   1  / \ 2   3    /   4    \     5The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}". 
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        vector<vector<int> > result;
+        if(root == NULL)
+            return result;
+        queue<TreeNode*> cur;
+        TreeNode *temp = NULL;
+        cur.push(root);
+        while(true){
+            queue<TreeNode*> next;
+            vector<int> level;
+            while(!cur.empty()){
+                temp = cur.front();
+                cur.pop();
+                level.push_back(temp->val);
+                if(temp->left != NULL)
+                    next.push(temp->left);
+                if(temp->right != NULL)
+                    next.push(temp->right);
+            }
+            result.push_back(level);
+            if(next.empty())
+                break;
+            cur = next;
+        }
+        return result;
+    }
+}
+
+
+Symmetric Tree 
+Given a binary tree, check whether it is a mirror of itself (ie, symmetric around its center).For example, this binary tree is symmetric:    1   / \  2   2 / \ / \3  4 4  3But the following is not:    1   / \  2   2   \   \   3    3
+Note:Bonus points if you could solve it both recursively and iteratively.confused what "{1,#,2,3}" means? >; read more on how binary tree is serialized on OJ.OJ's Binary Tree Serialization:The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.Here's an example:   1  / \ 2   3    /   4    \     5The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}". 
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    bool isSymmetric(TreeNode* root) {
+        if(root == NULL)
+            return true;
+        return isSymmetric(root->left, root->right);
+    }
+    
+    bool isSymmetric(TreeNode*node1, TreeNode* node2){
+        if(node1 == NULL && node2 != NULL)
+            return false;
+        if(node2 == NULL && node1 != NULL)
+            return false;
+        if(node1 == NULL && node2 == NULL)
+            return true;
+        if(node1->val != node2->val)
+            return false;
+        if(isSymmetric(node1->left, node2->right))
+            return isSymmetric(node1->right, node2->left);
+        return false;
+    }
+}
+
+
+Same Tree 
+Given two binary trees, write a function to check if they are equal or not.Two binary trees are considered equal if they are structurally identical and the nodes have the same value.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    bool isSameTree(TreeNode* p, TreeNode* q) {
+        if(p == NULL && q == NULL)
+            return true;
+        if( p == NULL || q == NULL)
+            return false;
+        if(p->val != q->val)
+            return false;
+        return isSameTree(p->left, q->left) && isSameTree(p->right, q->right);
+        
+        
+    }
+}
+
+
+Recover Binary Search Tree 
+Two elements of a binary search tree (BST) are swapped by mistake.Recover the tree without changing its structure.
+Note:A solution using O(n) space is pretty straight forward. Could you devise a constant space solution?confused what "{1,#,2,3}" means? >; read more on how binary tree is serialized on OJ.OJ's Binary Tree Serialization:The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.Here's an example:   1  / \ 2   3    /   4    \     5The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}". 
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    //下面的算法有问题，不能确定哪一个节点是错误的节点，即使判断的条件很多还是不能覆盖所有的可能性
+    /*
+    void recoverTree(TreeNode* root) {
+        if(root == NULL)
+            return ;
+        vector<TreeNode*> ret;
+        
+        recoverTree(NULL, root, root->left, ret, '0', '0');
+        recoverTree(NULL, root, root->right, ret, '1', '1');
+        if(ret.size() == 2){
+            int temp = ret[0]->val;
+            ret[0]->val = ret[1]->val;
+            ret[1]->val = temp;
+        }
+        if(ret.size() == 1){
+            int temp = ret[0]->val;
+            ret[0]->val = root->val;
+            root->val = temp;
+        }
+            
+        return ;
+    }
+    
+    void recoverTree(TreeNode *grandparent, TreeNode* parent, TreeNode* cur, vector<TreeNode*> &ret, char gp2p, char p2cur){
+        if(cur == NULL || ret.size() == 2)
+            return ;
+        //没有grandpa的时候，直接的parent>left, parent<right就可以了,忽略gp2p标志
+        if(grandparent == NULL){
+            if(p2cur == '0' && cur->val >= parent->val){
+                if(cur->left==NULL && cur->right==NULL)
+                    ret.push_back(cur);
+                else if((cur->left!=NULL && cur->right!=NULL) && (cur->right->val<=cur->val || cur->val<=cur->left->val))
+                    ret.push_back(cur);
+                else if(cur->left==NULL && cur->right->val<=cur->val)
+                    ret.push_back(cur);
+                else if(cur->right==NULL && cur->left->val>=cur->val)
+                    ret.push_back(cur);
+                if(ret.size() == 2)
+                    return;
+            }
+            if(p2cur == '1' && cur->val <= parent->val){
+               if(cur->left==NULL && cur->right==NULL)
+                    ret.push_back(cur);
+                else if((cur->left!=NULL && cur->right!=NULL) && (cur->right->val<=cur->val || cur->val<=cur->left->val))
+                    ret.push_back(cur);
+                else if(cur->left==NULL && cur->right->val<=cur->val)
+                    ret.push_back(cur);
+                else if(cur->right==NULL && cur->left->val>=cur->val)
+                    ret.push_back(cur);
+                if(ret.size() == 2)
+                    return;
+                
+            }
+        }
+        //有grandpa 的情况，要根据gp2p的标记来判断
+        //有四种情况
+        //1: 00，此时只要当前节点的值小于parent就可以了
+        //2: 01，此时当前的节点必须大于parent并且小于grandpa
+        //3: 10, 此时当前的节点必须小于parent并且大于grandpa
+        //4: 11, 此时只要当前的节点大于parent就可以了
+        else{
+            if(gp2p=='0' && p2cur=='0' && cur->val>=parent->val){
+                 if(cur->left==NULL && cur->right==NULL)
+                    ret.push_back(cur);
+                else if((cur->left!=NULL && cur->right!=NULL) && (cur->right->val<=cur->val || cur->val<=cur->left->val))
+                    ret.push_back(cur);
+                else if(cur->left==NULL && cur->right->val<=cur->val)
+                    ret.push_back(cur);
+                else if(cur->right==NULL && cur->left->val>=cur->val)
+                    ret.push_back(cur);
+                if(ret.size() == 2)
+                    return;
+                
+            }
+            if(gp2p=='0' && p2cur=='1' && !(parent->val<cur->val && cur->val<grandparent->val)){
+                if(cur->left==NULL && cur->right==NULL)
+                    ret.push_back(cur);
+                else if((cur->left!=NULL && cur->right!=NULL) && (cur->right->val<=cur->val || cur->val<=cur->left->val))
+                    ret.push_back(cur);
+                else if(cur->left==NULL && cur->right->val<=cur->val)
+                    ret.push_back(cur);
+                else if(cur->right==NULL && cur->left->val>=cur->val)
+                    ret.push_back(cur);
+                if(ret.size() == 2)
+                    return;
+            }
+             if(gp2p=='1' && p2cur=='0' && !(cur->val<parent->val && cur->val>grandparent->val)){
+                 if(cur->left==NULL && cur->right==NULL)
+                    ret.push_back(cur);
+                else if((cur->left!=NULL && cur->right!=NULL) && (cur->right->val<=cur->val || cur->val<=cur->left->val))
+                    ret.push_back(cur);
+                else if(cur->left==NULL && cur->right->val<=cur->val)
+                    ret.push_back(cur);
+                else if(cur->right==NULL && cur->left->val>=cur->val)
+                    ret.push_back(cur);
+                if(ret.size() == 2)
+                    return;
+            }
+             if(gp2p=='1' && p2cur=='1' && cur->val<=parent->val){
+                if(cur->left==NULL && cur->right==NULL)
+                    ret.push_back(cur);
+                else if((cur->left!=NULL && cur->right!=NULL) && (cur->right->val<=cur->val || cur->val<=cur->left->val))
+                    ret.push_back(cur);
+                else if(cur->left==NULL && cur->right->val<=cur->val)
+                    ret.push_back(cur);
+                else if(cur->right==NULL && cur->left->val>=cur->val)
+                    ret.push_back(cur);
+                if(ret.size() == 2)
+                    return;
+            }
+        }
+        
+        //进入左子节点
+        recoverTree(parent, cur, cur->left, ret, p2cur, '0');
+        //进入右子节点
+        recoverTree(parent, cur, cur->right, ret, p2cur, '1');
+    }
+    */
+    
+    
+    
+    //还是直接的递归中序遍历树，但是在遍历的时候增加一个指针，以标记当前的节点的前驱节点，只要当前的
+    //节点的值小于或是等于其前驱节点，那么当前节点就是有问题的，如果在最后只找到一个有问题的节点，那么
+    //那个有问题的节点的值与与她的前驱节点的值互相交换就可以了
+    void recoverTree(TreeNode* root) {
+        TreeNode* pre = NULL;
+        TreeNode* mistake1 = NULL;
+        TreeNode* mistake2 = NULL;
+        recoverTree(root, pre, mistake1, mistake2);
+        int temp = mistake1->val;
+        mistake1->val = mistake2->val;
+        mistake2->val = temp;
+    }
+    //两个值交换，坑定是前面的值i跟后面的值j交换，这样的话，对于第一个错误的节点i来说，她的值将会大于其后后驱节点
+    //所以在找到第一个错误的节点的时候，我们应该记录的是pre指向的节点，而不是当前的节点
+    //对于j来说，其前驱节点将会大于j的值，所以在找到第二个错误节点的时候，我们标记的应该是当前的节点，而不是前驱节点
+    void recoverTree(TreeNode* root, TreeNode* &pre, TreeNode* &mistake1, TreeNode* &mistake2){
+        if(root == NULL)
+            return ;
+        recoverTree(root->left, pre, mistake1, mistake2);
+        if(pre!=NULL && pre->val >= root->val){
+            //第一个找到错误节点，错误节点为前驱节点
+            if(mistake1 == NULL){
+                mistake1 = pre;
+                mistake2 = root;
+            }
+            //找到第二个错误节点，错误节点为当前的节点
+            else{
+                mistake2 = root;
+            }
+        }
+        pre = root;
+        recoverTree(root->right, pre, mistake1, mistake2);
+    }
+}
+
+
+Validate Binary Search Tree 
+Given a binary tree, determine if it is a valid binary search tree (BST).Assume a BST is defined as follows:The left subtree of a node contains only nodes with keys less than the node's key.The right subtree of a node contains only nodes with keys greater than the node's key.Both the left and right subtrees must also be binary search trees.confused what "{1,#,2,3}" means? >; read more on how binary tree is serialized on OJ.OJ's Binary Tree Serialization:The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.Here's an example:   1  / \ 2   3    /   4    \     5The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}". 
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    //要记住一个坑：
+    //对于每一个节点，不但要保证左节点的值比该节点的值小以及右节点的值比该节点的值大之外，
+    //还要保证左子树的所有节点的值都比该节点的值小，右子树的所有节点的值都比该节点的值大。
+    /*
+        TMD, 不能采用递归的方法，因为不知道每一个节点是其祖先节点的左子节点还是右子节点，
+        所以不能根据左右来判断值的大小是否合适
+        
+        
+        TMD，这里是BST啊，直接的采用中序遍历不就好了嘛！！！！！！！！！！！
+    */
+    /*
+    bool isValidBST(TreeNode* root) {
+        if(root == NULL)
+            return true;
+        int leftlarget = INT_MIN;
+        int rightsmall = INT_MAX;
+        bool left = isValidBSTOfLeft(root->left, leftlarget);
+        bool right = isValidBSTOfRight(root->right, rightsmall);
+        if((root->left != NULL && leftlarget >= root->val) || (root->right != NULL && rightsmall <= root->val))
+            return false;
+        if(root->left != NULL && root->right != NULL)
+            return left && right &&  root->left->val < root->val && root->val < root->right->val;
+        if(root->left != NULL)
+            return left && right &&  root->left->val < root->val;
+        if(root->right != NULL)
+            return left && right &&  root->right->val > root->val;
+        return true;
+
+    }
+    
+    bool isValidBSTOfLeft(TreeNode* root, int &largest){
+        if(root == NULL)
+            return true;
+
+        int leftlarget = INT_MIN;
+        int rightsmall = INT_MAX;
+        bool left = isValidBSTOfLeft(root->left, leftlarget);
+        bool right = isValidBSTOfRight(root->right, rightsmall);
+        if(root->right != NULL && largest<rightsmall)
+            largest = rightsmall;
+        if(root->left != NULL && largest<leftlarget)
+            largest = leftlarget;
+        if(largest < root->val )
+            largest = root->val;
+        if((root->left != NULL && leftlarget >= root->val) || (root->right != NULL && rightsmall <= root->val))
+            return false;
+        if(root->left != NULL && root->right != NULL)
+            return left && right &&  root->left->val < root->val && root->val < root->right->val;
+        if(root->left != NULL)
+            return left && right &&  root->left->val < root->val;
+        if(root->right != NULL)
+            return left && right &&  root->right->val > root->val;
+        return true;
+    }
+    
+     bool isValidBSTOfRight(TreeNode* root, int &small){
+        if(root == NULL)
+            return true;
+
+        int leftlarget = INT_MIN;
+        int rightsmall = INT_MAX;
+        bool left = isValidBSTOfLeft(root->left, leftlarget);
+        bool right = isValidBSTOfRight(root->right, rightsmall);
+         if(root->right != NULL && small>rightsmall)
+            small = rightsmall;
+        if(root->left != NULL && small>leftlarget)
+            small = leftlarget;
+        if(small > root->val)
+            small = root->val;
+        if((root->left != NULL && leftlarget >= root->val) || (root->right != NULL && rightsmall <= root->val))
+            return false;
+       
+        if(root->left != NULL && root->right != NULL)
+            return left && right &&  root->left->val < root->val && root->val < root->right->val;
+        if(root->left != NULL)
+            return left && right &&  root->left->val < root->val;
+        if(root->right != NULL)
+            return left && right &&  root->right->val > root->val;
+        return true;
+    }
+    
+    */
+    
+    
+    //中序遍历
+    bool isValidBST(TreeNode* root) {
+        if(root == NULL)
+            return true;
+        vector<int> inOrder;
+        getinOrder(root, inOrder);
+        for(int i=1; i<inOrder.size(); i++){
+            if(inOrder[i] <= inOrder[i-1])
+                return false;
+        }
+        return true;
+
+    }
+     void getinOrder(TreeNode *root, vector<int> &inOrder){
+         if(root == NULL)
+             return;
+         getinOrder(root->left, inOrder);
+         inOrder.push_back(root->val);
+         getinOrder(root->right, inOrder);
+     }
+}
+
+
+Unique Binary Search Trees II 
+Given n, generate all structurally unique BST's (binary search trees) that store values 1...n.For example,Given n = 3, your program should return all 5 unique BST's shown below.   1         3     3      2      1    \       /     /      / \      \     3     2     1      1   3      2    /     /       \                 \   2     1         2                 3confused what "{1,#,2,3}" means? >; read more on how binary tree is serialized on OJ.OJ's Binary Tree Serialization:The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.Here's an example:   1  / \ 2   3    /   4    \     5The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}". 
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    vector<TreeNode*> generateTrees(int n) {
+        vector<TreeNode*> ret;
+        if(n == 0){
+            ret.push_back(NULL);
+            return ret;
+        }
+            
+        
+        return generateTrees(1, n);
+    }
+    
+    vector<TreeNode*> generateTrees(int start, int end){
+        vector<TreeNode*> ret;
+        if(start > end)
+            return ret;
+        if(start == end){
+            TreeNode *node = new TreeNode(start);
+            ret.push_back(node);
+            return ret;
+        }
+        for(int i=start; i<=end; i++){
+            vector<TreeNode*> left = generateTrees(start, i-1);
+            vector<TreeNode*> right = generateTrees(i+1, end);
+            if(left.size() == 0 && right.size() == 0){
+                TreeNode* root = new TreeNode(i);
+                ret.push_back(root);
+                continue;
+            }
+            if(left.size() == 0){
+                for(int j=0; j<right.size(); j++){
+                    TreeNode* root = new TreeNode(i);
+                    root->right = right[j];
+                    ret.push_back(root);
+                }
+                continue;
+            }
+            if(right.size() == 0){
+                for(int j=0; j<left.size(); j++){
+                    TreeNode* root = new TreeNode(i);
+                    root->left = left[j];
+                    ret.push_back(root);
+                }
+                continue;
+            }
+            for(int k=0; k<left.size(); k++){
+                for(int j=0; j<right.size(); j++){
+                    TreeNode *root = new TreeNode(i);
+                    root->left = left[k];
+                    root->right = right[j];
+                    ret.push_back(root);
+                }
+            }  
+        }
+        
+        return ret;
+    }
+}
+
+
+Unique Binary Search Trees 
+Given n, how many structurally unique BST's (binary search trees) that store values 1...n?For example,Given n = 3, there are a total of 5 unique BST's.   1         3     3      2      1    \       /     /      / \      \     3     2     1      1   3      2    /     /       \                 \   2     1         2                 3
+
+class Solution {
+public:
+    //简单的采用递归会超时！！！！
+    /*
+    int numTrees(int n) {
+        if(n == 1)
+            return 1;
+        return numTrees(1, n);
+    }
+    
+    int numTrees(int start, int end){
+        if(start > end)
+            return 0;
+        if(start == end)
+            return 1;
+        int total = 0;
+        for(int i=start; i<=end; i++){
+            int left = numTrees(start, i-1);
+            int right = numTrees(i+1, end);
+            if(left == 0 || right == 0)
+                total += (left+right);
+            else
+                total += (left*right);
+            
+        }
+        return total;
+    }
+    */
+    //另一种更加简单的递归,仍然超时！！！
+    /*
+    int numTrees(int n) {
+        if(n <= 1)
+            return n;
+        int total = 0;
+        for(int i=0; i<n; i++){
+            int left = numTrees(i);
+            int right = numTrees(n-i-1);
+            if(left == 0 || right == 0)
+                total += (left+right);
+            else
+                total += (left*right);
+        }
+        return total;
+    }
+    */
+    
+    //加备忘录
+    
+     int numTrees(int n) {
+        if(n <= 1)
+            return n;
+        int *f = new int[n+1];
+        f[0] = 0;
+        f[1] = 1;
+        for(int i=2; i<=n; i++)
+            f[i] = -1;
+        numTrees(n, f);
+        return f[n];
+    }
+    void numTrees(int n, int *f){
+        if(n < 0)
+            return;
+        if(f[n] != -1)
+            return ;
+        f[n] = 0;
+        for(int i=1; i<=n; i++){
+            if(f[i-1] == -1)
+                numTrees(i-1, f);
+            if(f[n-i] == -1)
+                numTrees(n-i, f);
+            if(f[i-1] == 0 || f[n-i] == 0)
+                f[n] += f[i-1]+f[n-i];
+            else
+                f[n] += f[i-1]*f[n-i];
+        }
+    }
+    
+    
+   
+}
+
+
+Binary Tree Inorder Traversal 
+Given a binary tree, return the inorder traversal of its nodes' values.For example:Given binary tree {1,#,2,3},   1    \     2    /   3return [1,3,2].
+Note: Recursive solution is trivial, could you do it iteratively?confused what "{1,#,2,3}" means? >; read more on how binary tree is serialized on OJ.OJ's Binary Tree Serialization:The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.Here's an example:   1  / \ 2   3    /   4    \     5The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}". 
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    vector<int> inorderTraversal(TreeNode* root) {
+        if(root == NULL)
+            return {};
+            
+        vector<int> ret;
+        inorderTraversal(root, ret);
+        
+        return ret;
+    }
+ 
+    void inorderTraversal(TreeNode *root, vector<int> &ret){
+        if(root == NULL)
+            return ;
+        inorderTraversal(root->left, ret);
+        ret.push_back(root->val);
+        inorderTraversal(root->right, ret);
+    }
+}
+
+

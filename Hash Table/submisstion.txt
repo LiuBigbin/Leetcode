@@ -1,0 +1,1324 @@
+Word Pattern 
+Given a pattern and a string str, find if str follows the same pattern. Here follow means a full match, such that there is a bijection between a letter in pattern and a non-empty word in str.Examples:pattern = "abba", str = "dog cat cat dog" should return true.pattern = "abba", str = "dog cat cat fish" should return false.pattern = "aaaa", str = "dog cat cat dog" should return false.pattern = "abba", str = "dog dog dog dog" should return false.Notes:You may assume pattern contains only lowercase letters, and str contains lowercase letters separated by a single space.
+Credits:Special thanks to @minglotus6 for adding this problem and creating all test cases.
+
+class Solution {
+public:
+	bool wordPattern(string pattern, string str) {
+		map<char, string> map1;
+		map<string, char> map2;
+		vector<string> strArray;
+		int start = 0;
+		for (int i = 0; i < str.length(); i++) {
+			if (str[i] == ' ') {
+				strArray.push_back(str.substr(start, i-start));
+				start = i + 1;
+			}
+				
+		}
+		strArray.push_back(str.substr(start, str.length()));
+		if (strArray.size() != pattern.length())
+			return false;
+		for(int i = 0; i < pattern.length(); i++) {
+			if(map1.find(pattern[i]) == map1.end() )
+				map1[pattern[i]] = strArray[i];
+			if(map2.find(strArray[i]) == map2.end())
+			    map2[strArray[i]] = pattern[i];
+			
+			if (map1[pattern[i]] != strArray[i] || map2[strArray[i]] != pattern[i])
+				return false;
+
+		}
+		return true;
+	}
+}
+
+
+H-Index 
+Given an array of citations (each citation is a non-negative integer) of a researcher, write a function to compute the researcher's h-index.According to the definition of h-index on Wikipedia: "A scientist has index h if h of his/her N papers have at least h citations each, and the other N − h papers have no more than h citations each."For example, given citations = [3, 0, 6, 1, 5], which means the researcher has 5 papers in total and each of them had received 3, 0, 6, 1, 5 citations respectively. Since the researcher has 3 papers with at least 3 citations each and the remaining two with no more than 3 citations each, his h-index is 3.
+Note: If there are several possible values for h, the maximum one is taken as the h-index.  An easy approach is to sort the array first.  What are the possible values of h-index?  A faster approach is to use extra space.
+Credits:Special thanks to @jianchao.li.fighter for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    
+    bool static desc(const int &a, const int &b){
+        return a>b;
+    }
+    
+    //先降序排序，只要第i（从1开始）个元素的值小于i，那么i-1就是要求的值
+    int hIndex(vector<int>& citations) {
+        sort(citations.begin(), citations.end(), desc);
+        int i;
+        for(i=1; i<=citations.size(); i++){
+            if(citations[i-1] < i)
+                return i-1;
+        }
+        return i-1;
+    }
+    /*还没调试成功
+    //利用快排的思想，找到中轴值d，使得数组的左边元素值大于右边的元素值，
+    //如果有i个大于d值，当d>i+1,那么要找的元素在数组的右边，否则的话在左边
+    int hIndex(vector<int>& citations) {
+        if(citations.size() == 0)
+            return 0;
+        int first = 0;
+        int end = citations.size()-1;
+        while(first<end){
+            //以first所在的元素作为中轴值
+            int i = first;
+            int j = end;
+            int total = 0;
+            int median = 0;
+            while(i<j){
+                while(i<j && citations[++i] >= citations[first]) total++;
+                while(j>i && citations[j] < citations[first]) j--;
+                if(i<j){
+                    int temp = citations[i];
+                    citations[i] = citations[j];
+                    citations[j] = temp;
+                    total++;
+                }
+            }
+            if(citations[i] > citations[first]){
+                 int temp = citations[i];
+                 citations[i] = citations[first];
+                 citations[first] = temp;
+                 median = i;
+                 total++;
+            }
+           else{
+               int temp = citations[i-1];
+               citations[i-1] = citations[first];
+               citations[first] = temp;
+               median = i-1;
+           }
+            
+            if(citations[median] >= total+1)
+                first = i+1;
+            else
+                end = i-1;
+        }
+        if(citations[first] == 0)
+            return 0;
+        return first+1;
+    }
+    */
+}
+
+
+Valid Anagram 
+Given two strings s and t, write a function to determine if t is an anagram of s. For example,s = "anagram", t = "nagaram", return true.s = "rat", t = "car", return false.
+Note:You may assume the string contains only lowercase alphabets.Follow up:What if the inputs contain unicode characters? How would you adapt your solution to such case?
+
+class Solution {
+public:
+/*  妈蛋，并不是只有一个小字串不同，可以有很多个不同的小字串，而且互换的不一定是回文，可以任意位置互换
+    bool isAnagram(string s, string t) {
+        if(s.size() != t.size())
+            return false;
+        int i = 0;
+        int start = 0;
+        while(i<s.size()){
+            //找到第一个不一样的元素
+            while(i<s.size() && s[i] == t[i])i++;
+                if(i == s.size())
+                    return true;
+            start = i;
+            for(i++; i<s.size(); i++){
+                //如果找到第一个回文的话，推出循环，i++
+                if(isPalindrome(s, t, start, i)){
+                    break;
+                }
+            }
+            if(i==s.size())
+                return false;
+            i++;
+        }
+        
+        
+       
+        return true;
+    }
+    
+private:
+    //查看start到end之间的元素是不是回文
+    bool isPalindrome(string s, string t, int start, int end){
+        for(int j=start, k = end; j<=end; j++, k--){
+            if(s[j] != t[k])
+                return false;
+        }
+        return true;
+    }
+*/
+
+bool isAnagram(string s, string t) {
+        if(s.size() != t.size())
+            return false;
+        map<char, int> sMap;
+        map<char, int> tMap;
+        for(int i=0; i<s.size(); i++){
+            if(sMap.find(s[i]) != sMap.end())
+                sMap[s[i]]++;
+            else{
+                sMap[s[i]] = 1;
+                
+            }
+            if(tMap.find(t[i]) != tMap.end())
+                tMap[t[i]]++;
+            else
+                tMap[t[i]] = 1;
+        }
+        
+        for(map<char, int>::iterator it=sMap.begin(); it!=sMap.end(); it++){
+            if(it->second != tMap[it->first])
+                return false;
+        }
+        return true;
+    }
+ 
+}
+
+
+Contains Duplicate II 
+Given an array of integers and an integer k, find out whether there are two distinct indices i and j in the array such that nums[i] = nums[j] and the difference between i and j is at most k.
+
+
+class Solution {
+public:
+    bool containsNearbyDuplicate(vector<int>& nums, int k) {
+        if(nums.size()<=1 || k == 0)
+            return false;
+        for(int i=0; i<nums.size(); i++){
+            if(hashMap.find(nums[i]) == hashMap.end()){
+                hashMap[nums[i]] = i;
+                
+            }
+            else{
+                if(i-hashMap[nums[i]] <= k)
+                    return true;
+                else
+                    hashMap[nums[i]] = i;
+            }
+        }
+        return false;
+    }
+
+private:
+    map<int, int> hashMap;
+}
+
+
+Contains Duplicate 
+Given an array of integers, find if the array contains any duplicates. Your function should return true if any value appears at least twice in the array, and it should return false if every element is distinct.
+
+class Solution {
+public:
+    bool containsDuplicate(vector<int>& nums) {
+        if(nums.size()<=1)
+            return false;
+        for(int i=0; i<nums.size(); i++){
+            if(hashMap.find(nums[i]) == hashMap.end())
+                hashMap[nums[i]] = 1;
+            else
+                return true;
+        }
+        return false;
+    }
+    
+private:
+    map<int, int> hashMap;
+}
+
+
+Isomorphic Strings 
+Given two strings s and t, determine if they are isomorphic.Two strings are isomorphic if the characters in s can be replaced to get t.All occurrences of a character must be replaced with another character while preserving the order of characters. No two characters may map to the same character but a character may map to itself.For example,Given "egg", "add", return true.Given "foo", "bar", return false.Given "paper", "title", return true.
+Note:You may assume both s and t have the same length.
+
+class Solution {
+public:
+    bool isIsomorphic(string s, string t) {
+        if(s.size() != t.size())
+            return false;
+        for(int i=0; i<s.size(); i++){
+            if(StoTMap.find(s[i]) == StoTMap.end()){
+                if(TtoSMap.find(t[i]) == TtoSMap.end()){
+                    StoTMap[s[i]] = t[i];
+                    TtoSMap[t[i]] = s[i];
+                }
+                else{
+                    if(TtoSMap[t[i]] != s[i])
+                        return false;
+                    else
+                        StoTMap[s[i]] = t[i];
+                }
+            }
+            else{
+                if(StoTMap[s[i]] != t[i])
+                    return false;
+            }
+        }
+        return true;
+    }
+private:
+    map<char, char> StoTMap;
+    map<char, char> TtoSMap;
+}
+
+
+Count Primes 
+Description:Count the number of prime numbers less than a non-negative number, n.
+Credits:Special thanks to @mithmatt for adding this problem and creating all test cases.  Let's start with a isPrime function. To determine if a number is prime, we need to check if it is not divisible by any number less than n. The runtime complexity of isPrime function would be O(n) and hence counting the total prime numbers up to n would be O(n2). Could we do better?    As we know the number must not be divisible by any number >; n / 2, we can immediately cut the total iterations half by dividing only up to n / 2. Could we still do better?    Let's write down all of 12's factors:2 × 6 = 123 × 4 = 124 × 3 = 126 × 2 = 12As you can see, calculations of 4 × 3 and 6 × 2 are not necessary. Therefore, we only need to consider factors up to &amp;radic;n because, if n is divisible by some number p, then n = p × q and since p &amp;le; q, we could derive that p &amp;le; &amp;radic;n.Our total runtime has now improved to O(n1.5), which is slightly better. Is there a faster approach?public int countPrimes(int n) {   int count = 0;   for (int i = 1; i <; n; i++) {      if (isPrime(i)) count++;   }   return count;}private boolean isPrime(int num) {   if (num <;= 1) return false;   // Loop's ending condition is i * i <;= num instead of i <;= sqrt(num)   // to avoid repeatedly calling an expensive function sqrt().   for (int i = 2; i * i <;= num; i++) {      if (num % i == 0) return false;   }   return true;}    The Sieve of Eratosthenes is one of the most efficient ways to find all prime numbers up to n. But don't let that name scare you, I promise that the concept is surprisingly simple.Sieve of Eratosthenes: algorithm steps for primes below 121. "Sieve of Eratosthenes Animation" by SKopp is licensed under CC BY 2.0.We start off with a table of n numbers. Let's look at the first number, 2. We know all multiples of 2 must not be primes, so we mark them off as non-primes. Then we look at the next number, 3. Similarly, all multiples of 3 such as 3 × 2 = 6, 3 × 3 = 9, ... must not be primes, so we mark them off as well. Now we look at the next number, 4, which was already marked off. What does this tell you? Should you mark off all multiples of 4 as well?    4 is not a prime because it is divisible by 2, which means all multiples of 4 must also be divisible by 2 and were already marked off. So we can skip 4 immediately and go to the next number, 5. Now, all multiples of 5 such as 5 × 2 = 10, 5 × 3 = 15, 5 × 4 = 20, 5 × 5 = 25, ... can be marked off. There is a slight optimization here, we do not need to start from 5 × 2 = 10. Where should we start marking off?    In fact, we can mark off multiples of 5 starting at 5 × 5 = 25, because 5 × 2 = 10 was already marked off by multiple of 2, similarly 5 × 3 = 15 was already marked off by multiple of 3. Therefore, if the current number is p, we can always mark off multiples of p starting at p2, then in increments of p: p2 + p, p2 + 2p, ... Now what should be the terminating loop condition?    It is easy to say that the terminating loop condition is p <; n, which is certainly correct but not efficient. Do you still remember Hint #3?    Yes, the terminating loop condition can be p <; &amp;radic;n, as all non-primes &amp;ge; &amp;radic;n must have already been marked off. When the loop terminates, all the numbers in the table that are non-marked are prime.The Sieve of Eratosthenes uses an extra O(n) memory and its runtime complexity is O(n log log n). For the more mathematically inclined readers, you can read more about its algorithm complexity on Wikipedia.public int countPrimes(int n) {   boolean[] isPrime = new boolean[n];   for (int i = 2; i <; n; i++) {      isPrime[i] = true;   }   // Loop's ending condition is i * i <; n instead of i <; sqrt(n)   // to avoid repeatedly calling an expensive function sqrt().   for (int i = 2; i * i <; n; i++) {      if (!isPrime[i]) continue;      for (int j = i * i; j <; n; j += i) {         isPrime[j] = false;      }   }   int count = 0;   for (int i = 2; i <; n; i++) {      if (isPrime[i]) count++;   }   return count;}  
+
+class Solution {
+public:
+    int countPrimes(int n) {
+        if(n <= 2)
+            return 0;
+        bool* isPrimes = new bool[n];
+        for(int i=2; i<n; i++)
+            isPrimes[i] = true;
+        for( int j=2; j*j<n; j++){
+            for(int k = j*j; k<n; k+=j)
+                isPrimes[k] = false;
+        }
+        int count = 0;
+        for(int i=2; i<n; i++)
+            if(isPrimes[i])
+                count++;
+        return count;
+    }
+}
+
+
+Happy Number 
+Write an algorithm to determine if a number is "happy".A happy number is a number defined by the following process: Starting with any positive integer, replace the number by the sum of the squares of its digits, and repeat the process until the number equals 1 (where it will stay), or it loops endlessly in a cycle which does not include 1. Those numbers for which this process ends in 1 are happy numbers.Example:&amp;nbsp;19 is a happy number12 + 92 = 8282 + 22 = 6862 + 82 = 10012 + 02 + 02 = 1
+Credits:Special thanks to @mithmatt and @ts for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    bool isHappy(int n) {
+        if(n == 0)
+            return false;
+        set<int> happend;
+        int count = 0;
+        while(n!=1){
+            count = 0;
+            while(n){
+                count += (n%10)*(n%10);
+                n /= 10;
+            }
+            n = count;
+            if(happend.count(count) == 1)
+                return false;
+            happend.insert(count);
+        }
+        return true;
+    }
+    
+}
+
+
+Repeated DNA Sequences 
+All DNA is composed of a series of nucleotides abbreviated as A, C, G, and T, for example: "ACGAATTCCG". When studying DNA, it is sometimes useful to identify repeated sequences within the DNA.Write a function to find all the 10-letter-long sequences (substrings) that occur more than once in a DNA molecule.For example,Given s = "AAAAACCCCCAAAAACCCCCCAAAAAGGGTTT",Return:["AAAAACCCCC", "CCCCCAAAAA"].
+
+class Solution {
+public:
+    //这道题是要写出所有出现次数超过1的十个字符长度的子序列，所以必须遍历到所有十字符长的子序列
+    //对于遍历可以有两种情况：
+    //1：从位置i开始，每十个字符切断，i的取值范围为[0,9], 这是所有子串的情况
+    //2：从0开始，长度为十，遍历到n-10
+    //这里采用第二中遍历的方法，而且，为了节约内存，不是直接的存储十个长度的字符串，而是使用位来存储
+    //因为这里的字符只有四种情况，且ACGT四个字符的二进制表示只有后面的三位不一样，所以我们可以只使用
+    //后三位的bit来表示他们
+    vector<string> findRepeatedDnaSequences(string s) {
+        if(s.size() <= 10)
+            return {};
+        int mask = 0x3fffffff;
+        unordered_map<int, int> m;
+        int i=0;
+        int cur = 0;
+        vector<string> ret;
+        while(i<s.size()){
+            cur = ((cur<<3)|(s[i++]&0x7))&mask;
+            //只记录所有墙面出现过一次的，出现过大于一次的已经在之前记录了，就不需要再记录
+            if(m[cur]++ == 1)
+                ret.push_back(s.substr(i-10, 10));
+        }
+        return ret;
+    }
+}
+
+
+Fraction to Recurring Decimal 
+Given two integers representing the numerator and denominator of a fraction, return the fraction in string format.If the fractional part is repeating, enclose the repeating part in parentheses.For example,Given numerator = 1, denominator = 2, return "0.5".Given numerator = 2, denominator = 1, return "2".Given numerator = 2, denominator = 3, return "0.(6)".
+Credits:Special thanks to @Shangrila for adding this problem and creating all test cases.
+
+class Solution {
+public:
+	//这道题目要注意两点：
+	//1:INT_MIN转成整数的时候会溢出，中间运算numerator = numerator%denominator*10;也有可能会溢出
+	//计算循环的时候，主要根据余数在前面是否出现来判断是否循环，这里每进行模运算后，得到的余数要乘以10,
+	//才能作为新的余数进行下一步的计算
+	string fractionToDecimal(int numerator, int denominator) {
+		return _fractionToDecimal(numerator, denominator);
+	}
+	//采用的是long long 的变量，避免了溢出
+	string _fractionToDecimal(long long  numerator, long long denominator) {
+		if (numerator == 0)
+			return "0";
+		//排除掉所有的有负数参数的情况,因为下面的计算都是默认为正整数的
+		if (numerator<0 && denominator>0)
+			return  "-" + _fractionToDecimal(-numerator, denominator);
+		if (numerator>0 && denominator<0)
+			return "-" + _fractionToDecimal(numerator, -denominator);
+		if (numerator<0 && denominator<0)
+			return  _fractionToDecimal(-numerator, -denominator);
+		string ret = "";
+		//这里要使用long long类型（有可能是-INT_MIN/1）
+		long long num = numerator / denominator;
+		//计算商的整数部分
+		if (num <= 9)
+			ret += num + '0';
+		else {
+			while (num) {
+				int digit = num % 10;
+				ret = (char)(digit + '0') + ret;
+				num /= 10;
+			}
+		}
+		//模运后得到的余数都要先乘以10
+		numerator = numerator%denominator * 10;
+		if (numerator == 0)
+			return ret;
+		ret += '.';
+		unordered_map<int, int> isvisited;
+
+		string doc = "";
+		int index = 0;
+		//记录乘以10后出现的余数
+		isvisited[numerator] = index++;
+		while (numerator) {
+			//每一个余数必须大除数才可以进行除法
+			while (numerator<denominator) {
+				doc += "0";
+				numerator *= 10;
+				//记录中间出现的余数   
+				if (isvisited.count(numerator) == 0)
+					isvisited[numerator] = index++;
+				else {
+					string temp = doc.substr(isvisited[numerator], doc.length() - isvisited[numerator]);
+					doc = doc.substr(0, isvisited[numerator]);
+					doc += '(';
+					doc += temp;
+					doc += ")";
+					return ret + doc;
+				}
+			}
+			doc += (numerator / denominator + '0');
+			//这里必须先乘以10
+			numerator = numerator%denominator * 10;
+			if (isvisited.count(numerator) == 0)
+				isvisited[numerator] = index++;
+			else {
+				string temp = doc.substr(isvisited[numerator], doc.length() - isvisited[numerator]);
+				doc = doc.substr(0, isvisited[numerator]);
+				doc += '(';
+				doc += temp;
+				doc += ")";
+				return ret + doc;
+			}
+
+		}
+		return ret + doc;
+	}
+}
+
+
+Max Points on a Line 
+Given n points on a 2D plane, find the maximum number of points that lie on the same straight line.
+
+/**
+ * Definition for a point.
+ * struct Point {
+ *     int x;
+ *     int y;
+ *     Point() : x(0), y(0) {}
+ *     Point(int a, int b) : x(a), y(b) {}
+ * };
+ */
+class Solution {
+public:
+ //生成二维数组isline记录点i和j是否已经连过线了，在后面的点连线中就可以根据这个来减少不必要的连线
+ //注意，这里可以允许重复的点出现
+ int maxPoints(vector<Point>& points) {
+		int size = points.size();
+		if (size <= 2)
+			return size;
+		bool **isline = new bool*[size];
+		for (int i = 0; i<size; i++)
+			isline[i] = new bool[size];
+		for (int i = 0; i<size; i++)
+			for (int j = 0; j<size; j++) {
+				isline[i][j] = false;
+			}
+		int ans = 0;
+		//选择第一个点
+		for (int i = 0; i<size; i++) {
+			isline[i][i] = true;
+			bool vertical = false;
+			int tempans = 1;
+			//选择第二个点
+			for (int j = i + 1; j<size&&!isline[i][j]; j++) {
+			    tempans++;
+			    isline[i][j] = true;
+			    //如果第二个点和第一个点重叠，直接忽略，遍历下一个点
+				if(points[i].x == points[j].x && points[i].y == points[j].y){
+				    continue;
+				}
+			    //计算斜率，这里记得要double 啊，尼玛在这里耗了很久！！！
+				double k = 0;
+				if (points[i].x == points[j].x)
+					vertical = true;
+				else {
+					k = (double)(points[i].y - points[j].y) / (double)(points[i].x - points[j].x);
+				}
+				//查找在第一和第二点连成线上的点
+				for (int h = 0; h<size; h++) {
+				    if (isline[i][h])
+						continue;
+					//如果有跟第一个点重复的，那么直接tempans加1，继续下一个点
+					if(points[h].x == points[i].x && points[h].y == points[i].y){
+					    tempans++;
+						isline[i][h] = true;
+						continue;
+					}
+					if (vertical) {
+						if (points[i].x == points[h].x) {
+							tempans++;
+							isline[i][h] = true;
+						}
+					}	
+					else {
+						if (points[i].x != points[h].x) {
+						    //计算斜率，这里记得要double 啊，尼玛在这里耗了很久！！！
+							double tempk = (double)(points[i].y - points[h].y) / (double)(points[i].x - points[h].x);
+							if (tempk == k) {
+								tempans++;
+								isline[i][h] = true;
+							}
+						}
+						
+					}
+				}
+				if (tempans > ans)
+					ans = tempans;
+				//继续查找第二个点，这里tempans赋值1
+				tempans = 1;
+			}
+			//有可能循环结束了，所以还要在判断一下tempans是否大于ans
+			if (tempans > ans)
+				ans = tempans;
+		}
+		return ans;
+	}
+}
+
+
+Copy List with Random Pointer 
+A linked list is given such that each node contains an additional random pointer which could point to any node in the list or null.Return a deep copy of the list.
+
+/**
+ * Definition for singly-linked list with a random pointer.
+ * struct RandomListNode {
+ *     int label;
+ *     RandomListNode *next, *random;
+ *     RandomListNode(int x) : label(x), next(NULL), random(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    //下面的程序只适合所有随机指针从前往后指的情况，其他情况的都不适合程序有很大的局限性
+    /*
+    RandomListNode *copyRandomList(RandomListNode *head) {
+        if(head == NULL)
+            return head;
+        RandomListNode *newHead = new RandomListNode(head->label);
+        newHead->random = head->random;
+        head->random = newHead;
+        RandomListNode *newCur = newHead;
+        RandomListNode *cur = head;
+        while(cur->next != NULL){
+            cur = cur->next;
+            RandomListNode *temp = new RandomListNode(cur->label);
+            temp->random = cur->random;
+            cur->random = temp;
+            newCur->next = temp;
+            newCur = temp;
+        }
+        cur = head;
+        while(cur != NULL){
+            newCur = cur->random;
+            RandomListNode *temp = newCur->random;
+            if(newCur->random != NULL)
+                newCur->random = newCur->random->random;
+            cur->random = temp;
+            cur = cur->next;
+        }
+        return newHead;
+    }
+    */
+    //采用逐个节点复制，先让链表扩大一倍，再逐个修改节点的随机指针和next指针！！！
+    //记住：是要先修改随机指针，再修改next指针，将链表拆一半出来
+     RandomListNode *copyRandomList(RandomListNode *head) {
+         if(head ==NULL)
+             return head;
+          RandomListNode *cur = head;
+          while(cur != NULL){
+               RandomListNode *copy = new RandomListNode(cur->label);
+               copy->random = cur->random;
+               copy->next = cur->next;
+               cur->next = copy;
+               cur = copy->next;
+          }
+          //修改所有copy节点的随机指针
+          cur = head;
+          while(cur != NULL){
+              RandomListNode *copy = cur->next;
+              if(copy->random != NULL)
+                  copy->random = copy->random->next;
+              cur = copy->next;
+          }
+          RandomListNode *newHead = head->next;
+          cur = head;
+          while(cur != NULL){
+              RandomListNode *copy =cur->next;
+              cur->next = copy->next;
+              if(cur->next !=  NULL)
+                  copy->next = cur->next->next;
+              cur = cur->next;
+          }
+          return newHead;
+     }
+}
+
+
+Single Number 
+Given an array of integers, every element appears twice except for one. Find that single one.
+Note:Your algorithm should have a linear runtime complexity. Could you implement it without using extra memory?
+
+class Solution {
+public:
+    int singleNumber(vector<int>& nums) {
+        if(nums.size() == 0)
+            return 0;
+        int ret = nums[0] ;
+        for(int i=1; i<nums.size(); i++){
+            ret ^= nums[i];
+        }
+        
+        return ret;
+    }
+}
+
+
+Binary Tree Inorder Traversal 
+Given a binary tree, return the inorder traversal of its nodes' values.For example:Given binary tree {1,#,2,3},   1    \     2    /   3return [1,3,2].
+Note: Recursive solution is trivial, could you do it iteratively?confused what "{1,#,2,3}" means? >; read more on how binary tree is serialized on OJ.OJ's Binary Tree Serialization:The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.Here's an example:   1  / \ 2   3    /   4    \     5The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}". 
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    vector<int> inorderTraversal(TreeNode* root) {
+        if(root == NULL)
+            return {};
+            
+        vector<int> ret;
+        inorderTraversal(root, ret);
+        
+        return ret;
+    }
+ 
+    void inorderTraversal(TreeNode *root, vector<int> &ret){
+        if(root == NULL)
+            return ;
+        inorderTraversal(root->left, ret);
+        ret.push_back(root->val);
+        inorderTraversal(root->right, ret);
+    }
+}
+
+
+Maximal Rectangle 
+Given a 2D binary matrix filled with 0's and 1's, find the largest rectangle containing all ones and return its area.
+
+class Solution {
+public:
+    /*
+    //直接的以每一个元素作为长方形的左上角，以改点作为起始点，计算长方形的最大的面积
+    //92ms
+    int maximalRectangle(vector<vector<char>>& matrix) {
+        if(matrix.size() == 0 || matrix[0].size() == 0)
+            return 0;
+        int largestarea = 0;
+        int row = matrix.size();
+        int col = matrix[0].size();
+        for(int i=0; i<row; i++)
+            for(int j=0; j<col; j++){
+                int wide = INT_MAX;
+                int starti = i;
+                int area = 0;
+                //计算以i，j为左上角的长方形的面积
+                while(starti<row&&matrix[starti][j] == '1'){
+                    int index = j;
+                    while(index<col && matrix[starti][index]=='1')
+                       index++;
+                    if(wide>index-j)
+                        wide = index-j;
+                    starti++;
+                    if(area<(starti-i)*wide)
+                        area = (starti-i)*wide;
+                }
+                if(largestarea<area)
+                    largestarea = area;
+                
+            }
+         return largestarea;    
+    }
+    */
+    
+    //利用动态规划的思想，以及Largest Rectangle in Histogram的阶梯思路(需要O(N)空间以及O(N)的时间)
+    //将矩阵每一行作为底，那么当前行上面的所有连续的为1的元素看成是一条柱形，直接的求每一行的最大长方形面积
+    //就可以了,时间复杂度为O(M*N),空间也一样,不过空间还是可以在减少到O(N)的
+    //28ms
+    int maximalRectangle(vector<vector<char>>& matrix) {
+        if(matrix.size() == 0 || matrix[0].size() == 0)
+            return 0;
+        int row = matrix.size();
+		int col = matrix[0].size();
+		int ret = 0;
+		//记录每一行的连续的1的高度， 这里利用一点动态规划的思想
+		vector<vector<int>> dp(row, vector<int>(col));
+		//计算出以每一行为底部的柱形的高度
+        for(int i=0; i<col; i++)
+            dp[0][i] = matrix[0][i]=='1'? 1: 0;
+        for(int i=1; i<row; i++){
+            for(int j=0; j<col; j++){
+                if(matrix[i][j] == '0')
+                    dp[i][j] = 0;
+                else
+                    dp[i][j] = dp[i-1][j]+1;
+            }
+        }
+        for(int i=0; i<row; i++){
+            int area = getTheLargestRetangle(dp[i]);
+            if(ret<area)
+                ret = area;
+        }
+        return ret;
+    }
+    
+    int getTheLargestRetangle(vector<int> &height){
+        if(height.size() == 0)
+            return 0;
+        stack<int> stk;
+        int maxarea = 0;
+        int area = 0;
+        for(int i=0; i<height.size(); i++){
+            while(!stk.empty() && height[stk.top()]>height[i]){
+                int index = stk.top();
+                stk.pop();
+                area = stk.empty()? i*height[index]: (i-stk.top()-1)*height[index];
+                if(maxarea<area)
+                    maxarea = area;
+            }
+            stk.push(i);
+        }
+       
+        while(!stk.empty()){
+            int index = stk.top();
+            stk.pop();
+            area = stk.empty()? height.size()*height[index]: (height.size()-stk.top()-1)*height[index];
+            if(maxarea<area)
+                maxarea = area;
+        }
+        
+        return maxarea;
+    }
+    
+}
+
+
+Minimum Window Substring 
+Given a string S and a string T, find the minimum window in S which will contain all the characters in T in complexity O(n).For example,S = "ADOBECODEBANC"T = "ABC"Minimum window is "BANC".
+Note:If there is no such window in S that covers all characters in T, return the empty string "".If there are multiple such windows, you are guaranteed that there will always be only one unique minimum window in S.
+
+class Solution {
+public:
+	string minWindow(string s, string t) {
+		if (s.length() == 0 || t.length() == 0)
+			return "";
+		int tsize = t.length();
+		//记录T中每一个字符所出现的次数
+		unordered_map<char, int> tmap;
+		//记录当前的窗口中每一个在T的出现多的字符的总出现次数
+		unordered_map<char, int> wmap;
+		for (int i = 0; i<t.size(); i++)
+			if (tmap.count(t[i]) == 0)
+				tmap[t[i]] = 1;
+			else
+				tmap[t[i]]++;
+		unordered_map<char, int> temp = tmap;
+		//当前窗口的右边界
+		int index = 0;
+		//当前窗口的左边界
+		int start = -1;
+		//最小的窗口的左右边界
+		int startindex = -1, endindex = -1;
+		//最小窗口的长度
+		int length = 0;
+		//找第一个窗口
+		while (index<s.size() && temp.size()>0) {
+			if (tmap.count(s[index]) != 0) {
+				if (start == -1)
+					start = index;
+				if (wmap.count(s[index]) == 0)
+					wmap[s[index]] = 1;
+				else
+					wmap[s[index]]++;
+				if(temp.count(s[index]) != 0){
+				    if (temp[s[index]] == 1)
+					    temp.erase(s[index]);
+			    	else if (temp[s[index]] > 1)
+					    temp[s[index]]--;
+				}
+				
+			}
+			index++;
+		}
+		//找不到的情况下
+		if (index == s.size() && temp.size() != 0)
+			return "";
+		//找到了，先对窗口进行压缩，没找到一个新的窗口都需要对其进行压缩，以保证新的窗口没有长度的冗余
+		//接下来在进行窗口的大小比较
+		while (tmap.count(s[start]) == 0 || wmap[s[start]]>tmap[s[start]]){
+			if(wmap.count(s[start]) != 0)
+			    wmap[s[start]]--;
+			start++;
+		}
+		if (index == s.length() && temp.size() == 0){
+		    return s.substr(start, index-start);
+		}
+			
+		length = index - start;
+		startindex = start, endindex = index - 1;
+		for (; index<s.size(); index++) {
+			if (tmap.count(s[index]) != 0) {
+				wmap[s[index]]++;
+				//向前移动start
+				if (s[index] == s[start]) {
+					//如果当前的元素不在T中出现，或是出现了，但是在当前的窗口出现的次数比在tmap中的还大
+					//那么可以继续压缩start
+					while (tmap.count(s[start]) == 0 || wmap[s[start]]>tmap[s[start]]){
+					    if(wmap.count(s[start]) != 0)
+					        wmap[s[start]]--;
+					    start++;
+					}
+						
+					if (length>index - start + 1) {
+						length = index - start + 1;
+						startindex = start;
+						endindex = index;
+					}
+				}
+			}
+		}
+		return  s.substr(startindex, endindex - startindex + 1);
+	}
+}
+
+
+Group Anagrams 
+Given an array of strings, group anagrams together.For example, given: ["eat", "tea", "tan", "ate", "nat", "bat"], Return:[  ["ate", "eat","tea"],  ["nat","tan"],  ["bat"]]
+Note:For the return value, each inner list's elements must follow the lexicographic order.All inputs will be in lower-case.
+
+class Solution {
+public:
+    /*下面的算法有点问题，对于bob和boo这样的例子，会哈希到同一个index中
+    //符合规则的word如果可以哈希到同一个值的话，那么就好办了，只需要对哈希后的数组进行排序就可以了
+    //因为之母只有a-z，所以使用位哈希的方法，如果字母出现，那么其对应的位的值为1，这样符合规则的word
+    //将会哈希到同一个值
+    vector<vector<string>> groupAnagrams(vector<string>& strs) {
+        if(strs.size() == 0)
+            return {{}};
+        map<int, vector<string>> retmap;
+        for(int i=0; i<strs.size(); i++){
+            string word = strs[i];
+            //word最后哈希的值
+            int index = 0;
+            for(int j=0; j<word.length(); j++){
+                int shifnum = word[j]-'a';
+                index |= (1<<shifnum);
+            }
+            if(retmap.count(index) != 0){
+                retmap[index].push_back(word);
+            }
+            else{
+                vector<string> vs;
+                vs.push_back(word);
+                retmap[index] = vs;
+            }
+        }
+        
+        map<int, vector<string>>::iterator it;
+        vector<vector<string>> ret;
+        for(it=retmap.begin(); it!=retmap.end(); it++){
+            sort(it->second.begin(), it->second.end());
+            ret.push_back(it->second);
+        }
+        return ret;
+    }
+    */
+    //对每一个word进行排序，符合规则的word最后的排序结果是一样的，将该结果映射到ret的下标，再将word归类到里面去
+    vector<vector<string>> groupAnagrams(vector<string>& strs) {
+        if(strs.size() == 0)
+            return {{}};
+        unordered_map<string, int> indexmap;
+        vector<vector<string>> ret;
+        for(int i=0; i<strs.size(); i++){
+            string temp = strs[i];
+            sort(temp.begin(), temp.end());
+            if(indexmap.count(temp) != 0){
+                ret[indexmap[temp]].push_back(strs[i]);
+            }
+            else{
+                vector<string> v;
+                v.push_back(strs[i]);
+                indexmap[temp] = ret.size();
+                ret.push_back(v);
+            }
+        }
+        for(int i=0; i<ret.size(); i++)
+            sort(ret[i].begin(), ret[i].end());
+        return ret;
+    }
+    
+}
+
+
+Sudoku Solver 
+Write a program to solve a Sudoku puzzle by filling the empty cells.Empty cells are indicated by the character '.'.You may assume that there will be only one unique solution.A sudoku puzzle......and its solution numbers marked in red.
+
+class Solution {
+public:
+    //深度搜索加回溯，效率有点低 444ms
+    /*
+    void solveSudoku(vector<vector<char>>& board) {
+        if(board.size() != 9 || board[0].size() != 9)
+            return ;
+        bool can_return = false;
+        backtrace(board, 0, 0, can_return);
+    }
+    
+    void backtrace(vector<vector<char>>& board, int row, int col, bool &can_return){
+        if(row == 9 && col == 0){
+            can_return  = true;
+            return ;
+        }
+        if(board[row][col] != '.')
+            backtrace(board, col==8? row+1: row, col==8? 0: col+1, can_return);
+        else{
+            set<char> canchoose = getChoose(board, row, col);
+            set<char>::iterator it = canchoose.begin();
+            for(; it!=canchoose.end(); it++){
+                if(can_return)
+                    return;
+                board[row][col] = *it;
+                backtrace(board, col==8? row+1: row, col==8? 0: col+1, can_return);
+                if(!can_return)
+                    board[row][col] = '.';
+            }
+        }
+    }
+    
+    set<char> getChoose(vector<vector<char>>& board, int row, int col){
+        set<char> ret = {'1','2','3','4','5','6','7','8','9'};
+        //获得行的可行解
+        for(int i=0; i<9; i++)
+            if(ret.find(board[row][i]) != ret.end())
+                ret.erase(board[row][i]);
+        //获得列的可行解
+        for(int i=0; i<9; i++)
+            if(ret.find(board[i][col]) != ret.end())
+                ret.erase(board[i][col]);
+        //获得小方块的可行解
+        int startrow = row/3;
+        int startcol = col/3;
+        for(int i=startrow*3; i<startrow*3+3; i++)
+            for(int j=startcol*3; j<startcol*3+3; j++){
+                if(ret.find(board[i][j]) != ret.end())
+                    ret.erase(board[i][j]);
+            }
+        return ret;
+    }
+    */
+    
+    
+    //跟上面的算法一样，只不过这里采用标记的方式来记录当前的可行解，而不是每一次都要通过行、列、小方格的方式来获得可行解
+    //严重啊，这个算法就改一下标记最后的运行时间才4ms，靠靠靠靠靠！！！
+    bool colm[10][10], rowm[10][10], fm[10][10];
+    void solveSudoku(vector<vector<char>>& board) {
+        if(board.size() != 9 || board[0].size() != 9)
+            return ;
+        bool can_return = false;
+        memset(colm,false,sizeof(colm));
+        memset(rowm,false,sizeof(rowm));
+        memset(fm,false,sizeof(fm));
+        for(int i=0; i<9; i++){
+            for(int j=0; j<9; j++)
+               if(board[i][j] != '.'){
+                   int n = board[i][j] - '0';
+                   int temp = 3*(i/3)+j/3;
+                   colm[j][n] = rowm[i][n] = fm[temp][n] = true;
+               }
+                   
+        }
+        backtrace(board, 0, 0, can_return);
+    }
+    
+    void backtrace(vector<vector<char>>& board, int row, int col, bool &can_return){
+        if(row == 9 && col == 0){
+            can_return  = true;
+            return ;
+        }
+        if(board[row][col] != '.')
+            backtrace(board, col==8? row+1: row, col==8? 0: col+1, can_return);
+        else{
+            int temp = 3*(row/3)+col/3;
+            for(int i=1; i<=9; i++){
+                if(!colm[col][i] && !rowm[row][i] && !fm[temp][i]){
+                    if(can_return)
+                        return;
+                    board[row][col] = i+'0';
+                    colm[col][i] = rowm[row][i] = fm[temp][i] = true;
+                    backtrace(board, col==8? row+1: row, col==8? 0: col+1, can_return);
+                    colm[col][i] = rowm[row][i] = fm[temp][i] = false;
+                }
+                    
+            }
+            if(!can_return)
+                board[row][col] = '.';
+                
+        }
+    }
+}
+
+
+Valid Sudoku 
+Determine if a Sudoku is valid, according to: Sudoku Puzzles - The Rules.The Sudoku board could be partially filled, where empty cells are filled with the character '.'.A partially filled sudoku which is valid.
+Note:A valid Sudoku board (partially filled) is not necessarily solvable. Only the filled cells need to be validated.
+
+class Solution {
+public:
+    bool isValidSudoku(vector<vector<char>>& board) {
+        bool *nums = new bool[10];
+        clearNums(nums);
+        
+        //每一行扫描
+        for(int i=0; i<board.size(); i++){
+            clearNums(nums);
+            for(int j=0; j<board[i].size(); j++){
+                if(board[i][j] == '.')
+                    continue;
+                if(nums[board[i][j]-'0'])
+                    return false;
+                nums[board[i][j]-'0'] = true;
+            }
+        }
+        
+        //每一列扫描
+        for(int k=0; k<9; k++){
+            clearNums(nums);
+            for(int h=0; h<board.size(); h++){
+                if(board[h][k] == '.')
+                    continue;
+                if(nums[board[h][k]-'0'])
+                    return false;
+                nums[board[h][k]-'0'] = true;
+            }
+        }
+        
+        //每九个小格扫描
+        for(int col = 0; col<3; col++){
+            for(int row = 0; row<3; row++){
+                clearNums(nums);
+                for(int m = col*3; m<col*3+3; m++){
+                    for(int n= row*3; n<row*3+3; n++){
+                        if(board[m][n] == '.')
+                            continue;
+                        if(nums[board[m][n]-'0'])
+                            return false;
+                        nums[board[m][n]-'0'] = true;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+    
+    void clearNums(bool *nums){
+        for(int i=1; i<=9; i++)
+            nums[i] = false;
+    }
+}
+
+
+Substring with Concatenation of All Words 
+You are given a string, s, and a list of words, words, that are all of the same length. Find all starting indices of substring(s) in s that is a concatenation of each word in words exactly once and without any intervening characters.For example, given:s: "barfoothefoobarman"words: ["foo", "bar"]You should return the indices: [0,9].(order does not matter).
+
+class Solution {
+public:
+    //很原始的方法，效率很低,大概需要1000毫秒的时间
+    /*
+    vector<int> findSubstring(string s, vector<string>& words) {
+        if(words.size() == 0 || s.size() == 0 || s.size() < words[0].size()*words.size() )
+            return {};
+        multiset<string> wset;
+        multiset<string> temp;
+        for(int i=0; i<words.size(); i++)
+            wset.insert(words[i]);
+        temp = wset;
+        vector<int> ret;
+        int begin = 0;
+        int wordlength = words[0].size();
+        for(int i=0; i<=s.size()-wordlength; i++){
+            //不增加这一句的时候会超时
+            if(begin > s.size()-wordlength*words.size())
+                break;
+            string word = s.substr(i, wordlength);
+            if(temp.find(word) != temp.end()){
+                temp.erase(temp.find(word));
+                i += wordlength-1;
+                if(temp.empty()){
+                    ret.push_back(begin);
+                    i = begin;
+                    begin = i+1;
+                    temp = wset;
+                }
+                
+            }
+            else{
+                if(temp.size() < wset.size()){
+                    i = begin;
+                    temp = wset;
+                    begin++;
+                }
+                else{
+                    begin = i+1;
+                    temp = wset;
+                }
+            }
+        }
+        return ret;
+    }
+    */
+    //只需要76毫秒的时间
+    //其实可以直接的将字符串根据words中每一个单词的长度给划分成很多个单词，然后再逐个的匹配words中的单词
+    //在这里，其实划分的方法是固定的，如果words[0].length = L,其实的划分下标为i， 那么划分的方法为i从[0, L-1]
+    //我们就可以遍历这几种不同的方法得到的单词串，来获得答案
+    vector<int> findSubstring(string s, vector<string>& words) {
+        if(words.size() == 0 || s.size() == 0 || s.size() < words[0].size()*words.size() )
+            return {};
+        multiset<string> wset;
+        multiset<string> temp;
+        for(int i=0; i<words.size(); i++)
+            wset.insert(words[i]);
+        temp = wset;
+        vector<int> ret;
+        int begin = 0;
+        int wordlength = words[0].size();
+        for(int i=0; i<wordlength; i++){
+            begin = i;
+            temp = wset;
+            for(int j=i; j<=s.size()-wordlength; j+=wordlength){
+                string word = s.substr(j, wordlength);
+                if(temp.find(word) != temp.end()){
+                    temp.erase(temp.find(word));
+                    if(temp.empty()){
+                        ret.push_back(begin);
+                        //这里很关键，必须右移一个单词的长度，以下一个单词多作为起始点，并将移除的单词重新插入到temp中
+                        temp.insert(s.substr(begin, wordlength));
+                        begin = begin+wordlength;
+                    }
+                }
+                else{
+                    //这里也很关键，有需要右移一个单词，而且还要重新匹配符当前匹配不了的单词，这也是为什么j要先减去一个单词
+                    //长度的原因，但是，必须在begin<j, 的情况下才可以这样，当begin==j时，相当于以j为起始点的单词不在words中，
+                    //所以此时需要继续往右移动一个单词了，所以此时j不需要再减去一个单词的长度
+                    if(begin < j){
+                        j -= wordlength;
+                        temp.insert(s.substr(begin, wordlength));
+                    }
+                    begin = begin+wordlength;
+                }
+            }
+        }
+        return ret;
+    }
+}
+
+
+4Sum 
+Given an array S of n integers, are there elements a, b, c, and d in S such that a + b + c + d = target? Find all unique quadruplets in the array which gives the sum of target.
+Note:Elements in a quadruplet (a,b,c,d) must be in non-descending order. (ie, a ≤ b ≤ c ≤ d)The solution set must not contain duplicate quadruplets.    For example, given array S = {1 0 -1 0 -2 2}, and target = 0.    A solution set is:    (-1,  0, 0, 1)    (-2, -1, 1, 2)    (-2,  0, 0, 2)
+
+class Solution {
+public:
+    //先排序，在将4sum转3sum，再转2sum
+    vector<vector<int>> fourSum(vector<int>& nums, int target) {
+        sort(nums.begin(), nums.end());
+        vector<vector<int> > ret;
+        int sum = 0;
+        for(int i=0; i<nums.size(); i++){
+            //第一个元素去重
+            if(i>0 && nums[i] == nums[i-1])
+                continue;
+            //剪枝
+            if(nums[i]>=target && i+1<nums.size() && nums[i+1]>0)
+                break;
+            
+            for(int j=i+1; j<nums.size(); j++){
+                //第二个元素去重
+                if(j>i+1 && nums[j] == nums[j-1])
+                    continue;
+                
+                //剪枝
+                if(nums[i]+nums[j]>=target && j+1<nums.size() && nums[j+1]>0)
+                    break;
+                int left = j+1;
+                int right = nums.size()-1;
+                
+                while(left<right){
+                    //第三个元素去重
+                    if(left>j+1 && nums[left] == nums[left-1]){
+                        left++;
+                        continue;
+                    }
+                    //剪枝
+                    if(nums[i]+nums[j]+nums[left]>=target && left+1<nums.size() && nums[left+1]>0)
+                        break;
+                    if(nums[i]+nums[j]+nums[left]+nums[right] == target){
+                        vector<int> temp;
+                        temp.push_back(nums[i]);
+                        temp.push_back(nums[j]);
+                        temp.push_back(nums[left]);
+                        temp.push_back(nums[right]);
+                        ret.push_back(temp);
+                        left++;
+                        right--;
+                        continue;
+                    }
+                    if(nums[i]+nums[j]+nums[left]+nums[right] > target)
+                        right--;
+                    else
+                        left++;
+                    
+                }
+            }
+            
+        }
+        return ret;
+    }
+}
+
+
+Longest Substring Without Repeating Characters 
+Given a string, find the length of the longest substring without repeating characters. For example, the longest substring without repeating letters for "abcabcbb" is "abc", which the length is 3. For "bbbbb" the longest substring is "b", with the length of 1.
+
+class Solution {
+public:
+    //212ms
+    int lengthOfLongestSubstring(string s) {
+        if(s.size() == 0)
+            return 0;
+        map<char, int> search;
+        int length = 0;
+        int longest = 0;
+        for(int i=0; i<s.size(); i++){
+            if(search.find(s[i]) == search.end()){
+                search[s[i]] = i;
+                length++;
+                continue;
+            }
+            //找到前面出现过的字符，获得字符在s中的下标index，直接的删除search中index以及前面的字符
+            if(longest<length)
+                longest = length;
+            int index = search[s[i]];
+            for(int j=index; j>=0; j--){
+                if(search.find(s[j]) == search.end() || search[s[j]] > index)
+                    break;
+                else{
+                    search.erase(s[j]);
+                    length--;
+                }
+            }
+            search[s[i]] = i;
+            length++;
+        }
+        return longest>length? longest: length;
+    }
+    
+    // 16ms
+    /*
+    int lengthOfLongestSubstring(string s) {
+        //记录每一个字符出现在s中出现的最新位置
+        vector<int> dict(256, -1);
+        //start为目前最长的不同子字符串的其实下标
+        int maxLen = 0, start = -1;
+        for (int i = 0; i != s.length(); i++) {
+            //当当前的字符已经在前面出现过，那么更改start
+            if (dict[s[i]] > start)
+                start = dict[s[i]];
+            dict[s[i]] = i;
+            maxLen = max(maxLen, i - start);
+        }
+        return maxLen;
+    }
+    */
+    
+}
+
+
+Two Sum 
+Given an array of integers, find two numbers such that they add up to a specific target number.The function twoSum should return indices of the two numbers such that they add up to the target, where index1 must be less than index2. Please note that your returned answers (both index1 and index2) are not zero-based.You may assume that each input would have exactly one solution.Input: numbers={2, 7, 11, 15}, target=9Output: index1=1, index2=2
+
+class Solution {
+public:
+    //利用map的hash特性，查找一个数只需要常量的时间，利用map来查找target-nums[i]，只需要常量的时间，这样可以实现O(n)的时间复杂度。
+    vector<int> twoSum(vector<int>& nums, int target) {
+        if(nums.size() == 0)
+            return {};
+        map<int, int> search;
+        vector<int> ret;
+        for(int i=0; i<nums.size(); i++){
+            int anOther = target-nums[i];
+            if(search.find(anOther) != search.end()){
+                ret.push_back(search[anOther]);
+                ret.push_back(i+1);
+                return ret;
+            }
+            search[nums[i]] = i+1;
+        }
+        return ret;
+    }
+}
+
+

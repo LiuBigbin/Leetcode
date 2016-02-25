@@ -1,0 +1,872 @@
+Implement Queue using Stacks 
+Implement the following operations of a queue using stacks.push(x) -- Push element x to the back of queue.pop() -- Removes the element from in front of queue.peek() -- Get the front element.empty() -- Return whether the queue is empty.Notes:You must use only standard operations of a stack -- which means only push to top, peek/pop from top, size, and is empty operations are valid.Depending on your language, stack may not be supported natively. You may simulate a stack by using a list or deque (double-ended queue), as long as you use only standard operations of a stack.You may assume that all operations are valid (for example, no pop or peek operations will be called on an empty queue).
+
+class Queue {
+    
+public:
+    
+    // Push element x to the back of queue.
+    void push(int x) {
+        stackIn.push(x);
+    }
+
+    // Removes the element from in front of queue.
+    void pop(void) {
+        if(stackOut.empty()){
+            //这里要小心，不能直接i<stackIn.size(),因为在for循环中，stackIn有pop函数，这样stackIn.size()的大小会改变的。
+            int size = stackIn.size();
+            for(int i=0; i<size; i++){
+                stackOut.push(stackIn.top());
+                stackIn.pop();
+            }
+        }
+       
+        stackOut.pop();
+
+    }
+
+    // Get the front element.
+    int peek(void) {
+         if(stackOut.empty()){
+            int size = stackIn.size();
+            for(int i=0; i<size; i++){
+                stackOut.push(stackIn.top());
+                stackIn.pop();
+            }
+        }
+       
+        return stackOut.top();
+    }
+
+    // Return whether the queue is empty.
+    bool empty(void) {
+        return stackIn.empty() && stackOut.empty();
+    }
+    
+private:
+    stack<int> stackIn;
+    stack<int> stackOut;
+}
+
+
+Implement Stack using Queues 
+Implement the following operations of a stack using queues.push(x) -- Push element x onto stack.pop() -- Removes the element on top of the stack.top() -- Get the top element.empty() -- Return whether the stack is empty.Notes:You must use only standard operations of a queue -- which means only push to back, peek/pop from front, size, and is empty operations are valid.Depending on your language, queue may not be supported natively. You may simulate a queue by using a list or deque (double-ended queue), as long as you use only standard operations of a queue.You may assume that all operations are valid (for example, no pop or top operations will be called on an empty stack).Update (2015-06-11):The class name of the Java function had been updated to MyStack instead of Stack.
+Credits:Special thanks to @jianchao.li.fighter for adding this problem and all test cases.
+
+class Stack {
+public:
+    // Push element x onto stack.
+    void push(int x) {
+        if(queue1.empty() && queue2.empty()){
+            queue1.push(x);
+            front = x;
+        }
+        else{
+            if(queue1.empty()){
+                queue2.push(x);
+                front = x;
+            }
+            else{
+                queue1.push(x);
+                front = x;
+            }
+                
+        }
+    }
+
+    // Removes the element on top of the stack.
+   void pop() {
+        if(queue1.empty()){
+			int size = queue2.size();
+            for(int i=0; i<size-2; i++){
+                int val = queue2.front();
+                queue2.pop();
+                queue1.push(val);
+            }
+            if(queue2.size() == 2){
+                front = queue2.front();
+                queue2.pop();
+                queue1.push(front);
+            }
+                
+            queue2.pop();
+        }
+        else{
+			int size = queue1.size();
+            for(int i=0; i<size-2; i++){
+                int val = queue1.front();
+                queue1.pop();
+                queue2.push(val);
+            }
+            if(queue1.size() == 2){
+                front = queue1.front();
+                queue1.pop();
+                queue2.push(front);
+            }
+                
+            queue1.pop();
+
+        }
+    }
+
+    // Get the top element.
+    int top() {
+        return front;
+    }
+
+    // Return whether the stack is empty.
+    bool empty() {
+        return queue1.empty() && queue2.empty();
+    }
+    
+private:
+    queue<int> queue1;
+    queue<int> queue2;
+    int front;
+}
+
+
+Basic Calculator 
+Implement a basic calculator to evaluate a simple expression string.The expression string may contain open ( and closing parentheses ), the plus + or minus sign -, non-negative integers and empty spaces  .You may assume that the given expression is always valid.Some examples:"1 + 1" = 2" 2-1 + 2 " = 3"(1+(4+5+2)-3)+(6+8)" = 23
+Note: Do not use the eval built-in library function.
+
+class Solution {
+public:
+    /*
+    两个要点：
+    
+    1、无括号时，顺序执行
+    
+    2、有括号时，先执行括号中的
+    
+    两个栈：
+    
+    一个存放操作数，每次进栈要注意，如果操作符栈顶元素为'+'/'-'，则需要立即计算。
+    
+    一个存放操作符（包括括号），每次出现')'时，不断进行出栈计算再进栈，直到弹出'('，说明当前括号内计算完毕。
+    */
+    int calculate(string s) {
+        if(s.length() == 0)
+            return 0;
+        stack<int> num;
+        stack<char> op;
+        for(int i=0; i<s.size(); i++){
+            if(s[i] == ' ')
+                continue;
+            if(s[i] == '(')
+                op.push(s[i]);
+            else if(s[i] == ')'){
+                while(op.top() != '('){
+                    char ope = op.top();
+                    op.pop();
+                    int right = num.top();
+                    num.pop();
+                    int left = num.top();
+                    num.pop();
+                    if(ope == '+')
+                        left += right;
+                    else
+                        left -= right;
+                    num.push(left);
+                }
+                op.pop();
+            }
+            else if(s[i] == '-' || s[i] == '+'){
+                if(op.size() != 0 && (op.top() == '-' || op.top() == '+')){
+                    char ope = op.top();
+                    op.pop();
+                    int right = num.top();
+                    num.pop();
+                    int left = num.top();
+                    num.pop();
+                    if(ope == '+')
+                        left += right;
+                    else
+                        left -= right;
+                    num.push(left);
+                    
+                }
+                op.push(s[i]); 
+                    
+            }
+            else{
+                int val = s[i++] - '0';
+                while(i<s.size() && isdigit(s[i]))
+                   val = val*10 + s[i++]-'0';
+                i--;
+                num.push(val);
+            }
+        } 
+        
+        while(op.size()){
+            char ope = op.top();
+            op.pop();
+            int right = num.top();
+            num.pop();
+            int left = num.top();
+            num.pop();
+            if(ope == '+')
+                left += right;
+            else
+                left -= right;
+            num.push(left);
+        }
+        return num.top();
+    }
+}
+
+
+Binary Search Tree Iterator 
+Implement an iterator over a binary search tree (BST). Your iterator will be initialized with the root node of a BST.Calling next() will return the next smallest number in the BST.
+Note: next() and hasNext() should run in average O(1) time and uses O(h) memory, where h is the height of the tree. 
+Credits:Special thanks to @ts for adding this problem and creating all test cases.
+
+/**
+ * Definition for binary tree
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class BSTIterator {
+public:
+    BSTIterator(TreeNode *root) {
+        while(root != NULL){
+            iterator.push(root);
+            root = root->left;
+        }
+    }
+
+    /** @return whether we have a next smallest number */
+    bool hasNext() {
+        return !iterator.empty();
+    }
+
+    /** @return the next smallest number */
+    int next() {
+        TreeNode* node = iterator.top();
+        iterator.pop();
+        int ret = node->val;
+        if(node->right != NULL){
+            node = node->right;
+            while(node!=NULL){
+                iterator.push(node);
+                node = node->left;
+            }
+        }
+        return ret;
+    }
+private:
+    stack<TreeNode*> iterator;
+};
+
+/**
+ * Your BSTIterator will be called like this:
+ * BSTIterator i = BSTIterator(root);
+ * while (i.hasNext()) cout << i.next();
+ *
+
+
+Min Stack 
+Design a stack that supports push, pop, top, and retrieving the minimum element in constant time.push(x) -- Push element x onto stack.pop() -- Removes the element on top of the stack.top() -- Get the top element.getMin() -- Retrieve the minimum element in the stack.
+
+class MinStack {
+public:
+    void push(int x) {
+        minstack.push_back(x);
+        if(minstack[minIndex] > x)
+            minIndex = minstack.size()-1;
+    }
+
+    void pop() {
+        if(minstack.size() == 0)
+            return;
+        if(minIndex == minstack.size()-1){
+            minIndex = 0;
+            //这里要进行有符号的转换(int)(minstack.size()-2)，不然会以无符号的处理，当minstack-size()小于2时，所得到的值就不是负数的了
+            for(int i=0; i<=(int)(minstack.size()-2); i++)
+                if(minstack[minIndex] > minstack[i])
+                    minIndex = i;
+        }
+        minstack.erase(minstack.begin()+minstack.size()-1);
+    }
+
+    int top() {
+        if(minstack.size() == 0)
+            return NULL;
+        return minstack[minstack.size()-1];
+    }
+
+    int getMin() {
+        if(minstack.size() == 0)
+            return NULL;
+        return minstack[minIndex];
+    }
+    
+private:
+    vector<int> minstack;
+    int minIndex = 0;
+}
+
+
+Evaluate Reverse Polish Notation 
+Evaluate the value of an arithmetic expression in Reverse Polish Notation.Valid operators are +, -, *, /. Each operand may be an integer or another expression.Some examples:  ["2", "1", "+", "3", "*"] ->; ((2 + 1) * 3) ->; 9  ["4", "13", "5", "/", "+"] ->; (4 + (13 / 5)) ->; 6
+
+class Solution {
+public:
+    int evalRPN(vector<string>& tokens) {
+        if(tokens.size() == 0)
+            return 0;
+        stack<int> operand;
+        int left=0, right=0;
+        for(int i=0; i<tokens.size(); i++){
+            if(tokens[i]!="+" && tokens[i]!="-" && tokens[i]!="*" && tokens[i]!="/"){
+                operand.push(getVal(tokens[i]));
+                continue;
+            }
+            switch(tokens[i][0]){
+                case '+':   
+                            right = operand.top();
+                            operand.pop();
+                            left = operand.top();
+                            operand.pop();
+                            operand.push(left+right);
+                            break;
+                case '-':   
+                            right = operand.top();
+                            operand.pop();
+                            left = operand.top();
+                            operand.pop();
+                            operand.push(left-right);
+                            break;
+                case '*':   
+                            right = operand.top();
+                            operand.pop();
+                            left = operand.top();
+                            operand.pop();
+                            operand.push(left*right);
+                            break;
+                case '/':   
+                            right = operand.top();
+                            operand.pop();
+                            left = operand.top();
+                            operand.pop();
+                            operand.push(left/right);
+                            break;
+            }
+            
+        }
+        return operand.top();
+    }
+    
+    int getVal(string &s){
+        int ret = 0;
+        int sign = 1;
+        int i=0;
+        if(s[0] == '-'){
+            sign = -1;
+            i++;
+        }
+        for(; i<s.size(); i++){
+            ret = ret*10 + s[i]-'0';
+        }
+        return sign*ret;
+    }
+}
+
+
+Binary Tree Postorder Traversal 
+Given a binary tree, return the postorder traversal of its nodes' values.For example:Given binary tree {1,#,2,3},   1    \     2    /   3return [3,2,1].
+Note: Recursive solution is trivial, could you do it iteratively?
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    //跟前序遍历差不多的实现方式，只不过对于从stack弹出的元素，
+    //要先看看上一个val进入vector的元素是该元素的什么节点：
+    //如果是左的话，当该元素的右子节点为NULL，那么直接将该元素val放进vector，否则的话直接将右子节点进栈
+    //如果是右子节点的话，那么直接的将元素的val放进vector
+    vector<int> postorderTraversal(TreeNode* root) {
+        if(root == NULL)
+            return {};
+        vector<int> ret;
+        stack<TreeNode*> postorder;
+        TreeNode *pre = NULL;
+        postorder.push(root);
+        while(postorder.size()){
+            TreeNode *node = postorder.top();
+            if(node->left==NULL && node->right ==NULL){
+                ret.push_back(node->val);
+                postorder.pop();
+                pre = node;
+                continue;
+            }
+            if(node->left == pre && node->right == NULL){
+                ret.push_back(node->val);
+                postorder.pop();
+                pre = node;
+                continue;
+            } 
+            if(node->right != NULL && node->right == pre){
+                ret.push_back(node->val);
+                postorder.pop();
+                pre = node;
+                continue;
+            }
+            if(node->right != NULL)
+                postorder.push(node->right);
+            if(node->left != NULL)
+                postorder.push(node->left);
+        }
+        return ret;
+    }
+}
+
+
+Binary Tree Preorder Traversal 
+Given a binary tree, return the preorder traversal of its nodes' values.For example:Given binary tree {1,#,2,3},   1    \     2    /   3return [1,2,3].
+Note: Recursive solution is trivial, could you do it iteratively?
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    vector<int> preorderTraversal(TreeNode* root) {
+        if(root == NULL)
+            return {};
+        vector<int> ret;
+        stack<TreeNode*> preorder;
+        preorder.push(root);
+        while(preorder.size()){
+            TreeNode *node = preorder.top();
+            preorder.pop();
+            ret.push_back(node->val);
+            if(node->right != NULL)
+                preorder.push(node->right);
+            if(node->left != NULL)
+                preorder.push(node->left);
+            
+        }
+        return ret;
+    }
+}
+
+
+Binary Tree Zigzag Level Order Traversal 
+Given a binary tree, return the zigzag level order traversal of its nodes' values. (ie, from left to right, then right to left for the next level and alternate between).For example:Given binary tree {3,9,20,#,#,15,7},    3   / \  9  20    /  \   15   7return its zigzag level order traversal as:[  [3],  [20,9],  [15,7]]confused what "{1,#,2,3}" means? >; read more on how binary tree is serialized on OJ.OJ's Binary Tree Serialization:The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.Here's an example:   1  / \ 2   3    /   4    \     5The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}". 
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
+        vector<vector<int>> ret;
+        if(root == NULL){
+            return ret;
+        }
+        stack<TreeNode *> curstack;
+        bool lefttoright = true;
+        curstack.push(root);
+        while(curstack.size()){
+           stack<TreeNode *> nextstack;
+            vector<int> temp;
+            while(curstack.size()){
+                TreeNode *node = curstack.top();
+                curstack.pop();
+                if(lefttoright){
+                    if(node->left != NULL)
+                        nextstack.push(node->left);
+                    if(node->right != NULL)
+                        nextstack.push(node->right);
+                    
+                }
+                else{
+                    if(node->right != NULL)
+                        nextstack.push(node->right);
+                    if(node->left != NULL)
+                        nextstack.push(node->left);
+                }
+                temp.push_back(node->val);
+            }
+            ret.push_back(temp);
+            curstack = nextstack;
+            if(lefttoright)
+                lefttoright = false;
+            else
+                lefttoright = true;
+        }
+        return ret;
+    }
+}
+
+
+Binary Tree Inorder Traversal 
+Given a binary tree, return the inorder traversal of its nodes' values.For example:Given binary tree {1,#,2,3},   1    \     2    /   3return [1,3,2].
+Note: Recursive solution is trivial, could you do it iteratively?confused what "{1,#,2,3}" means? >; read more on how binary tree is serialized on OJ.OJ's Binary Tree Serialization:The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.Here's an example:   1  / \ 2   3    /   4    \     5The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}". 
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    vector<int> inorderTraversal(TreeNode* root) {
+        if(root == NULL)
+            return {};
+            
+        vector<int> ret;
+        inorderTraversal(root, ret);
+        
+        return ret;
+    }
+ 
+    void inorderTraversal(TreeNode *root, vector<int> &ret){
+        if(root == NULL)
+            return ;
+        inorderTraversal(root->left, ret);
+        ret.push_back(root->val);
+        inorderTraversal(root->right, ret);
+    }
+}
+
+
+Maximal Rectangle 
+Given a 2D binary matrix filled with 0's and 1's, find the largest rectangle containing all ones and return its area.
+
+class Solution {
+public:
+    /*
+    //直接的以每一个元素作为长方形的左上角，以改点作为起始点，计算长方形的最大的面积
+    //92ms
+    int maximalRectangle(vector<vector<char>>& matrix) {
+        if(matrix.size() == 0 || matrix[0].size() == 0)
+            return 0;
+        int largestarea = 0;
+        int row = matrix.size();
+        int col = matrix[0].size();
+        for(int i=0; i<row; i++)
+            for(int j=0; j<col; j++){
+                int wide = INT_MAX;
+                int starti = i;
+                int area = 0;
+                //计算以i，j为左上角的长方形的面积
+                while(starti<row&&matrix[starti][j] == '1'){
+                    int index = j;
+                    while(index<col && matrix[starti][index]=='1')
+                       index++;
+                    if(wide>index-j)
+                        wide = index-j;
+                    starti++;
+                    if(area<(starti-i)*wide)
+                        area = (starti-i)*wide;
+                }
+                if(largestarea<area)
+                    largestarea = area;
+                
+            }
+         return largestarea;    
+    }
+    */
+    
+    //利用动态规划的思想，以及Largest Rectangle in Histogram的阶梯思路(需要O(N)空间以及O(N)的时间)
+    //将矩阵每一行作为底，那么当前行上面的所有连续的为1的元素看成是一条柱形，直接的求每一行的最大长方形面积
+    //就可以了,时间复杂度为O(M*N),空间也一样,不过空间还是可以在减少到O(N)的
+    //28ms
+    int maximalRectangle(vector<vector<char>>& matrix) {
+        if(matrix.size() == 0 || matrix[0].size() == 0)
+            return 0;
+        int row = matrix.size();
+		int col = matrix[0].size();
+		int ret = 0;
+		//记录每一行的连续的1的高度， 这里利用一点动态规划的思想
+		vector<vector<int>> dp(row, vector<int>(col));
+		//计算出以每一行为底部的柱形的高度
+        for(int i=0; i<col; i++)
+            dp[0][i] = matrix[0][i]=='1'? 1: 0;
+        for(int i=1; i<row; i++){
+            for(int j=0; j<col; j++){
+                if(matrix[i][j] == '0')
+                    dp[i][j] = 0;
+                else
+                    dp[i][j] = dp[i-1][j]+1;
+            }
+        }
+        for(int i=0; i<row; i++){
+            int area = getTheLargestRetangle(dp[i]);
+            if(ret<area)
+                ret = area;
+        }
+        return ret;
+    }
+    
+    int getTheLargestRetangle(vector<int> &height){
+        if(height.size() == 0)
+            return 0;
+        stack<int> stk;
+        int maxarea = 0;
+        int area = 0;
+        for(int i=0; i<height.size(); i++){
+            while(!stk.empty() && height[stk.top()]>height[i]){
+                int index = stk.top();
+                stk.pop();
+                area = stk.empty()? i*height[index]: (i-stk.top()-1)*height[index];
+                if(maxarea<area)
+                    maxarea = area;
+            }
+            stk.push(i);
+        }
+       
+        while(!stk.empty()){
+            int index = stk.top();
+            stk.pop();
+            area = stk.empty()? height.size()*height[index]: (height.size()-stk.top()-1)*height[index];
+            if(maxarea<area)
+                maxarea = area;
+        }
+        
+        return maxarea;
+    }
+    
+}
+
+
+Largest Rectangle in Histogram 
+Given n non-negative integers representing the histogram's bar height where the width of each bar is 1, find the area of largest rectangle in the histogram.Above is a histogram where width of each bar is 1, given height = [2,1,5,6,2,3].The largest rectangle is shown in the shaded area, which has area = 10 unit.For example,Given heights = [2,1,5,6,2,3],return 10.
+
+class Solution {
+public:
+    /*
+    //找出每一个元素i的左边的最后一个小于等于该元素的下标n以及右边最后一个等于小于该元素的下标m，
+    //那么以该元素作为顶边的长方形的面积为i*(m-n-1)
+    int largestRectangleArea(vector<int>& height) {
+        if(height.size() == 0)
+            return 0;
+        int *leftfirstless = new int[height.size()];
+        int *rightfirstless = new int[height.size()];
+        leftfirstless[0] = -1;
+        rightfirstless[height.size()-1] = height.size();
+        int ret = INT_MIN;
+        //计算数组leftfirstless的值
+        for(int i=1; i<height.size(); i++){
+            if(height[i]>height[i-1])
+                leftfirstless[i] = i-1;
+            else{
+                int index = leftfirstless[i-1];
+                //是左边最后一个小于当前元素的值的下标，所以这里要 height[index]>=height[i]
+                while(index != -1 && height[index]>=height[i]) index = leftfirstless[index];
+                leftfirstless[i] = index;
+            }
+        }
+        //计算数组rightfirstgrater的值
+        for(int i=height.size()-2; i>=0; i--){
+            if(height[i]>height[i+1])
+                rightfirstless[i] = i+1;
+            else{
+                int index = rightfirstless[i+1];
+                //是右边最后一个小于当前元素的值的下标，所以这里要 height[index]>=height[i]
+                while(index != height.size() && height[index]>=height[i]) index = rightfirstless[index];
+                rightfirstless[i] = index;
+            }
+        }
+        for(int i=0; i<height.size(); i++){
+            int area = height[i]*(rightfirstless[i]-leftfirstless[i]-1);
+            if(ret<area)
+                ret = area;
+        }
+        return ret;
+    } 
+    */
+    
+    //另外一种解法，使用stack
+    //思想：将每一个柱形作为长方形的左边，对于当前的柱形，看看其最右边的是哪一个柱形，规则是，如果右边的柱形的
+    //高度比当前的柱形的高度大，说明可以与右边合成更大的长方形，将右边的柱形入栈，继续遍历；如果右边的柱形的高比
+    //当前的小，那么当前的柱形不能与右边的所有其他柱形形成长方形，这样的话，当前的柱形形成的长方形为其自己，当前的
+    //柱形出栈，对新的栈顶元素进行同样的比较，如果新的元素的高度大于右边的柱形的高度，那么新的柱形可以跟刚出栈的
+    //柱形形成长方形，高度新元素的值，以这种方式一直遍历下去。要注意，在遍历完成后，栈里面的内容有可能不为空，此时
+    //里面的每一个柱形都可以与数组中最右边的柱形形成长方形
+    int largestRectangleArea(vector<int>& height) {
+        if(height.size() == 0)
+            return 0;
+        stack<int> stk;
+        int maxarea = 0;
+        int area = 0;
+        for(int i=0; i<height.size(); i++){
+            while(!stk.empty() && height[stk.top()]>height[i]){
+                int index = stk.top();
+                stk.pop();
+                //这里需要注意，如果栈为空，说明当前的元素是目前的最小元素，所以可以以数组0和i-1作为长方形的左右边
+                //长度为i，所以为i*height[index]， 如果不是为空，那栈顶的第一个元素为当前元素的前面数组中第一个小的下标，
+                //设为j，那么当前的元素可以形成的长方形为j+1到i-1，长度i-stk.top()-1
+                area = stk.empty()? i*height[index]: (i-stk.top()-1)*height[index];
+                if(maxarea<area)
+                    maxarea = area;
+            }
+            stk.push(i);
+        }
+        while(!stk.empty()){
+            int index = stk.top();
+            stk.pop();
+            //如栈为空，那么当前的元素是数组里面最小的元素，形成的长方形的长度可以为height.size(), 否则的话，跟上面
+            //的栈不为空的情况一样
+            area = stk.empty()?height.size()*height[index]: (height.size()-stk.top()-1)*height[index];
+            if(maxarea<area)
+                maxarea = area;
+        }
+        return maxarea;
+    }
+    
+}
+
+
+Simplify Path 
+Given an absolute path for a file (Unix-style), simplify it.For example,path = "/home/", =>; "/home"path = "/a/./b/../../c/", =>; "/c"click to show corner cases.Corner Cases:Did you consider the case where path = "/../"?In this case, you should return "/".Another corner case is the path might contain multiple slashes '/' together, such as "/home//foo/".In this case, you should ignore redundant slashes and return "/home/foo".
+
+class Solution {
+public:
+    //命名中允许有.符号存在，如/.a.，/.为当前路径，/..为上一个路径
+    string simplifyPath(string path) {
+        if(path.size() == 0)
+           return "";
+          stack<int> indexstack;
+          string ret = "/";
+          int start = 1;
+          indexstack.push(0);
+          //在path的末尾加上'/',就可以处理/.和/..的情况了
+          path = path+'/';
+          for(int i=1; i<path.size(); i++){
+              while(i<path.size() && path[i] != '/')
+                  i++;
+              if(i == path.size())
+                  break;
+              //去掉‘//’类型和去掉'./'类型，类型'./'只出现在'/./'中
+              if(path[i-1] == '/' || (path[i-1] == '.' && path[i-2] == '/')){
+                  start = i+1;
+                  continue;
+              }
+              //处理'../'类型，类型'../'也只出现在'/../'类型中
+              if(path[i-1] == '.' && path[i-2] == '.' && path[i-3] == '/'){
+                  int firstindex = indexstack.top();
+                  if(firstindex == 0){
+                      start = i+1;
+                      continue;
+                  }
+                  start = i+1;    
+                  indexstack.pop();
+                  int secondindex = indexstack.top();
+                  ret = ret.substr(0, secondindex+1);
+              }
+              else{
+                  
+                  ret += path.substr(start, i+1-start);
+                  start = i+1;
+                  indexstack.push(ret.size()-1);
+              }
+            
+          }
+          ret += path.substr(start, path.size()-start);
+          //去掉末尾的'/'
+          if(ret.size() > 1 && ret[ret.size()-1] == '/')
+              ret = ret.substr(0, ret.size()-1);
+          return ret;
+    }
+}
+
+
+Trapping Rain Water 
+Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it is able to trap after raining. For example, Given [0,1,0,2,1,0,1,3,2,1,2,1], return 6.The above elevation map is represented by array [0,1,0,2,1,0,1,3,2,1,2,1]. In this case, 6 units of rain water (blue section) are being trapped. Thanks Marcos for contributing this image!
+
+class Solution {
+public:
+    int trap(vector<int>& height) {
+        if(height.size() <= 1)
+            return 0;
+        int *leftlargest = new int[height.size()];
+        int *rightlargest = new int[height.size()];
+        int largest = 0;
+        int total = 0;
+        for(int i=0; i<height.size(); i++){
+            leftlargest[i] = largest;
+            if(largest<height[i])
+                largest = height[i];
+        }
+        largest = 0;
+        for(int i=height.size()-1; i>=0; i--){
+            rightlargest[i] = largest;
+            if(largest<height[i])
+                largest = height[i];
+            
+        }
+        
+        for(int i=1; i<height.size()-1; i++){
+            int small = leftlargest[i]>rightlargest[i]? rightlargest[i]: leftlargest[i];
+            if(small<=height[i])
+                continue;
+            total += (small-height[i]);
+        }
+        
+        return total;
+    }
+}
+
+
+Valid Parentheses 
+Given a string containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.The brackets must close in the correct order, "()" and "()[]{}" are all valid but "(]" and "([)]" are not.
+
+class Solution {
+public:
+    bool isValid(string s) {
+        
+        stack<char> valid;
+        for(int i=0; i<s.size(); i++){
+            if(s[i] == '(' || s[i] == '{' || s[i] == '[')
+                valid.push(s[i]);
+            else{
+                if(valid.size() == 0)
+                    return false;
+                char top = valid.top();
+                valid.pop();
+                if(s[i] == ')' && top != '(')
+                    return false;
+                if(s[i] == ']' && top != '[')
+                    return false;
+                if(s[i] == '}' && top != '{')
+                    return false;
+            }
+        }
+        if(valid.size() == 0)
+            return true;   
+        return false;
+            
+    }
+}
+
+

@@ -1,0 +1,497 @@
+Find Median from Data Stream 
+Median is the middle value in an ordered integer list. If the size of the list is even, there is no middle value. So the median is the mean of the two middle value.Examples: [2,3,4] , the median is 3[2,3], the median is (2 + 3) / 2 = 2.5 Design a data structure that supports the following two operations:void addNum(int num) - Add a integer number from the data stream to the data structure.double findMedian() - Return the median of all elements so far.For example:add(1)add(2)findMedian() ->; 1.5add(3) findMedian() ->; 2
+Credits:Special thanks to @Louis1992 for adding this problem and creating all test cases.
+
+struct Node{
+        int value;
+        Node *next;
+        Node *pre;
+        Node(int val):value(val), next(NULL), pre(NULL){
+
+        }
+        
+    };
+class MedianFinder {
+public:
+    MedianFinder():length(0), head(NULL){
+       
+    }
+    
+    // Adds a number into the data structure.
+    void addNum(int num) {
+        if(head == NULL){
+            head = new Node(num);
+            length++;
+            medianNode = head;
+            return;
+        }
+        if(head->value > num){
+            Node *node = new Node(num);
+            node->next = head;
+            head->pre = node;
+            head = node;
+            if(length%2 != 0)
+                medianNode = medianNode->pre;
+            length++;
+            
+        }
+        else{
+            Node *pre, *cur;
+            //如果直接的使下面的两句，那么会超时
+            // pre = head;
+            // cur = head->next;
+            //这里根据medianNode的值来决将要插入的节点是在链表的前中部还是后半部，使得链表的遍历减半，必须修改成一下的程序才不会超时，
+            //直接的使用上面的两句来代替下面的程序的话，会超时。
+            if(medianNode->value > num){
+                pre = head;
+                cur = head->next;
+            }
+            else{
+                pre = medianNode;
+                cur = medianNode->next;
+            }
+            
+            while(cur != NULL && (cur->value <= num)){
+                pre = cur;
+                cur = cur->next;
+            }
+            if(cur == NULL){
+                Node *node = new Node(num);
+                node->pre = pre;
+                pre->next = node;
+                if(length%2 == 0)
+                    medianNode = medianNode->next;
+            }
+            else{
+                Node *node = new Node(num);
+                node->pre = pre;
+                pre->next = node;
+                node->next = cur;
+                cur->pre = node;
+                //插入点在medianNode的左边，
+                if(medianNode->value > num){
+                    if(length%2 != 0)
+                        medianNode = medianNode->pre;
+                }
+                else{
+                    //插入点在右边
+                    if(length%2 == 0)
+                        medianNode = medianNode->next;
+                }
+            }
+            length++;
+        }
+        
+        
+    }
+
+    // Returns the median of current data stream
+    double findMedian() {
+        if(length%2 == 0)
+            return medianNode->value + (double)(medianNode->next->value - medianNode->value)/2;
+        else
+            return (double)medianNode->value;
+        /*
+        int median = 0;
+        Node *medianNode = head;
+        //偶数的话
+        if(length %2 == 0){
+            while(++median < length/2 )
+                medianNode = medianNode->next;
+            return medianNode->value + (medianNode->next->value - medianNode->value) / 2;
+        }
+        else{
+            while(++median <= length/2 )
+                medianNode = medianNode->next;
+            return medianNode->value;
+        }
+        */
+    }
+private:
+    Node *head;
+    int length;
+    Node *medianNode;
+    
+};
+
+
+// Your MedianFinder object will be instantiated and called as such:
+// MedianFinder mf;
+// mf.addNum(1);
+// mf.findMedian()
+
+
+Ugly Number II 
+Write a program to find the n-th ugly number.Ugly numbers are positive numbers whose prime factors only include 2, 3, 5. For example, 1, 2, 3, 4, 5, 6, 8, 9, 10, 12 is the sequence of the first 10 ugly numbers.Note that 1 is typically treated as an ugly number.  The naive approach is to call isUgly for every number until you reach the nth one. Most numbers are not ugly. Try to focus your effort on generating only the ugly ones.  An ugly number must be multiplied by either 2, 3, or 5 from a smaller ugly number.  The key is how to maintain the order of the ugly numbers. Try a similar approach of merging from three sorted lists: L1, L2, and L3.  Assume you have Uk, the kth ugly number. Then Uk+1 must be Min(L1 * 2, L2 * 3, L3 * 5).
+Credits:Special thanks to @jianchao.li.fighter for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    //因为没有通项公司所以只能从一开始一个个的求，直遍1~n的话，会超时，因为有很多的数值不是ugly number，所以最好的方法
+    //就是直接的根据前一个ugly number求出求出下一个值，这样就可以不用绕开不是ugly number的值了。
+    //方法：后面的ugly number 都是前面的ugly number乘以2或3或5得到的，设置三个变量idx2、idx3、idx5存储下标，初始值都为0
+    //找出数组uglyNumbers[idx2]*2、uglyNumbers[idx3]*3、uglyNumbers[idxe]*5的最小值，最小值即为下一个丑数，
+    //同时更新最小值对应的下标，如果多个数字同时为最小值，则它们的下标都要更新(整个过程相当于每一个丑数都可乘以2、3、5得到下一个丑数，
+    //每次选取最小的丑数作为新的丑数，如果丑数a乘以2得到当前最新的丑数，那么a不能再乘以2了，所以index2++)
+    int nthUglyNumber(int n) {
+        int *uglyNumber = new int[n];
+        uglyNumber[0] = 1;
+        int index2 = 0;
+        int index3 = 0;
+        int index5 = 0;
+        int count = 1;
+        while(count<n){
+            int next = getMin(uglyNumber[index2]*2, uglyNumber[index3]*3, uglyNumber[index5]*5);
+            if(next == uglyNumber[index2]*2)
+                index2++;
+            if(next == uglyNumber[index3]*3)
+                index3++;
+            if(next == uglyNumber[index5]*5)
+                index5++;
+            uglyNumber[count] = next;
+            count++;
+        }
+        return uglyNumber[count-1];
+    }
+    
+    int getMin(int a, int b, int c){
+        int temp = a>b?b:a;
+        if(c<temp)
+            return c;
+        return temp;
+    }
+}
+
+
+Sliding Window Maximum 
+Given an array nums, there is a sliding window of size k which is moving from the very left of the array to the very right. You can only see the k numbers in the window. Each time the sliding window moves right by one position.For example,Given nums = [1,3,-1,-3,5,3,6,7], and k = 3.Window position                Max---------------               -----[1  3  -1] -3  5  3  6  7       3 1 [3  -1  -3] 5  3  6  7       3 1  3 [-1  -3  5] 3  6  7       5 1  3  -1 [-3  5  3] 6  7       5 1  3  -1  -3 [5  3  6] 7       6 1  3  -1  -3  5 [3  6  7]      7Therefore, return the max sliding window as [3,3,5,5,6,7].
+Note: You may assume k is always valid, ie: 1 ≤ k ≤ input array's size for non-empty array.Follow up:Could you solve it in linear time?  How about using a data structure such as deque (double-ended queue)?  The queue size need not be the same as the window’s size.  Remove redundant elements and the queue should store only elements that need to be considered.
+
+class Solution {
+public:
+    vector<int> maxSlidingWindow(vector<int>& nums, int k) {
+        vector<int> result;
+        if(nums.size() == 0)
+            return result;
+        deque<int> maxqueue;
+        maxqueue.push_back(0);
+        for(int i=1; i<k; i++){
+            if(nums[i] < nums[maxqueue.back()])
+                maxqueue.push_back(i);
+            else{
+                while (maxqueue.size()>0 && nums[maxqueue.back()]<nums[i])
+                    maxqueue.pop_back();
+                maxqueue.push_back(i);
+            }
+        }
+        result.push_back(nums[maxqueue.front()]);
+        for(int i=k; i<nums.size(); i++){
+            if(nums[i] < nums[maxqueue.back()])
+                maxqueue.push_back(i);
+            else{
+                while(maxqueue.size()>0 && nums[maxqueue.back()]<nums[i])
+                    maxqueue.pop_back();
+                maxqueue.push_back(i);
+            }
+            if(maxqueue.front()>=i-k+1)
+                result.push_back(nums[maxqueue.front()]);
+            else{
+                maxqueue.pop_front();
+                result.push_back(nums[maxqueue.front()]);
+            }
+        }
+        return result;
+    }
+}
+
+
+The Skyline Problem 
+A city's skyline is the outer contour of the silhouette formed by all the buildings in that city when viewed from a distance. Now suppose you are given the locations and height of all the buildings as shown on a cityscape photo (Figure A), write a program to output the skyline formed by these buildings collectively (Figure B).        The geometric information of each building is represented by a triplet of integers [Li, Ri, Hi], where Li and Ri are the x coordinates of the left and right edge of the ith building, respectively, and Hi is its height. It is guaranteed that 0 ≤ Li, Ri ≤ INT_MAX, 0 <; Hi ≤ INT_MAX, and Ri - Li >; 0. You may assume all buildings are perfect rectangles grounded on an absolutely flat surface at height 0.For instance, the dimensions of all buildings in Figure A are recorded as: [ [2 9 10], [3 7 15], [5 12 12], [15 20 10], [19 24 8] ] .The output is a list of "key points" (red dots in Figure B) in the format of [ [x1,y1], [x2, y2], [x3, y3], ... ] that uniquely defines a skyline. A key point is the left endpoint of a horizontal line segment. Note that the last key point, where the rightmost building ends, is merely used to mark the termination of the skyline, and always has zero height. Also, the ground in between any two adjacent buildings should be considered part of the skyline contour.For instance, the skyline in Figure B should be represented as:[ [2 10], [3 15], [7 12], [12 0], [15 10], [20 8], [24, 0] ].Notes: The number of buildings in any input list is guaranteed to be in the range [0, 10000]. The input list is already sorted in ascending order by the left x position Li.  The output list must be sorted by the x position.  There must be no consecutive horizontal lines of equal height in the output skyline. For instance, [...[2 3], [4 5], [7 5], [11 5], [12 7]...] is not acceptable; the three lines of height 5 should be merged into one in the final output as such: [...[2 3], [4 5], [12 7], ...]
+Credits:Special thanks to @stellari for adding this problem, creating these two awesome images and all test cases.
+
+class Solution {
+public:
+    //参考Discuss里面的讲解
+    //总体思想就是，将所有建筑物的起始点和终点按照升序排序，起始点的高度为建筑物的高度，终点的高度为建筑物高度的负数
+    //以作为该建筑物已走完的标记，在multimap中，所有键将升序排序，所有相同键的对已多个值将以升序排序
+    //这样的话，在遍到相同的键时，对于起始的节点，我们只选取最高的，所以在判断当前所选择的天际线
+    //是否可行的时候，需要使用p.first!=x来判断是否在相同的起点有更高的位置，当前的天际线是否可以，还要跟上一个
+    //可行的天际线对比，如果高度是一样的，那么当前的天际线不是可行解（类似4,5    7,5，这种情况）
+    //在遍历的时候，如果是一起点，那么将该点的高度加到multiset中，这里必须为multiset，因为建筑物高度
+    //有可能是一样的，而且在走完一栋建筑物的时候，我们会删除其在set中的高度，但是有可能相同高度的建筑物还没走完
+    //说以要保证有多个相同高度在set里面，注意建筑物有可能会比当前的天际线高或低，所以我们不能直接的将当前的建筑物的
+    //高度作为新的天际线的高度，而是要先将其高度放在set中，在选最大的作为新天际线的高度，（进入下一个建筑物时，要判断该天际线
+    //是否是可行的）！
+    vector<pair<int, int>> getSkyline(vector<vector<int>>& buildings) {
+        //将所有的building起始坐标以及终止坐标作为键值，值为该building的高度，对于终止节点，我们将
+        //高度设为负的
+        multimap<int, int> coords;
+        for(const vector<int> &building: buildings){
+            coords.emplace(building[0], building[2]);
+            coords.emplace(building[1], -building[2]);
+        }
+        
+        //之所以要加0，是因为单当建筑物之间有空格的时候，要以地平线作为天际线
+        multiset<int> heights = {0};
+        vector<pair<int, int>> ret;
+        //记住当前的天际线的起始点坐标
+        int x = -1;
+        int y = 0;
+        for(const pair<int, int> &p: coords){
+            //当前的天际线的坐标不能与当前的p一样，因为一样的话，说明有多个建筑物的起点一样，但是在coords
+            //中相同的键是以其对应值来升序排序的，相同的起点应该以最高高度作为天际线，所以应该忽略掉前面一个值
+            //而选取后面更大的值；还有另外一种情况就是，如果有多个建筑连在一起，而且高度是一样这样的话，只能以
+            //第一个建筑物的起点作为天际线的折点，后面的应该忽略
+            if((x!=-1 && p.first!=x) && (ret.empty() || ret.rbegin()->second != y)){
+                ret.emplace_back(x, y);
+            }
+            
+            //对于当前的p，如果其高度大于0，说明是建筑物的起点，可以加入到heights中
+            if(p.second > 0)
+                heights.insert(p.second);
+            //否则的话，当前的高度走完了，要跳到下一个高度
+            else
+                heights.erase(heights.find(-p.second));
+            x = p.first;
+            y = *heights.rbegin();
+        }
+        
+        if(!ret.empty() && ret.rbegin()->second!=0)
+            ret.emplace_back(x, 0);
+        return ret;
+    }
+}
+
+
+Kth Largest Element in an Array 
+Find the kth largest element in an unsorted array. Note that it is the kth largest element in the sorted order, not the kth distinct element.For example,Given [3,2,1,5,6,4] and k = 2, return 5.
+Note: You may assume k is always valid, 1 ≤ k ≤ array's length.
+Credits:Special thanks to @mithmatt for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    //利用快排的思想，该算法就是所谓的快速查找算法
+    int findKthLargest(vector<int>& nums, int k) {
+        q_select(nums, 0, nums.size()-1, k);
+        return nums[nums.size()-k];
+    }
+    
+    void q_select(vector<int>& nums, int left, int right, int k){
+        if(right<=left)
+            return;
+        //因为下面有j=right-1,然后在--j,所以必须保证right>left+1;也就是数组总共有三个以上
+        if(right == left +1){
+            if(nums[left]>nums[right])
+                swap(nums[left], nums[right]);
+            return;
+        }
+        //获得轴值,必须三个值以上
+        int medium = getMedium(nums, left, right);
+        int i=left;
+        int j=right-1;
+        while(true){
+            while(nums[++i]<medium);
+            while(nums[--j]>medium);
+            if(i<j)
+                swap(nums[i], nums[j]);
+            if(i>j)
+                break;
+        }
+        swap(nums[i], nums[right-1]);
+        if(i == nums.size()-k)
+            return ;
+        if(i<nums.size()-k)
+            q_select(nums, i+1, right, k);
+        else
+            q_select(nums, left, i-1, k);
+        
+    }
+    //前中后三个元素，找中间的值，顺便将最小的值放在left，最大的值放在right，将中间值与right-1交换。
+    int getMedium(vector<int> &nums, int left, int right){
+        int medium = left + (right-left)/2;
+        if(nums[left]>nums[medium])
+            swap(nums[left], nums[medium]);
+        if(nums[left]>nums[right])
+            swap(nums[left], nums[right]);
+        if(nums[medium]>nums[right])
+            swap(nums[medium], nums[right]);
+        //将轴值放在你倒数第二个位置
+        swap(nums[medium], nums[right-1]);
+        return nums[right-1];  
+    }
+    
+    void swap(int &a, int &b){
+        int temp = a;
+        a = b;
+        b = temp;
+    }
+}
+
+
+Merge k Sorted Lists 
+Merge k sorted linked lists and return it as one sorted list. Analyze and describe its complexity.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+ 
+class Solution {
+public:
+	//利用一般的选择算法会超时！超时! 超时！！！
+	//这个算法的思想是正确的，但是之所以会超时是因为每次在选取最小值的时候其实使用的是选择法，
+	//也就是说整一个排序用的是选择排序算法，所以时间复杂度为O(N^2), 就超时了！！！
+     
+    //新的算法使用堆来每次获得最小的节点
+	//全局变量，记录数组的长度，因为要建立堆，所以这里直接的将lists作为建堆的数组，这样可以使得整个算法的
+	//空间复杂度为O(1).
+	int num = 0;
+
+	ListNode* mergeKLists(vector<ListNode*>& lists) {
+		if (lists.size() == 0)
+			return NULL;
+		if (lists.size() == 1)
+			return lists[0];
+		ListNode *head = new ListNode(0);
+		ListNode *cur = head;
+		//这里有一个需要注意的地方，就是lists中有可能会出现空的节点，也就是说有空链表的存在，所以要先排除掉空链表
+		for (int i = 0; i<lists.size(); i++) {
+			if (lists[i] != NULL) {
+				lists[num] = lists[i];
+				num++;
+			}
+		}
+		//建堆
+		buildHeap(lists);
+		int index = 0;
+		while (num >= 1) {
+			ListNode *smallest = NULL;
+			/*
+			//很一般的选择算法，导致超时
+			for(int i=0; i<lists.size(); i++){
+			if(lists[i] == NULL){
+			num--;
+			continue;
+			}
+			if(smallest == NULL){
+			smallest = lists[i];
+			index = i;
+			continue;
+			}
+			if(smallest->val > lists[i]->val){
+			smallest = lists[i];
+			index = i;
+			}
+			}
+			*/
+
+			//这里采用堆排序的方法，时间复杂度为O(NlgN)
+			smallest = getSmallestFromHeap(lists);
+
+			//得到了lists中的最小的值
+			cur->next = smallest;
+			cur = smallest;
+			//lists[index] = smallest->next;
+		}
+		cur = head->next;
+		delete head;
+		return cur;
+	}
+
+	//建堆的过程,直接的使用lists，不需要自己开辟新的数组
+	//建堆的过程从数组的右边开始，对于下标i，其父节点的下标是(i-1)/2, 这里需要注意一点，对于每一个节点，其左右子节点的小标为
+	//左节点为奇数，右节点是偶数，所以对于最右边的数组节点，要判断其是否有兄弟节点，如果下标为偶数，那么可以与前一个节点构成
+	//兄弟节点，共同查找其父节点，如果是奇数的话，说明没有兄弟节点，不能跟前一个元素构成兄弟节点，对于没一个元素，如果其值大于
+	//该元素的左右子节点的最小值，那么要对该元素进行shiftdown操作
+	//类的属性num记录lists中有用的元素的个数
+	void buildHeap(vector<ListNode*>& lists) {
+		if (num <= 1)
+			return;
+		//这里要使用 i=num-1，不能直接的i = lists.size();
+		for (int i = num - 1; i>0; i--) {
+			//偶数
+			if (i % 2 == 0) {
+				int p = (i - 1) / 2;
+				int small = i;
+				if (lists[i]->val>lists[i - 1]->val)
+					small = i - 1;
+				if (lists[p]->val > lists[small]->val) {
+					shiftdown(lists, p);
+				}
+				i--;
+			}
+			//奇数
+			else {
+				int p = (i - 1) / 2;
+				if (lists[p]->val > lists[i]->val) {
+					shiftdown(lists, p);
+				}
+			}
+		}
+	}
+
+	void shiftdown(vector<ListNode*> &lists, int p) {
+		int left = p * 2 + 1;
+		int right = p * 2 + 2;
+		if (left >= num)
+			return;
+		int small = left;
+		if (right < num) {
+			if (lists[left]->val>lists[right]->val)
+				small = right;
+		}
+		if (lists[p]->val > lists[small]->val) {
+			ListNode *temp = lists[p];
+			lists[p] = lists[small];
+			lists[small] = temp;
+			shiftdown(lists, small);
+		}
+		else
+			return;
+	}
+	//从堆中拿出最小的值
+	ListNode* getSmallestFromHeap(vector<ListNode*>& lists) {
+		if (lists[0] == NULL) {
+			cout << endl;
+		}
+		ListNode *ret = lists[0];
+		//如果只有一行了，那么直接输出改行的第一个节点，num--使主程序退出循环
+		if (num == 1) {
+			num--;
+			return ret;
+		}
+		lists[0] = lists[0]->next;
+		//堆头换了，对堆重建
+		if (lists[0] == NULL) {
+			lists[0] = lists[num - 1];
+			num--;
+		}
+		int p = 0;
+		while (true) {
+			int left = p * 2 + 1;
+			int right = p * 2 + 2;
+			if (left >= num)
+				break;
+			int small = left;
+			if (right < num) {
+				if (lists[right]->val < lists[left]->val)
+					small = right;
+			}
+			if (lists[small]->val < lists[p]->val) {
+				ListNode *temp = lists[p];
+				lists[p] = lists[small];
+				lists[small] = temp;
+				p = small;
+			}
+			else
+				break;
+		}
+		return ret;
+	}
+}
+
+

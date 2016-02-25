@@ -1,0 +1,1161 @@
+Find the Duplicate Number 
+Given an array nums containing n + 1 integers where each integer is between 1 and n (inclusive), prove that at least one duplicate number must exist. Assume that there is only one duplicate number, find the duplicate one.
+Note:You must not modify the array (assume the array is read only).You must use only constant, O(1) extra space.Your runtime complexity should be less than O(n2).There is only one duplicate number in the array, but it could be repeated more than once.
+Credits:Special thanks to @jianchao.li.fighter for adding this problem and creating all test cases.
+
+class Solution {
+public:
+	//抽屉原理，每次查找小于n/2的数的个数，如果个数小于其实数到n/2数之间的数量，
+	//说明重复的数大于n/2,否则的话说明重复的数就在起始数到n/2之间
+     int findDuplicate(vector<int>& nums) {
+        int min = 1;
+		int max = nums.size()-1;
+		while(min < max-1){
+			int median = min + (max - min)/2;
+			int count = 0;
+			for(int i=0; i<nums.size(); i++){
+				if(nums[i] < median)
+					count++;
+			}
+			if(count>median-1){
+				max = median;
+			}
+			else{
+				min = median;
+			}
+		}
+		int mincount = 0;
+		for(int i=0; i<nums.size(); i++)
+			if(nums[i] == min)
+				mincount++;
+		if(mincount > 1)
+			return min;
+		else return max;
+		
+    }
+}
+
+
+Move Zeroes 
+Given an array nums, write a function to move all 0's to the end of it while maintaining the relative order of the non-zero elements.For example, given nums  = [0, 1, 0, 3, 12], after calling your function, nums should be [1, 3, 12, 0, 0].
+Note:You must do this in-place without making a copy of the array.Minimize the total number of operations.
+Credits:Special thanks to @jianchao.li.fighter for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    void moveZeroes(vector<int>& nums) {
+        int i=0;
+        int j = nums.size();
+        int index = 0;
+        while(i<j){
+            //找到下一个不为0的下标
+            while(j>i && nums[i] == 0)i++;
+            if (i < j) {
+				nums[index++] = nums[i++];
+				
+			}
+        }
+        for(; index<j; index++)
+            nums[index] = 0;
+        
+    }
+}
+
+
+Palindrome Linked List 
+Given a singly linked list, determine if it is a palindrome.Follow up:Could you do it in O(n) time and O(1) space?
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    bool isPalindrome(ListNode* head) {
+        if(head == NULL)
+            return true;
+        int length = 0;
+        ListNode *temp = head;
+        while(temp != NULL){
+            length++;
+            temp = temp->next;
+        }
+        if(length == 1)
+            return true;
+        int begin = length%2 != 0? length/2+1: length/2;
+        ListNode *nextHead = head;
+        while(begin>0){
+            nextHead = nextHead->next;
+            begin--;
+        }
+        ListNode *pre = NULL;
+        while(nextHead->next != NULL){
+            temp = nextHead->next;
+            nextHead->next = pre;
+            pre = nextHead;
+            nextHead = temp;
+        }
+        nextHead->next = pre;
+        begin = length/2;
+        while(begin>0){
+            if(head->val != nextHead->val)
+                return false;
+            head = head->next;
+            nextHead = nextHead->next;
+            begin --;
+        } 
+        return true;
+    }
+}
+
+
+Minimum Size Subarray Sum 
+Given an array of n positive integers and a positive integer s, find the minimal length of a subarray of which the sum ≥ s. If there isn't one, return 0 instead.For example, given the array [2,3,1,2,4,3] and s = 7,the subarray [4,3] has the minimal length under the problem constraint.click to show more practice.More practice:If you have figured out the O(n) solution, try coding another solution of which the time complexity is O(n log n).
+Credits:Special thanks to @Freezen for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    //虽然不超时，但是运行时间比较慢,128ms
+    /*
+    int minSubArrayLen(int s, vector<int>& nums) {
+        if(nums.size() == 0 || s == 0)
+            return 0;
+        
+        return _minSubArrayLen(s, nums, 0);
+        
+    }
+    
+    int _minSubArrayLen(int s, vector<int>& nums, int start){
+        int sum = 0;
+        int length = 0;
+        for(int i=start; i<nums.size(); i++){
+            sum+=nums[i];
+            length++;
+            if(sum>=s)
+                break;
+                
+        }
+        int rest = 0;
+        if(sum<s)
+            return 0;
+        rest = _minSubArrayLen(s, nums, start+1);
+        if(rest == 0)
+            return length;
+        return length>rest? rest: length;
+    }
+    */
+    // 4ms运行时间
+    int minSubArrayLen(int s, vector<int>& nums) {
+
+        if (nums.size() == 0) 
+            return 0;
+
+        int sumOfSubArr = nums[0];
+        int start = 0;
+        int result = nums.size();
+
+        for (int i = 1; i<=nums.size(); i++) {
+            while ((sumOfSubArr - nums[start]) >= s) {
+                sumOfSubArr = sumOfSubArr - nums[start];
+                start++;
+            }    
+
+            if (sumOfSubArr >= s && result > i - start) {
+                 result = i - start;
+            }
+
+            if (i<nums.size()) {
+                sumOfSubArr = sumOfSubArr + nums[i];
+            }
+        }
+        return sumOfSubArr >= s ? result : 0;
+    }
+
+}
+
+
+Linked List Cycle II 
+Given a linked list, return the node where the cycle begins. If there is no cycle, return null.
+Note: Do not modify the linked list.Follow up:Can you solve it without using extra space?
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode *detectCycle(ListNode *head) {
+        if(head == NULL)
+            return NULL;
+        ListNode *quick = head;
+        ListNode *slow = head;
+        while(quick != NULL){
+            quick = quick->next;
+            if(quick == NULL)
+                return NULL;
+            quick = quick->next;
+            slow = slow->next;
+            if(slow == quick)
+                break;
+        }
+        if(quick == NULL)
+            return NULL;
+        ListNode* breakhead = quick->next;
+        quick->next = NULL;
+        int length_head = 0;
+        int length_breakhead = 0;
+        ListNode *cur = head;
+        while(cur != NULL){
+            cur = cur->next;
+            length_head++;
+        }
+        cur = breakhead;
+        while(cur != NULL){
+            cur = cur->next;
+            length_breakhead++;
+        }
+        int diff = abs(length_head-length_breakhead);
+        ListNode *breakcur = breakhead;
+        cur = head;
+        if(length_head > length_breakhead){
+            int length = 0;
+
+            while(length != diff){
+                cur = cur->next;
+                length++;
+            }
+            while(cur != breakcur){
+                cur = cur->next;
+                breakcur = breakcur->next;
+            }
+        }
+        else{
+            int length = 0;
+            while(length != diff){
+                breakcur = breakcur->next;
+                length++;
+            }
+            while(cur != head){
+                cur = cur->next;
+                breakcur = breakcur->next;
+            }
+           
+        }
+        quick->next = breakhead;
+        return cur;
+    }
+}
+
+
+Linked List Cycle 
+Given a linked list, determine if it has a cycle in it.Follow up:Can you solve it without using extra space?
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    bool hasCycle(ListNode *head) {
+        if(head == NULL)
+            return false;
+        ListNode *quick = head;
+        ListNode *slow = head;
+        while(quick != NULL){
+            quick = quick->next;
+            if(quick == NULL)
+                return false;
+            quick = quick->next;
+            slow = slow->next;
+            if(quick == slow)
+                return true;
+        }
+        return false;
+    }
+}
+
+
+Valid Palindrome 
+Given a string, determine if it is a palindrome, considering only alphanumeric characters and ignoring cases.For example,"A man, a plan, a canal: Panama" is a palindrome."race a car" is not a palindrome.
+Note:Have you consider that the string might be empty? This is a good question to ask during an interview.For the purpose of this problem, we define empty string as valid palindrome.
+
+class Solution {
+public:
+    bool isPalindrome(string s) {
+        if(s.size() == 0)
+            return true;
+        int i = 0;
+        int j = s.size()-1;
+        while(i<j){
+            //排除掉字母和数值
+            while(i<j && (s[i]<47 || (57<s[i] && s[i]<65) || (90<s[i]&&s[i]<97) || s[i]>122))i++;
+            while(i<j && (s[j]<47 || (57<s[j] && s[j]<65) || (90<s[j]&&s[j]<97) || s[j]>122))j--;
+            if(s[i] == s[j] || s[i]+32 == s[j] || s[j]+32 == s[i]){
+                i++;
+                j--;
+                continue;
+            }
+                
+            return false;
+        }
+        return true;
+    }
+}
+
+
+Merge Sorted Array 
+Given two sorted integer arrays nums1 and nums2, merge nums2 into nums1 as one sorted array.
+Note:You may assume that nums1 has enough space (size that is greater or equal to m + n) to hold additional elements from nums2. The number of elements initialized in nums1 and nums2 are m and n respectively.
+
+class Solution {
+public:
+    //先将nums1后移n个单位，然后在合并排序nums1和nums2，这样就可以在nums1的空间上实归排序
+    void merge(vector<int>& nums1, int m, vector<int>& nums2, int n) {
+        for(int i=m-1; i>=0; i--){
+            nums1[i+n] = nums1[i];
+        }
+        int nums1Index = n;
+        int nums2Index = 0;
+        int index = 0;
+        while(nums1Index<m+n && nums2Index<n){
+            if(nums1[nums1Index] <= nums2[nums2Index]){
+                nums1[index++] = nums1[nums1Index++];
+            }
+            else{
+                nums1[index++] = nums2[nums2Index++];
+            }
+                
+        }
+        if(nums1Index == m+n){
+            for(; nums2Index<n; nums2Index++)
+                nums1[index++] = nums2[nums2Index];
+        }
+    }
+}
+
+
+Partition List 
+Given a linked list and a value x, partition it such that all nodes less than x come before nodes greater than or equal to x.You should preserve the original relative order of the nodes in each of the two partitions.For example,Given 1->;4->;3->;2->;5->;2 and x = 3,return 1->;2->;2->;4->;3->;5.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* partition(ListNode* head, int x) {
+        if(head == NULL)
+            return NULL;
+        ListNode *lesshead, *graterhead, *lesstail, *gratertail, *cur, *pre;
+        cur = head;
+        if(head->val >= x){
+            graterhead = head;
+            pre = head;
+            cur = head->next;
+            while(cur != NULL){
+                if(cur->val >= x){
+                    pre = cur;
+                    cur = cur->next;
+                }
+                else{
+                    lesshead = cur;
+                    lesstail = cur;
+                    gratertail = pre;
+                    break;
+                }
+            }
+            if(cur == NULL){
+                return head;
+            }
+        }
+        else{
+            lesshead = head;
+            pre = head;
+            cur = head->next;
+             while(cur != NULL){
+                if(cur->val < x){
+                    pre = cur;
+                    cur = cur->next;
+                }
+                else{
+                    graterhead = cur;
+                    gratertail = cur;
+                    lesstail = pre;
+                    break;
+                }
+            }
+            if(cur == NULL){
+                return head;
+            }
+        }
+        cur = cur->next;
+        while(cur!= NULL){
+            if(cur->val >= x){
+                gratertail->next = cur;
+                gratertail = cur;
+                cur = cur->next;
+            }
+            else{
+                lesstail->next = cur;
+                lesstail = cur;
+                cur = cur->next;
+            }
+        }
+        
+        lesstail->next = graterhead;
+        gratertail->next = NULL;
+        return lesshead;
+    }
+}
+
+
+Remove Duplicates from Sorted Array II 
+Follow up for "Remove Duplicates":What if duplicates are allowed at most twice?For example,Given sorted array nums = [1,1,1,2,2,3],Your function should return length = 5, with the first five elements of nums being 1, 1, 2, 2 and 3. It doesn't matter what you leave beyond the new length.
+
+class Solution {
+public:
+    int removeDuplicates(vector<int>& nums) {
+        if(nums.size() == 0)
+            return 0;
+        int length = 1;
+        int index = 0;
+        for(int i=1; i<nums.size(); i++){
+            if(nums[i] != nums[index]){
+                length++;
+                nums[++index] = nums[i];
+                continue;
+            }
+            length++;
+            nums[++index] = nums[i];
+            while(i<nums.size() && nums[++i] == nums[index]);
+            if(i == nums.size())
+                return length;
+            length++;
+            nums[++index] = nums[i];
+        }
+        return length;
+    }
+}
+
+
+Minimum Window Substring 
+Given a string S and a string T, find the minimum window in S which will contain all the characters in T in complexity O(n).For example,S = "ADOBECODEBANC"T = "ABC"Minimum window is "BANC".
+Note:If there is no such window in S that covers all characters in T, return the empty string "".If there are multiple such windows, you are guaranteed that there will always be only one unique minimum window in S.
+
+class Solution {
+public:
+	string minWindow(string s, string t) {
+		if (s.length() == 0 || t.length() == 0)
+			return "";
+		int tsize = t.length();
+		//记录T中每一个字符所出现的次数
+		unordered_map<char, int> tmap;
+		//记录当前的窗口中每一个在T的出现多的字符的总出现次数
+		unordered_map<char, int> wmap;
+		for (int i = 0; i<t.size(); i++)
+			if (tmap.count(t[i]) == 0)
+				tmap[t[i]] = 1;
+			else
+				tmap[t[i]]++;
+		unordered_map<char, int> temp = tmap;
+		//当前窗口的右边界
+		int index = 0;
+		//当前窗口的左边界
+		int start = -1;
+		//最小的窗口的左右边界
+		int startindex = -1, endindex = -1;
+		//最小窗口的长度
+		int length = 0;
+		//找第一个窗口
+		while (index<s.size() && temp.size()>0) {
+			if (tmap.count(s[index]) != 0) {
+				if (start == -1)
+					start = index;
+				if (wmap.count(s[index]) == 0)
+					wmap[s[index]] = 1;
+				else
+					wmap[s[index]]++;
+				if(temp.count(s[index]) != 0){
+				    if (temp[s[index]] == 1)
+					    temp.erase(s[index]);
+			    	else if (temp[s[index]] > 1)
+					    temp[s[index]]--;
+				}
+				
+			}
+			index++;
+		}
+		//找不到的情况下
+		if (index == s.size() && temp.size() != 0)
+			return "";
+		//找到了，先对窗口进行压缩，没找到一个新的窗口都需要对其进行压缩，以保证新的窗口没有长度的冗余
+		//接下来在进行窗口的大小比较
+		while (tmap.count(s[start]) == 0 || wmap[s[start]]>tmap[s[start]]){
+			if(wmap.count(s[start]) != 0)
+			    wmap[s[start]]--;
+			start++;
+		}
+		if (index == s.length() && temp.size() == 0){
+		    return s.substr(start, index-start);
+		}
+			
+		length = index - start;
+		startindex = start, endindex = index - 1;
+		for (; index<s.size(); index++) {
+			if (tmap.count(s[index]) != 0) {
+				wmap[s[index]]++;
+				//向前移动start
+				if (s[index] == s[start]) {
+					//如果当前的元素不在T中出现，或是出现了，但是在当前的窗口出现的次数比在tmap中的还大
+					//那么可以继续压缩start
+					while (tmap.count(s[start]) == 0 || wmap[s[start]]>tmap[s[start]]){
+					    if(wmap.count(s[start]) != 0)
+					        wmap[s[start]]--;
+					    start++;
+					}
+						
+					if (length>index - start + 1) {
+						length = index - start + 1;
+						startindex = start;
+						endindex = index;
+					}
+				}
+			}
+		}
+		return  s.substr(startindex, endindex - startindex + 1);
+	}
+}
+
+
+Sort Colors 
+Given an array with n objects colored red, white or blue, sort them so that objects of the same color are adjacent, with the colors in the order red, white and blue.Here, we will use the integers 0, 1, and 2 to represent the color red, white, and blue respectively.
+Note:You are not suppose to use the library's sort function for this problem.click to show follow up.Follow up:A rather straight forward solution is a two-pass algorithm using counting sort.First, iterate the array counting number of 0's, 1's, and 2's, then overwrite array with total number of 0's, then 1's and followed by 2's.Could you come up with an one-pass algorithm using only constant space?
+
+class Solution {
+public:
+    //采用计算排除，因为这里只有三个不同的元素，所以可以直接的采用计算排序，
+    //先算出每一个元素的出现次数，再从最小的元素开始每一个元素出现几次就写几次
+    //这里就不写计算排序算法的实现了，这里采用的是:
+    //
+    //因为最后的结果是0在最前面，2在最后面，所以记住1的其实位置以及2的其实位置，每次遇到0，那么直接将0
+    //与1的其实位置交换，1的起始位置右移，遇到1直接跳过，遇到2将2与2的其实位置的的前一个位置交换，此时要判断该位置的
+    //值是否为0，是的话，采取0与1交换的方法，如果是1的话，直接跳过
+    void sortColors(vector<int>& nums) {
+        if(nums.size() == 0)
+            return ;
+        int index1 = -1;
+        int index2 = nums.size()-1;
+        while(index2>0 && nums[index2] == 2)index2--;
+        if(index2 == -1)
+            return ;
+        index2++;
+        //i<index2,因为到2的起始位置的时候，后面都已经是2了，没必要遍历了
+        for(int i=0; i<index2; i++){
+            //元素为1，直接跳过
+            if(nums[i] == 1){
+                if(index1 == -1)
+                   index1 = i;
+                continue;
+            }
+                
+            //0与1交换
+            if(nums[i] == 0 && index1 != -1){
+                nums[index1] = 0;
+                nums[i] = 1;
+                index1++;
+                continue;
+            }
+            //元素为2时，交换
+            if(nums[i] == 2){
+                nums[i] = nums[index2-1];
+                nums[index2-1] = 2;
+                index2--;
+                if(nums[i] == 1 && index1 == -1)
+                    index1 = i;
+                else if(nums[i] == 0 && index1 != -1){
+                    nums[index1] = 0;
+                    nums[i] = 1;
+                    index1++;
+                }
+                //这一步很关键，因为2的起始位置的前一位换成了2，有可能前一位的前一位以及其前面的元素是2，所以这里要遍历
+                //一下，保证index2是最新的2的起始位置
+                while(nums[index2] == 2)index2--;
+                index2++;
+            }
+        }
+    }
+}
+
+
+Rotate List 
+Given a list, rotate the list to the right by k places, where k is non-negative.For example:Given 1->;2->;3->;4->;5->;NULL and k = 2,return 4->;5->;1->;2->;3->;NULL.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* rotateRight(ListNode* head, int k) {
+        if(head == NULL)
+            return head;
+        ListNode *tail = head;
+        int length = 0;
+        while(tail != NULL){
+            tail = tail->next;
+            length++;
+        }
+        k %= length;
+        tail = head;
+        while(tail != NULL && k>0){
+            tail = tail->next;
+            k--;
+        }
+        //当k等于链表的长度时，直接返回链表
+        if(k == 0 && tail == NULL)
+           return head;
+        //当k大于链表的长度时，将链表翻转
+        if(k>0){
+            ListNode *pre = NULL;
+            ListNode *cur = head;
+            ListNode *next = NULL;
+            while(cur != NULL){
+                next = cur->next;
+                cur->next = pre;
+                pre = cur;
+                cur = next;
+            }
+            return pre;
+        }
+            
+        ListNode *temp = head;;
+        while(tail->next != NULL){
+            temp = temp->next;
+            tail = tail->next;
+           
+        }
+        tail->next = head;
+        head = temp->next;
+        temp->next = NULL;
+        return head;
+    }
+}
+
+
+Trapping Rain Water 
+Given n non-negative integers representing an elevation map where the width of each bar is 1, compute how much water it is able to trap after raining. For example, Given [0,1,0,2,1,0,1,3,2,1,2,1], return 6.The above elevation map is represented by array [0,1,0,2,1,0,1,3,2,1,2,1]. In this case, 6 units of rain water (blue section) are being trapped. Thanks Marcos for contributing this image!
+
+class Solution {
+public:
+    int trap(vector<int>& height) {
+        if(height.size() <= 1)
+            return 0;
+        int *leftlargest = new int[height.size()];
+        int *rightlargest = new int[height.size()];
+        int largest = 0;
+        int total = 0;
+        for(int i=0; i<height.size(); i++){
+            leftlargest[i] = largest;
+            if(largest<height[i])
+                largest = height[i];
+        }
+        largest = 0;
+        for(int i=height.size()-1; i>=0; i--){
+            rightlargest[i] = largest;
+            if(largest<height[i])
+                largest = height[i];
+            
+        }
+        
+        for(int i=1; i<height.size()-1; i++){
+            int small = leftlargest[i]>rightlargest[i]? rightlargest[i]: leftlargest[i];
+            if(small<=height[i])
+                continue;
+            total += (small-height[i]);
+        }
+        
+        return total;
+    }
+}
+
+
+Substring with Concatenation of All Words 
+You are given a string, s, and a list of words, words, that are all of the same length. Find all starting indices of substring(s) in s that is a concatenation of each word in words exactly once and without any intervening characters.For example, given:s: "barfoothefoobarman"words: ["foo", "bar"]You should return the indices: [0,9].(order does not matter).
+
+class Solution {
+public:
+    //很原始的方法，效率很低,大概需要1000毫秒的时间
+    /*
+    vector<int> findSubstring(string s, vector<string>& words) {
+        if(words.size() == 0 || s.size() == 0 || s.size() < words[0].size()*words.size() )
+            return {};
+        multiset<string> wset;
+        multiset<string> temp;
+        for(int i=0; i<words.size(); i++)
+            wset.insert(words[i]);
+        temp = wset;
+        vector<int> ret;
+        int begin = 0;
+        int wordlength = words[0].size();
+        for(int i=0; i<=s.size()-wordlength; i++){
+            //不增加这一句的时候会超时
+            if(begin > s.size()-wordlength*words.size())
+                break;
+            string word = s.substr(i, wordlength);
+            if(temp.find(word) != temp.end()){
+                temp.erase(temp.find(word));
+                i += wordlength-1;
+                if(temp.empty()){
+                    ret.push_back(begin);
+                    i = begin;
+                    begin = i+1;
+                    temp = wset;
+                }
+                
+            }
+            else{
+                if(temp.size() < wset.size()){
+                    i = begin;
+                    temp = wset;
+                    begin++;
+                }
+                else{
+                    begin = i+1;
+                    temp = wset;
+                }
+            }
+        }
+        return ret;
+    }
+    */
+    //只需要76毫秒的时间
+    //其实可以直接的将字符串根据words中每一个单词的长度给划分成很多个单词，然后再逐个的匹配words中的单词
+    //在这里，其实划分的方法是固定的，如果words[0].length = L,其实的划分下标为i， 那么划分的方法为i从[0, L-1]
+    //我们就可以遍历这几种不同的方法得到的单词串，来获得答案
+    vector<int> findSubstring(string s, vector<string>& words) {
+        if(words.size() == 0 || s.size() == 0 || s.size() < words[0].size()*words.size() )
+            return {};
+        multiset<string> wset;
+        multiset<string> temp;
+        for(int i=0; i<words.size(); i++)
+            wset.insert(words[i]);
+        temp = wset;
+        vector<int> ret;
+        int begin = 0;
+        int wordlength = words[0].size();
+        for(int i=0; i<wordlength; i++){
+            begin = i;
+            temp = wset;
+            for(int j=i; j<=s.size()-wordlength; j+=wordlength){
+                string word = s.substr(j, wordlength);
+                if(temp.find(word) != temp.end()){
+                    temp.erase(temp.find(word));
+                    if(temp.empty()){
+                        ret.push_back(begin);
+                        //这里很关键，必须右移一个单词的长度，以下一个单词多作为起始点，并将移除的单词重新插入到temp中
+                        temp.insert(s.substr(begin, wordlength));
+                        begin = begin+wordlength;
+                    }
+                }
+                else{
+                    //这里也很关键，有需要右移一个单词，而且还要重新匹配符当前匹配不了的单词，这也是为什么j要先减去一个单词
+                    //长度的原因，但是，必须在begin<j, 的情况下才可以这样，当begin==j时，相当于以j为起始点的单词不在words中，
+                    //所以此时需要继续往右移动一个单词了，所以此时j不需要再减去一个单词的长度
+                    if(begin < j){
+                        j -= wordlength;
+                        temp.insert(s.substr(begin, wordlength));
+                    }
+                    begin = begin+wordlength;
+                }
+            }
+        }
+        return ret;
+    }
+}
+
+
+Implement strStr() 
+Implement strStr().Returns the index of the first occurrence of needle in haystack, or -1 if needle is not part of haystack.
+
+class Solution {
+public:
+    //采用KMP算法
+    int strStr(string haystack, string needle) {
+        if(needle.length() == 0)
+            return 0;
+        int *next = new int[needle.length()+1];
+        next[0]=0;
+        next[1] = 0;
+        int j = 0;
+        //获得next数组值,
+        for(int i=1;i<needle.length(); i++){
+            while(j>0 && needle[j] != needle[i])
+                j = next[j];
+            if(needle[j] == needle[i])
+                j++;
+            next[i+1] = j;
+        }
+        
+        int targetIndex = 0;
+        int needleIndex = 0;
+        for(; targetIndex<haystack.length(); targetIndex++){
+            while(needleIndex>0 && haystack[targetIndex] != needle[needleIndex])
+                needleIndex = next[needleIndex];
+            if(haystack[targetIndex] == needle[needleIndex])
+                needleIndex++;
+            if(needleIndex == needle.length())
+                return targetIndex-needleIndex+1;
+        }
+        return -1;
+    }
+    
+    
+    
+}
+
+
+Remove Element 
+Given an array and a value, remove all instances of that value in place and return the new length.The order of elements can be changed. It doesn't matter what you leave beyond the new length.
+
+class Solution {
+public:
+    int removeElement(vector<int>& nums, int val) {
+        int length = 0;
+        int index = 0;
+        for(int i=0; i<nums.size(); i++){
+            if(nums[i] != val){
+                nums[index] = nums[i];
+                length++;
+                index++;
+            }
+        }
+        return length;
+    }
+}
+
+
+Remove Duplicates from Sorted Array 
+Given a sorted array, remove the duplicates in place such that each element appear only once and return the new length.Do not allocate extra space for another array, you must do this in place with constant memory.For example,Given input array nums = [1,1,2],Your function should return length = 2, with the first two elements of nums being 1 and 2 respectively. It doesn't matter what you leave beyond the new length.
+
+class Solution {
+public:
+    int removeDuplicates(vector<int>& nums) {
+        if(nums.size() == 0)
+            return 0;
+        int length = 1;
+        int index = 0;
+        for(int i=1; i<nums.size(); i++){
+            if(nums[i] != nums[index]){
+                nums[++index] = nums[i];
+                length++;
+            }
+        }
+        return length;
+    }
+}
+
+
+Remove Nth Node From End of List 
+Given a linked list, remove the nth node from the end of list and return its head.For example,   Given linked list: 1->;2->;3->;4->;5, and n = 2.   After removing the second node from the end, the linked list becomes 1->;2->;3->;5.
+Note:Given n will always be valid.Try to do this in one pass.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* removeNthFromEnd(ListNode* head, int n) {
+        if(head == NULL)
+            return head;
+        ListNode *first = head;
+        ListNode *second = head;
+        while(n>0 && second != NULL){
+            second = second->next;
+            n--;
+        }
+        if(second == NULL){
+            first = head->next;
+            delete head;
+            head = first;
+            return head;
+        }
+        while(second->next != NULL){
+            first = first->next;
+            second = second->next;
+        }   
+        ListNode *temp = first->next;
+        first->next = temp->next;
+        delete temp;
+        return head;
+    }
+}
+
+
+4Sum 
+Given an array S of n integers, are there elements a, b, c, and d in S such that a + b + c + d = target? Find all unique quadruplets in the array which gives the sum of target.
+Note:Elements in a quadruplet (a,b,c,d) must be in non-descending order. (ie, a ≤ b ≤ c ≤ d)The solution set must not contain duplicate quadruplets.    For example, given array S = {1 0 -1 0 -2 2}, and target = 0.    A solution set is:    (-1,  0, 0, 1)    (-2, -1, 1, 2)    (-2,  0, 0, 2)
+
+class Solution {
+public:
+    //先排序，在将4sum转3sum，再转2sum
+    vector<vector<int>> fourSum(vector<int>& nums, int target) {
+        sort(nums.begin(), nums.end());
+        vector<vector<int> > ret;
+        int sum = 0;
+        for(int i=0; i<nums.size(); i++){
+            //第一个元素去重
+            if(i>0 && nums[i] == nums[i-1])
+                continue;
+            //剪枝
+            if(nums[i]>=target && i+1<nums.size() && nums[i+1]>0)
+                break;
+            
+            for(int j=i+1; j<nums.size(); j++){
+                //第二个元素去重
+                if(j>i+1 && nums[j] == nums[j-1])
+                    continue;
+                
+                //剪枝
+                if(nums[i]+nums[j]>=target && j+1<nums.size() && nums[j+1]>0)
+                    break;
+                int left = j+1;
+                int right = nums.size()-1;
+                
+                while(left<right){
+                    //第三个元素去重
+                    if(left>j+1 && nums[left] == nums[left-1]){
+                        left++;
+                        continue;
+                    }
+                    //剪枝
+                    if(nums[i]+nums[j]+nums[left]>=target && left+1<nums.size() && nums[left+1]>0)
+                        break;
+                    if(nums[i]+nums[j]+nums[left]+nums[right] == target){
+                        vector<int> temp;
+                        temp.push_back(nums[i]);
+                        temp.push_back(nums[j]);
+                        temp.push_back(nums[left]);
+                        temp.push_back(nums[right]);
+                        ret.push_back(temp);
+                        left++;
+                        right--;
+                        continue;
+                    }
+                    if(nums[i]+nums[j]+nums[left]+nums[right] > target)
+                        right--;
+                    else
+                        left++;
+                    
+                }
+            }
+            
+        }
+        return ret;
+    }
+}
+
+
+3Sum Closest 
+Given an array S of n integers, find three integers in S such that the sum is closest to a given number, target. Return the sum of the three integers. You may assume that each input would have exactly one solution.    For example, given array S = {-1 2 1 -4}, and target = 1.    The sum that is closest to the target is 2. (-1 + 2 + 1 = 2).
+
+class Solution {
+public:
+    //该题目想要的是最近的元素和，所以不太好使用map，因为map是针对一个特定的数字来的，这里想要的是最近似的值，所以map不太好使用
+    //还是先对数组进行排序，再将3sum转换为2sum，同时进行去重，减少没必要的计算，该题目还是要将数组遍历到底，因为要找的是最近的，除非
+    //找到了一个与target相等的三元组和，否则的话，遍历到底，返回最近的和。
+    int threeSumClosest(vector<int>& nums, int target) {
+        sort(nums.begin(), nums.end());
+        //防止溢出
+        long long sum = 0;
+        int diff = INT_MAX;
+        for(int i=0; i<nums.size(); i++){
+            //第一个元素去重
+            if(i>0 && nums[i]  == nums[i-1])
+                continue;
+            //2sum
+            int left = i+1;
+            int right = nums.size()-1;
+            while(left<right){
+                if(left > i+1 && nums[left] == nums[left-1]){
+                    left++;
+                    continue;
+                }
+                
+                if(nums[i]+nums[left]+nums[right] == target)
+                    return target;
+                if(diff>abs(nums[i]+nums[left]+nums[right] - target)){
+                    sum = nums[i]+nums[left]+nums[right];
+                    diff = abs(nums[i]+nums[left]+nums[right] - target);
+                }
+                    
+                if(nums[i]+nums[left]+nums[right]>target)
+                    right--;
+                else
+                    left++;
+
+            }
+        }
+        return sum;
+    }
+}
+
+
+3Sum 
+Given an array S of n integers, are there elements a, b, c in S such that a + b + c = 0? Find all unique triplets in the array which gives the sum of zero.
+Note:Elements in a triplet (a,b,c) must be in non-descending order. (ie, a ≤ b ≤ c)The solution set must not contain duplicate triplets.    For example, given array S = {-1 0 1 2 -1 -4},    A solution set is:    (-1, 0, 1)    (-1, -1, 2)
+
+class Solution {
+public:
+    //可以将3sum转换为2sum，对于2sum，最好的算法就是利用map，此时只需要O(N)的时间复杂度，但所得到的二元对不一定是不递减的。
+    //也可以对数组先进行排序，此时利用头尾两个指标可以得到对应的二元组，并且保证所得到的二元对是不递减的，符合题目的要求
+    //对于这道题，可以先对数组进行排序，然后先确定第一个数，再对剩下的数组进行2sum查找，总时间复杂度为O(N^2)
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        if(nums.size()<3)
+            return {};
+        sort(nums.begin(), nums.end());
+        vector<vector<int> > ret;
+        for(int i=0; i<nums.size(); i++){
+            //第一个元素去重
+            if(i>0 && nums[i] == nums[i-1])
+                continue;
+            //接下来是2sums
+            int left = i+1;
+            int right = nums.size()-1;
+            while(left<right){
+                //二元组的第一个元素去重
+                if(left>i+1 && nums[left] == nums[left-1]){
+                    left++;
+                    continue;
+                }
+                if(nums[i] + nums[left] + nums[right] == 0){
+                    vector<int> temp;
+                    temp.push_back(nums[i]);
+                    temp.push_back(nums[left]);
+                    temp.push_back(nums[right]);
+                    ret.push_back(temp);
+                    left++;
+                    right--;
+                    continue;
+                }
+                if(nums[i] + nums[left] + nums[right] > 0)
+                    right--;
+                else
+                    left++;
+                    
+            }
+        }
+        
+        return ret;
+    }
+}
+
+
+Container With Most Water 
+Given n non-negative integers a1, a2, ..., an, where each represents a point at coordinate (i, ai). n vertical lines are drawn such that the two endpoints of line i is at (i, ai) and (i, 0). Find two lines, which together with x-axis forms a container, such that the container contains the most water.
+Note: You may not slant the container.
+
+class Solution {
+public:
+    //从数组的两边向中间收缩，对于左边界left和右边界right，如果height[left]<height[right]
+    //那么说明以left作为起始边的container的最大值也就是以right为结束边时所获得的容量，对于right也是一样的道理
+    int maxArea(vector<int>& height) {
+        if(height.size() <= 1)
+            return 0;
+        int largest = 0;
+        int left = 0, right = height.size()-1;
+        while(left < right){
+            int contain = min(height[left], height[right])*(right-left);
+            if(largest < contain)
+                largest = contain;
+            if(height[left] < height[right])
+                left++;
+            else
+                right--;
+        }
+        return largest;
+    }
+}
+
+
+Longest Substring Without Repeating Characters 
+Given a string, find the length of the longest substring without repeating characters. For example, the longest substring without repeating letters for "abcabcbb" is "abc", which the length is 3. For "bbbbb" the longest substring is "b", with the length of 1.
+
+class Solution {
+public:
+    //212ms
+    int lengthOfLongestSubstring(string s) {
+        if(s.size() == 0)
+            return 0;
+        map<char, int> search;
+        int length = 0;
+        int longest = 0;
+        for(int i=0; i<s.size(); i++){
+            if(search.find(s[i]) == search.end()){
+                search[s[i]] = i;
+                length++;
+                continue;
+            }
+            //找到前面出现过的字符，获得字符在s中的下标index，直接的删除search中index以及前面的字符
+            if(longest<length)
+                longest = length;
+            int index = search[s[i]];
+            for(int j=index; j>=0; j--){
+                if(search.find(s[j]) == search.end() || search[s[j]] > index)
+                    break;
+                else{
+                    search.erase(s[j]);
+                    length--;
+                }
+            }
+            search[s[i]] = i;
+            length++;
+        }
+        return longest>length? longest: length;
+    }
+    
+    // 16ms
+    /*
+    int lengthOfLongestSubstring(string s) {
+        //记录每一个字符出现在s中出现的最新位置
+        vector<int> dict(256, -1);
+        //start为目前最长的不同子字符串的其实下标
+        int maxLen = 0, start = -1;
+        for (int i = 0; i != s.length(); i++) {
+            //当当前的字符已经在前面出现过，那么更改start
+            if (dict[s[i]] > start)
+                start = dict[s[i]];
+            dict[s[i]] = i;
+            maxLen = max(maxLen, i - start);
+        }
+        return maxLen;
+    }
+    */
+    
+}
+
+

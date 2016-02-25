@@ -1,0 +1,183 @@
+Number of Islands 
+Given a 2d grid map of '1's (land) and '0's (water), count the number of islands. An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. You may assume all four edges of the grid are all surrounded by water.Example 1:11110110101100000000Answer: 1Example 2:11000110000010000011Answer: 3
+Credits:Special thanks to @mithmatt for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    //如果遇到1，就广度搜索，同时将1改为2，搜索完后，岛的数目+1
+    int numIslands(vector<vector<char>>& grid) {
+        if(grid.size() == 0)
+            return 0;
+        int island = 0;
+        for(int i=0; i<grid.size(); i++)
+            for(int j=0; j<grid[0].size(); j++){
+                if(grid[i][j] == '1'){
+                    search(grid, i, j);
+                    island++;
+                }
+            }
+        return island;
+    }
+    
+    void search(vector<vector<char> > &grid, int i, int j){
+        grid[i][j] = '2';
+        //上
+        if(i-1>=0 && grid[i-1][j] == '1')
+            search(grid, i-1, j);
+        //下
+        if(i+1<grid.size() && grid[i+1][j] == '1')
+            search(grid, i+1, j);
+        //左
+        if(j-1>=0 && grid[i][j-1] == '1')
+           search(grid, i, j-1);
+        //右
+        if(j+1<grid[0].size() && grid[i][j+1] == '1')
+            search(grid, i, j+1);
+    }
+}
+
+
+Surrounded Regions 
+Given a 2D board containing 'X' and 'O', capture all regions surrounded by 'X'.A region is captured by flipping all 'O's into 'X's in that surrounded region.For example,X X X XX O O XX X O XX O X XAfter running your function, the board should be:X X X XX X X XX X X XX O X X
+
+class Solution {
+public:
+
+    //出现运行时错误，出现的例子在run code时，却可以得到正确的答案，自己将出错的例子在vs中运行时，出现
+    //栈溢出错误！！！
+    /*
+    void solve(vector<vector<char>>& board) {
+        if(board.size() == 0)
+            return ;
+        int rowN = board.size();
+        int colN = board[0].size();
+        for(int i=0; i<colN; i++){
+            if(board[0][i] == 'O')
+                solve(board, 0, i);
+        }
+        for(int i=0; i<rowN; i++){
+            if(board[i][colN-1] == 'O')
+               solve(board, i, colN-1);  
+        }
+        for(int i=0; i<colN; i++){
+            if(board[rowN-1][i] == 'O')
+               solve(board, rowN-1, i);  
+        }
+            
+        for(int i=0; i<rowN; i++){
+            if(board[i][0] == 'O')
+               solve(board, i, 0); 
+        }
+            
+        for(int i=0; i<rowN; i++){
+            for(int j=0; j<colN; j++){
+                if(board[i][j] == '1'){
+                    board[i][j] = 'O';
+                }
+                else if(board[i][j] == 'O')
+                        board[i][j] = 'X';
+            }
+        }
+            
+    }
+    */
+    
+    void solve(vector<vector<char>>& board) {
+        if(board.size() == 0)
+            return ;
+        int rowN = board.size();
+        int colN = board[0].size();
+        //最上面一行
+        for(int i=0; i<colN; i++){
+            if(board[0][i] == 'O')
+                board[0][i] = '1';
+        }
+        //最右边一行
+        for(int i=0; i<rowN; i++){
+            if(board[i][colN-1] == 'O')
+               board[i][colN-1] = '1'; 
+        }
+        //最下边一行
+        for(int i=0; i<colN; i++){
+            if(board[rowN-1][i] == 'O')
+               board[rowN-1][i] = '1';  
+        }
+         
+        //最左边一行   
+        for(int i=0; i<rowN; i++){
+            if(board[i][0] == 'O')
+               board[i][0] = '1'; 
+        }
+       
+        for(int i=1; i<rowN-1; i++){
+            for(int j=1; j<colN-1; j++){
+                if(board[i][j] == 'X' || board[i][j] == '1')
+                    continue;
+                if(board[i][j-1] == '1' || board[i][j+1]== '1' || board[i-1][j] == '1' || board[i+1][j] == '1'){
+                    solve(board, i, j);
+                }
+            }
+        }
+        //根据标记修改矩阵
+        for(int i=0; i<rowN; i++){
+            for(int j=0; j<colN; j++){
+                if(board[i][j] == '1'){
+                    board[i][j] = 'O';
+                }
+                else if(board[i][j] == 'O')
+                        board[i][j] = 'X';
+            }
+        }
+            
+    }
+    
+    void solve(vector<vector<char>>& board, int row, int col){
+        if(row == board.size() || col == board[0].size() || row == -1 || col == -1)
+            return;
+        if(board[row][col] == 'X' || board[row][col] == '1')
+           return;
+         board[row][col] = '1';
+        //遍历四个邻居
+        solve(board, row-1, col);
+        solve(board, row+1, col);
+        solve(board, row, col-1);
+        solve(board, row, col+1);
+    }
+}
+
+
+Longest Consecutive Sequence 
+Given an unsorted array of integers, find the length of the longest consecutive elements sequence.For example,Given [100, 4, 200, 1, 3, 2],The longest consecutive elements sequence is [1, 2, 3, 4]. Return its length: 4.Your algorithm should run in O(n) complexity.
+
+class Solution {
+public:
+    int longestConsecutive(vector<int>& nums) {
+        if(nums.size() <= 1)
+            return nums.size();
+        unordered_set<int> numsSet(nums.begin(), nums.end());
+        int length = 0;
+        while(!numsSet.empty()){
+            int k = *numsSet.begin();
+            int temp = k;
+            int len = 1;
+            while(numsSet.find(++k) != numsSet.end()){
+                len++;
+                numsSet.erase(k);
+            }
+            k = temp;
+            while(numsSet.find(--k) != numsSet.end()){
+                len++;
+                numsSet.erase(k);
+            }
+            
+            if(length<len)
+                length = len;
+            numsSet.erase(temp);
+            
+        }
+         return length;
+    }
+   
+}
+
+

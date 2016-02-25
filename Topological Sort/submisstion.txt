@@ -1,0 +1,105 @@
+Course Schedule II 
+There are a total of n courses you have to take, labeled from 0 to n - 1.Some courses may have prerequisites, for example to take course 0 you have to first take course 1, which is expressed as a pair: [0,1]Given the total number of courses and a list of prerequisite pairs, return the ordering of courses you should take to finish all courses.There may be multiple correct orders, you just need to return one of them. If it is impossible to finish all courses, return an empty array.For example:2, [[1,0]]There are a total of 2 courses to take. To take course 1 you should have finished course 0. So the correct course order is [0,1]4, [[1,0],[2,0],[3,1],[3,2]]There are a total of 4 courses to take. To take course 3 you should have finished both courses 1 and 2. Both courses 1 and 2 should be taken after you finished course 0. So one correct course order is [0,1,2,3]. Another correct ordering is[0,2,1,3].
+Note:The input prerequisites is a graph represented by a list of edges, not adjacency matrices. Read more about how a graph is represented.click to show more hints.Hints:This problem is equivalent to finding the topological order in a directed graph. If a cycle exists, no topological ordering exists and therefore it will be impossible to take all courses.Topological Sort via DFS - A great video tutorial (21 minutes) on Coursera explaining the basic concepts of Topological Sort.Topological sort could also be done via BFS.
+
+class Solution {
+public:
+    //是有一部分的课程需要先修其他的课，并不是所有的课程都需要先修
+    vector<int> findOrder(int numCourses, vector<pair<int, int>>& prerequisites) {
+        if(numCourses == 0)
+            return {};
+        
+        vector<vector<int>> graph(numCourses, vector<int>(0));
+        vector<int> inDegree(numCourses, 0);
+        queue<int> que;
+        vector<int> ret;
+        for(auto p: prerequisites){
+            graph[p.second].push_back(p.first);
+            inDegree[p.first]++;
+        }
+        for(int i=0; i<numCourses; i++){
+            if(inDegree[i] == 0)
+                que.push(i);
+        }
+        
+        while(!que.empty()){
+            int v = que.front();
+            que.pop();
+            ret.push_back(v);
+            for(int i=0; i<graph[v].size(); i++){
+                inDegree[graph[v][i]]--;
+                if(inDegree[graph[v][i]] == 0)
+                    que.push(graph[v][i]);
+            }
+        }
+        //存在环的话，直接返回空数组
+        for(int i=0; i<inDegree.size(); i++){
+            if(inDegree[i] != 0)
+                return {};
+        }
+        //如果所有的课程都出现，那么直接返回
+        if(ret.size() == numCourses)
+            return ret;
+        //有一些课程没有出现，所以要找出没有出现的课程，该部分课程不需要先修课，所以可以直接放在要返回的数组的前端
+        //再将ret复制在后面，然后返回
+        int *a = new int[numCourses];
+        vector<int> result;
+        for(int i=0; i<numCourses; i++)
+            a[i] = 0;
+        for(int i=0; i<ret.size(); i++){
+            a[ret[i]] = 1;
+        }
+        for(int i=0; i<numCourses; i++){
+            if(a[i] == 0)
+                result.push_back(i);
+        }
+        for(int i=0; i<ret.size(); i++)
+            result.push_back(ret[i]);
+        return result;
+    }
+}
+
+
+Course Schedule 
+There are a total of n courses you have to take, labeled from 0 to n - 1.Some courses may have prerequisites, for example to take course 0 you have to first take course 1, which is expressed as a pair: [0,1]Given the total number of courses and a list of prerequisite pairs, is it possible for you to finish all courses?For example:2, [[1,0]]There are a total of 2 courses to take. To take course 1 you should have finished course 0. So it is possible.2, [[1,0],[0,1]]There are a total of 2 courses to take. To take course 1 you should have finished course 0, and to take course 0 you should also have finished course 1. So it is impossible.
+Note:The input prerequisites is a graph represented by a list of edges, not adjacency matrices. Read more about how a graph is represented.click to show more hints.Hints:This problem is equivalent to finding if a cycle exists in a directed graph. If a cycle exists, no topological ordering exists and therefore it will be impossible to take all courses.Topological Sort via DFS - A great video tutorial (21 minutes) on Coursera explaining the basic concepts of Topological Sort.Topological sort could also be done via BFS.
+
+class Solution {
+public:
+    //拓扑排序,用一个队列存入度为0的节点，依次出队，将与出队节点相连的节点的入度减1，
+    //如果入度减为0，将其放入队列中，直到队列为空。如里最后还有入度不为0的节点的话，说明有环，否则无环。
+    bool canFinish(int numCourses, vector<pair<int, int>>& prerequisites) {
+        if(numCourses <= 1)
+            return true;
+        vector<vector<int> > graph(numCourses, vector<int>(0));
+        vector<int> inDegree(numCourses, 0);
+        queue<int> que;
+        for(auto p: prerequisites){
+            graph[p.second].push_back(p.first);
+            inDegree[p.first]++;
+        }
+        for(int i=0; i<inDegree.size(); i++)
+            if(inDegree[i] == 0)
+                que.push(i);
+                
+        while(!que.empty()){
+            int v = que.front();
+            que.pop();
+            for(int i=0; i<graph[v].size(); i++){
+                inDegree[graph[v][i]]--;
+                if(inDegree[graph[v][i]] == 0)
+                    que.push(graph[v][i]);
+            }
+                
+        }
+        
+        for(int i=0; i<inDegree.size(); i++){
+            if(inDegree[i] != 0)
+                return false;
+        }
+        
+        return true;
+    }
+}
+
+

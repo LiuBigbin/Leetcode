@@ -1,0 +1,1357 @@
+Delete Node in a Linked List 
+Write a function to delete a node (except the tail) in a singly linked list, given only access to that node.Supposed the linked list is 1 ->; 2 ->; 3 ->; 4 and you are given the third node with value 3, the linked list should become 1 ->; 2 ->; 4 after calling your function.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    void deleteNode(ListNode* node) {
+        if(node == NULL || node->next == NULL)
+            return;
+        node->val = node->next->val;
+        node->next = node->next->next;
+    }
+}
+
+
+Palindrome Linked List 
+Given a singly linked list, determine if it is a palindrome.Follow up:Could you do it in O(n) time and O(1) space?
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    bool isPalindrome(ListNode* head) {
+        if(head == NULL)
+            return true;
+        int length = 0;
+        ListNode *temp = head;
+        while(temp != NULL){
+            length++;
+            temp = temp->next;
+        }
+        if(length == 1)
+            return true;
+        int begin = length%2 != 0? length/2+1: length/2;
+        ListNode *nextHead = head;
+        while(begin>0){
+            nextHead = nextHead->next;
+            begin--;
+        }
+        ListNode *pre = NULL;
+        while(nextHead->next != NULL){
+            temp = nextHead->next;
+            nextHead->next = pre;
+            pre = nextHead;
+            nextHead = temp;
+        }
+        nextHead->next = pre;
+        begin = length/2;
+        while(begin>0){
+            if(head->val != nextHead->val)
+                return false;
+            head = head->next;
+            nextHead = nextHead->next;
+            begin --;
+        } 
+        return true;
+    }
+}
+
+
+Reverse Linked List 
+Reverse a singly linked list.click to show more hints.
+Hint:A linked list can be reversed either iteratively or recursively. Could you implement both?
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* reverseList(ListNode* head) {
+        ListNode *pre = NULL;
+        ListNode *temp = NULL;
+        while(head != NULL){
+            temp = head->next;
+            head->next = pre;
+            pre = head;
+            head = temp;
+        }
+        return pre;
+    }
+}
+
+
+Remove Linked List Elements 
+Remove all elements from a linked list of integers that have value val.ExampleGiven: 1 -->; 2 -->; 6 -->; 3 -->; 4 -->; 5 -->; 6,  val = 6Return: 1 -->; 2 -->; 3 -->; 4 -->; 5
+Credits:Special thanks to @mithmatt for adding this problem and creating all test cases.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* removeElements(ListNode* head, int val) {
+        while(head != NULL && head->val == val) head = head->next;
+        if(head == NULL)
+            return head;
+        ListNode *pre = NULL;
+        pre = head;
+        ListNode *cur = head->next;
+        while(cur != NULL){
+            if(cur->val == val){
+                pre->next = cur->next;
+                delete cur;
+                cur = pre->next;
+            }
+            else{
+                pre = cur;
+                cur = cur->next;
+            }
+        }
+        return head;
+    }
+}
+
+
+Intersection of Two Linked Lists 
+Write a program to find the node at which the intersection of two singly linked lists begins.For example, the following two linked lists: A:          a1 → a2                   ↘                     c1 → c2 → c3                   ↗            B:     b1 → b2 → b3begin to intersect at node c1.Notes:If the two linked lists have no intersection at all, return null.The linked lists must retain their original structure after the function returns. You may assume there are no cycles anywhere in the entire linked structure.Your code should preferably run in O(n) time and use only O(1) memory.
+Credits:Special thanks to @stellari for adding this problem and creating all test cases.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode *getIntersectionNode(ListNode *headA, ListNode *headB) {
+        if(headA == NULL || headB == NULL)
+            return NULL;
+        int lengthA = 1, lengthB = 1;
+        ListNode *curA = headA, *curB = headB;
+        while(true){
+            if(curA->next == NULL && curB->next == NULL)
+                break;
+            if(curA->next != NULL){
+                curA = curA->next;
+                lengthA++;
+            }
+            if(curB->next != NULL){
+                curB = curB->next;
+                lengthB++;
+            }
+        }
+        if(curA != curB)
+            return NULL;
+        int diff = 0;
+        if(lengthA > lengthB){
+            curA = headA;
+            curB = headB;
+            diff = lengthA - lengthB;
+        }
+        else{
+            curA = headB;
+            curB = headA;
+            diff = lengthB - lengthA;
+        }
+        while(diff){
+            curA = curA->next;
+            diff--;
+        }
+        while(curA != curB){
+            curA = curA->next;
+            curB = curB->next;
+        }
+        return curA;
+    }
+}
+
+
+Sort List 
+Sort a linked list in O(n log n) time using constant space complexity.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* sortList(ListNode* head) {
+       return mergeSort(head);
+    }
+    
+    ListNode* mergeSort(ListNode* head){
+        if(head == NULL){
+            return NULL;
+        }
+        if(head->next == NULL)
+            return head;
+        ListNode* first = head;
+		ListNode* second = NULL;
+		ListNode* cur = head->next;
+		ListNode* quick = head->next;
+		ListNode* pre = head;
+		while (quick->next != NULL) {
+			cur = cur->next;
+			pre = pre->next;
+			quick = quick->next;
+			if (quick->next == NULL)
+				break;
+			quick = quick->next;
+		}
+		pre->next = NULL;
+        first = mergeSort(first);
+        second = mergeSort(cur);
+        if(first == NULL)
+            return second;
+        if(second == NULL)
+            return first;
+        if (first != NULL && second != NULL) {
+			if (first->val < second->val) {
+				head = first;
+				first = first->next;
+			}
+			else {
+				head = second;
+				second = second->next;
+			}
+			    
+		}
+        cur = head;
+        while(first!=NULL && second!=NULL){
+            if(first->val<second->val){
+                cur->next = first;
+                first = first->next;
+                cur = cur->next;
+            }
+            else{
+                cur->next = second;
+                second = second->next;
+                cur = cur->next;
+            }
+        }
+        if(first == NULL)
+            cur->next = second;
+        else
+            cur->next = first;
+        return head;
+    }
+}
+
+
+Insertion Sort List 
+Sort a linked list using insertion sort.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* insertionSortList(ListNode* head) {
+        if(head == NULL)
+            return NULL;
+        ListNode *tail = head;
+        ListNode* cur = head->next;
+        tail->next = NULL;
+        while(cur != NULL){
+            ListNode * temp = head;
+            ListNode * pre = head;
+            if(head->val > cur->val){
+                head = cur;
+                cur = cur->next;
+                head->next = temp;
+                continue;
+            }
+            if(tail->val < cur->val){
+                tail->next = cur;
+                tail = cur;
+                cur = cur->next;
+                tail->next = NULL;
+                continue;
+            }
+            while(temp != tail){
+                if(temp->val < cur->val){
+                    pre = temp;
+                    temp = temp->next;
+                }
+                else
+                    break;
+            }
+            
+            ListNode *t = pre->next;
+            pre->next = cur;
+            cur = cur->next;
+            pre->next->next = t;
+
+        }
+        return head;
+    }
+}
+
+
+Reorder List 
+Given a singly linked list L: L0→L1→…→Ln-1→Ln,reorder it to: L0→Ln→L1→Ln-1→L2→Ln-2→…You must do this in-place without altering the nodes' values.For example,Given {1,2,3,4}, reorder it to {1,4,2,3}.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    void reorderList(ListNode* head) {
+        if(head == NULL)
+            return;
+        int length = 1;
+        ListNode *cur = head;
+        while(cur->next != NULL){
+            cur = cur->next;
+            length++;
+        }
+        if(length == 1)
+            return ;
+        int half = length - length/2;
+        cur = head;
+        while(half){
+            cur = cur->next;
+            half--;
+        }
+        ListNode *pre = cur;
+        ListNode *temp;
+        cur = cur->next;
+        while(cur != NULL){
+            temp = cur->next;
+            cur->next = pre;
+            pre = cur;
+            cur = temp;
+        }
+        half = length/2;
+        cur = head;
+        ListNode *curtemp;
+        ListNode *pretemp;
+        while(half){
+            curtemp = cur->next;
+            cur->next = pre;
+            pretemp = pre->next;
+            pre->next = curtemp;
+            cur = curtemp;
+            pre = pretemp;
+            half--;
+        }
+        cur->next = NULL;
+    }
+}
+
+
+Linked List Cycle II 
+Given a linked list, return the node where the cycle begins. If there is no cycle, return null.
+Note: Do not modify the linked list.Follow up:Can you solve it without using extra space?
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode *detectCycle(ListNode *head) {
+        if(head == NULL)
+            return NULL;
+        ListNode *quick = head;
+        ListNode *slow = head;
+        while(quick != NULL){
+            quick = quick->next;
+            if(quick == NULL)
+                return NULL;
+            quick = quick->next;
+            slow = slow->next;
+            if(slow == quick)
+                break;
+        }
+        if(quick == NULL)
+            return NULL;
+        ListNode* breakhead = quick->next;
+        quick->next = NULL;
+        int length_head = 0;
+        int length_breakhead = 0;
+        ListNode *cur = head;
+        while(cur != NULL){
+            cur = cur->next;
+            length_head++;
+        }
+        cur = breakhead;
+        while(cur != NULL){
+            cur = cur->next;
+            length_breakhead++;
+        }
+        int diff = abs(length_head-length_breakhead);
+        ListNode *breakcur = breakhead;
+        cur = head;
+        if(length_head > length_breakhead){
+            int length = 0;
+
+            while(length != diff){
+                cur = cur->next;
+                length++;
+            }
+            while(cur != breakcur){
+                cur = cur->next;
+                breakcur = breakcur->next;
+            }
+        }
+        else{
+            int length = 0;
+            while(length != diff){
+                breakcur = breakcur->next;
+                length++;
+            }
+            while(cur != head){
+                cur = cur->next;
+                breakcur = breakcur->next;
+            }
+           
+        }
+        quick->next = breakhead;
+        return cur;
+    }
+}
+
+
+Linked List Cycle 
+Given a linked list, determine if it has a cycle in it.Follow up:Can you solve it without using extra space?
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    bool hasCycle(ListNode *head) {
+        if(head == NULL)
+            return false;
+        ListNode *quick = head;
+        ListNode *slow = head;
+        while(quick != NULL){
+            quick = quick->next;
+            if(quick == NULL)
+                return false;
+            quick = quick->next;
+            slow = slow->next;
+            if(quick == slow)
+                return true;
+        }
+        return false;
+    }
+}
+
+
+Copy List with Random Pointer 
+A linked list is given such that each node contains an additional random pointer which could point to any node in the list or null.Return a deep copy of the list.
+
+/**
+ * Definition for singly-linked list with a random pointer.
+ * struct RandomListNode {
+ *     int label;
+ *     RandomListNode *next, *random;
+ *     RandomListNode(int x) : label(x), next(NULL), random(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    //下面的程序只适合所有随机指针从前往后指的情况，其他情况的都不适合程序有很大的局限性
+    /*
+    RandomListNode *copyRandomList(RandomListNode *head) {
+        if(head == NULL)
+            return head;
+        RandomListNode *newHead = new RandomListNode(head->label);
+        newHead->random = head->random;
+        head->random = newHead;
+        RandomListNode *newCur = newHead;
+        RandomListNode *cur = head;
+        while(cur->next != NULL){
+            cur = cur->next;
+            RandomListNode *temp = new RandomListNode(cur->label);
+            temp->random = cur->random;
+            cur->random = temp;
+            newCur->next = temp;
+            newCur = temp;
+        }
+        cur = head;
+        while(cur != NULL){
+            newCur = cur->random;
+            RandomListNode *temp = newCur->random;
+            if(newCur->random != NULL)
+                newCur->random = newCur->random->random;
+            cur->random = temp;
+            cur = cur->next;
+        }
+        return newHead;
+    }
+    */
+    //采用逐个节点复制，先让链表扩大一倍，再逐个修改节点的随机指针和next指针！！！
+    //记住：是要先修改随机指针，再修改next指针，将链表拆一半出来
+     RandomListNode *copyRandomList(RandomListNode *head) {
+         if(head ==NULL)
+             return head;
+          RandomListNode *cur = head;
+          while(cur != NULL){
+               RandomListNode *copy = new RandomListNode(cur->label);
+               copy->random = cur->random;
+               copy->next = cur->next;
+               cur->next = copy;
+               cur = copy->next;
+          }
+          //修改所有copy节点的随机指针
+          cur = head;
+          while(cur != NULL){
+              RandomListNode *copy = cur->next;
+              if(copy->random != NULL)
+                  copy->random = copy->random->next;
+              cur = copy->next;
+          }
+          RandomListNode *newHead = head->next;
+          cur = head;
+          while(cur != NULL){
+              RandomListNode *copy =cur->next;
+              cur->next = copy->next;
+              if(cur->next !=  NULL)
+                  copy->next = cur->next->next;
+              cur = cur->next;
+          }
+          return newHead;
+     }
+}
+
+
+Convert Sorted List to Binary Search Tree 
+Given a singly linked list where elements are sorted in ascending order, convert it to a height balanced BST.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    TreeNode* sortedListToBST(ListNode* head) {
+        if(head == NULL)
+            return NULL;
+        ListNode * cur = head;
+        int length = 0;
+        while(cur != NULL){
+            cur = cur->next;
+            length++;
+        }
+        return sortedListToBST(head, length);
+    }
+    
+    TreeNode* sortedListToBST(ListNode *start, int length){
+        if(length <= 0)
+           return NULL;
+        if(length == 1)
+           return new TreeNode(start->val);
+        int medium = (length+1)/2;
+        ListNode *cur = start;
+        while(--medium){
+            cur = cur->next;
+        }
+        
+        TreeNode *root = new TreeNode(cur->val);
+        root->left = sortedListToBST(start, (length+1)/2-1);
+        root->right = sortedListToBST(cur->next, length/2);
+        
+        return root;
+    }
+}
+
+
+Reverse Linked List II 
+Reverse a linked list from position m to n. Do it in-place and in one-pass.For example:Given 1->;2->;3->;4->;5->;NULL, m = 2 and n = 4,return 1->;4->;3->;2->;5->;NULL.
+Note:Given m, n satisfy the following condition:1 ≤ m ≤ n ≤ length of list.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* reverseBetween(ListNode* head, int m, int n) {
+        if(head == NULL || m == n)
+            return head;
+        ListNode *prem = NULL;
+        int diff = n-m;
+        if(m != 1){
+           prem = head;
+           m = m-2;
+           while(m-->0)
+            prem = prem->next;
+        }
+        
+        ListNode *cur;
+        if(prem == NULL)
+            cur = head;
+        else
+            cur = prem->next;
+        ListNode *tail = cur;
+        ListNode *pre = NULL;
+        ListNode *temp = NULL;
+        while(cur != NULL && diff){
+            temp = cur->next;
+            cur->next = pre;
+            pre = cur;
+            cur = temp;
+            diff--;
+        }
+         tail->next = cur->next;
+         cur->next = pre;
+        if(prem != NULL)
+            prem->next = cur;
+       
+        if(prem == NULL)
+            return cur;
+        return head;
+    }
+}
+
+
+Partition List 
+Given a linked list and a value x, partition it such that all nodes less than x come before nodes greater than or equal to x.You should preserve the original relative order of the nodes in each of the two partitions.For example,Given 1->;4->;3->;2->;5->;2 and x = 3,return 1->;2->;2->;4->;3->;5.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* partition(ListNode* head, int x) {
+        if(head == NULL)
+            return NULL;
+        ListNode *lesshead, *graterhead, *lesstail, *gratertail, *cur, *pre;
+        cur = head;
+        if(head->val >= x){
+            graterhead = head;
+            pre = head;
+            cur = head->next;
+            while(cur != NULL){
+                if(cur->val >= x){
+                    pre = cur;
+                    cur = cur->next;
+                }
+                else{
+                    lesshead = cur;
+                    lesstail = cur;
+                    gratertail = pre;
+                    break;
+                }
+            }
+            if(cur == NULL){
+                return head;
+            }
+        }
+        else{
+            lesshead = head;
+            pre = head;
+            cur = head->next;
+             while(cur != NULL){
+                if(cur->val < x){
+                    pre = cur;
+                    cur = cur->next;
+                }
+                else{
+                    graterhead = cur;
+                    gratertail = cur;
+                    lesstail = pre;
+                    break;
+                }
+            }
+            if(cur == NULL){
+                return head;
+            }
+        }
+        cur = cur->next;
+        while(cur!= NULL){
+            if(cur->val >= x){
+                gratertail->next = cur;
+                gratertail = cur;
+                cur = cur->next;
+            }
+            else{
+                lesstail->next = cur;
+                lesstail = cur;
+                cur = cur->next;
+            }
+        }
+        
+        lesstail->next = graterhead;
+        gratertail->next = NULL;
+        return lesshead;
+    }
+}
+
+
+Remove Duplicates from Sorted List II 
+Given a sorted linked list, delete all nodes that have duplicate numbers, leaving only distinct numbers from the original list.For example,Given 1->;2->;3->;3->;4->;4->;5, return 1->;2->;5.Given 1->;1->;1->;2->;3, return 2->;3.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* deleteDuplicates(ListNode* head) {
+        if(head == NULL)
+            return NULL;
+        ListNode *pre = head;
+        ListNode *cur = head->next;
+        if(cur == NULL)
+            return head;
+        if(cur->val == pre->val){
+            pre = cur;
+            cur = cur->next;
+            while(cur != NULL){
+                if(cur->next != NULL){
+                   if(pre->val != cur->val && cur->val != cur->next->val)
+                       break;
+                }
+                else{
+                    if(pre->val != cur->val)
+                        break;
+                }
+                pre = cur;
+                cur = cur->next;
+            }
+            if(cur == NULL)
+                return NULL;
+            head = cur;
+        }
+
+        ListNode *tail = head;
+        pre = head;
+        cur = head->next;
+        while(cur != NULL){
+           if(cur->next != NULL){
+               if(pre->val != cur->val && cur->val != cur->next->val){
+                   tail->next = cur;
+                   tail = cur;
+                   pre = cur;
+                   cur = cur->next;
+                   continue;
+               }
+               pre = cur;
+               cur = cur->next;
+           }
+           else{
+               if(pre->val != cur->val){
+                   tail->next = cur;
+                   tail = cur;
+                   
+               }
+               break;
+                 
+           }
+        }
+        tail->next = NULL;      
+        return head;    
+            
+        
+    }
+}
+
+
+Remove Duplicates from Sorted List 
+Given a sorted linked list, delete all duplicates such that each element appear only once.For example,Given 1->;1->;2, return 1->;2.Given 1->;1->;2->;3->;3, return 1->;2->;3.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* deleteDuplicates(ListNode* head) {
+        if(head == NULL)
+            return head;
+        ListNode *pre = head;
+        ListNode *cur = head->next;
+        while(cur != NULL){
+            if(pre->val == cur->val){
+                pre->next = cur->next;
+                delete cur;
+                cur = pre->next;
+            }
+            else{
+                cur = cur->next;
+                pre = pre->next;
+            }
+        }
+        return head;
+    }
+}
+
+
+Merge Two Sorted Lists 
+Merge two sorted linked lists and return it as a new list. The new list should be made by splicing together the nodes of the first two lists.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* mergeTwoLists(ListNode* l1, ListNode* l2) {
+        if(l1 == NULL && l2 == NULL)
+            return NULL;
+        if(l1 == NULL)
+            return l2;
+        if(l2 == NULL)
+            return l1;
+        ListNode *cur1 = l1;
+        ListNode *cur2 = l2;
+        ListNode *head = NULL;
+        if(l1->val < l2->val){
+            head = l1;
+            cur1 = cur1->next;
+        }else{
+            head = l2;
+            cur2 = cur2->next;
+        }
+        ListNode *trail = head;
+        while(cur1 != NULL && cur2 != NULL){
+            if(cur1->val < cur2->val){
+                trail->next = cur1;
+                trail = cur1;
+                cur1 = cur1->next;
+            }
+            else{
+                trail->next = cur2;
+                trail = cur2;
+                cur2 = cur2->next;
+            }
+        }
+        if(cur1 != NULL)
+            trail->next = cur1;
+        if(cur2 != NULL)
+            trail->next = cur2;
+        return head;
+    }
+}
+
+
+Rotate List 
+Given a list, rotate the list to the right by k places, where k is non-negative.For example:Given 1->;2->;3->;4->;5->;NULL and k = 2,return 4->;5->;1->;2->;3->;NULL.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* rotateRight(ListNode* head, int k) {
+        if(head == NULL)
+            return head;
+        ListNode *tail = head;
+        int length = 0;
+        while(tail != NULL){
+            tail = tail->next;
+            length++;
+        }
+        k %= length;
+        tail = head;
+        while(tail != NULL && k>0){
+            tail = tail->next;
+            k--;
+        }
+        //当k等于链表的长度时，直接返回链表
+        if(k == 0 && tail == NULL)
+           return head;
+        //当k大于链表的长度时，将链表翻转
+        if(k>0){
+            ListNode *pre = NULL;
+            ListNode *cur = head;
+            ListNode *next = NULL;
+            while(cur != NULL){
+                next = cur->next;
+                cur->next = pre;
+                pre = cur;
+                cur = next;
+            }
+            return pre;
+        }
+            
+        ListNode *temp = head;;
+        while(tail->next != NULL){
+            temp = temp->next;
+            tail = tail->next;
+           
+        }
+        tail->next = head;
+        head = temp->next;
+        temp->next = NULL;
+        return head;
+    }
+}
+
+
+Reverse Nodes in k-Group 
+Given a linked list, reverse the nodes of a linked list k at a time and return its modified list.If the number of nodes is not a multiple of k then left-out nodes in the end should remain as it is.You may not alter the values in the nodes, only nodes itself may be changed.Only constant memory is allowed.For example,Given this linked list: 1->;2->;3->;4->;5For k = 2, you should return: 2->;1->;4->;3->;5For k = 3, you should return: 3->;2->;1->;4->;5
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* reverseKGroup(ListNode* head, int k) {
+        if(head == NULL || k == 1)
+            return head;
+        ListNode *newhead = NULL;
+        ListNode *trail = NULL;
+        ListNode *cur = NULL;
+        ListNode *pre = NULL;
+        ListNode *temp = NULL;
+        ListNode *last = NULL;
+        int length = 0;
+        while(true){
+            length = 0;
+            cur = head;
+            //每次都先找到第k个节点
+            while(head != NULL && ++length != k) head = head->next;
+            if(head == NULL || length < k){
+                if(last != NULL){
+                    last->next = cur;
+                    break;
+                }
+                else
+                    return cur;
+            }
+                
+            if(newhead == NULL)
+                newhead = head;
+            pre = cur;
+            trail = cur;
+            cur = cur->next;
+            while(cur != head){
+                temp = cur->next;
+                cur->next = pre;
+                pre = cur;
+                cur = temp;
+            }
+            head = head->next;
+            cur->next = pre;
+            if(last == NULL)
+                last = trail;
+            else
+                last->next = cur;
+            last = trail;
+            
+            
+        }
+        
+        return newhead;
+    }
+}
+
+
+Swap Nodes in Pairs 
+Given a linked list, swap every two adjacent nodes and return its head.For example,Given 1->;2->;3->;4, you should return the list as 2->;1->;4->;3.Your algorithm should use only constant space. You may not modify the values in the list, only nodes itself can be changed.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* swapPairs(ListNode* head) {
+        if(head == NULL)
+            return NULL;
+        ListNode *pre = NULL;
+        ListNode *newhead = NULL;
+        ListNode *first;
+        ListNode *second;
+        ListNode *temp;
+        if(head->next == NULL)
+            return head;
+        while(head != NULL){
+            first = head;
+            second = head->next;
+            if(second == NULL)
+                break;
+            if(newhead == NULL){
+                newhead = second;
+                pre = first;
+                temp = second->next;
+                second->next = first;
+                first->next = temp;
+                head = temp;
+                continue;
+            }
+            
+            pre->next = second;
+            temp = second->next;
+            second->next = first;
+            first->next = temp;
+            pre = first;
+            head = temp;
+        }
+        return newhead;
+    }
+}
+
+
+Merge k Sorted Lists 
+Merge k sorted linked lists and return it as one sorted list. Analyze and describe its complexity.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+ 
+class Solution {
+public:
+	//利用一般的选择算法会超时！超时! 超时！！！
+	//这个算法的思想是正确的，但是之所以会超时是因为每次在选取最小值的时候其实使用的是选择法，
+	//也就是说整一个排序用的是选择排序算法，所以时间复杂度为O(N^2), 就超时了！！！
+     
+    //新的算法使用堆来每次获得最小的节点
+	//全局变量，记录数组的长度，因为要建立堆，所以这里直接的将lists作为建堆的数组，这样可以使得整个算法的
+	//空间复杂度为O(1).
+	int num = 0;
+
+	ListNode* mergeKLists(vector<ListNode*>& lists) {
+		if (lists.size() == 0)
+			return NULL;
+		if (lists.size() == 1)
+			return lists[0];
+		ListNode *head = new ListNode(0);
+		ListNode *cur = head;
+		//这里有一个需要注意的地方，就是lists中有可能会出现空的节点，也就是说有空链表的存在，所以要先排除掉空链表
+		for (int i = 0; i<lists.size(); i++) {
+			if (lists[i] != NULL) {
+				lists[num] = lists[i];
+				num++;
+			}
+		}
+		//建堆
+		buildHeap(lists);
+		int index = 0;
+		while (num >= 1) {
+			ListNode *smallest = NULL;
+			/*
+			//很一般的选择算法，导致超时
+			for(int i=0; i<lists.size(); i++){
+			if(lists[i] == NULL){
+			num--;
+			continue;
+			}
+			if(smallest == NULL){
+			smallest = lists[i];
+			index = i;
+			continue;
+			}
+			if(smallest->val > lists[i]->val){
+			smallest = lists[i];
+			index = i;
+			}
+			}
+			*/
+
+			//这里采用堆排序的方法，时间复杂度为O(NlgN)
+			smallest = getSmallestFromHeap(lists);
+
+			//得到了lists中的最小的值
+			cur->next = smallest;
+			cur = smallest;
+			//lists[index] = smallest->next;
+		}
+		cur = head->next;
+		delete head;
+		return cur;
+	}
+
+	//建堆的过程,直接的使用lists，不需要自己开辟新的数组
+	//建堆的过程从数组的右边开始，对于下标i，其父节点的下标是(i-1)/2, 这里需要注意一点，对于每一个节点，其左右子节点的小标为
+	//左节点为奇数，右节点是偶数，所以对于最右边的数组节点，要判断其是否有兄弟节点，如果下标为偶数，那么可以与前一个节点构成
+	//兄弟节点，共同查找其父节点，如果是奇数的话，说明没有兄弟节点，不能跟前一个元素构成兄弟节点，对于没一个元素，如果其值大于
+	//该元素的左右子节点的最小值，那么要对该元素进行shiftdown操作
+	//类的属性num记录lists中有用的元素的个数
+	void buildHeap(vector<ListNode*>& lists) {
+		if (num <= 1)
+			return;
+		//这里要使用 i=num-1，不能直接的i = lists.size();
+		for (int i = num - 1; i>0; i--) {
+			//偶数
+			if (i % 2 == 0) {
+				int p = (i - 1) / 2;
+				int small = i;
+				if (lists[i]->val>lists[i - 1]->val)
+					small = i - 1;
+				if (lists[p]->val > lists[small]->val) {
+					shiftdown(lists, p);
+				}
+				i--;
+			}
+			//奇数
+			else {
+				int p = (i - 1) / 2;
+				if (lists[p]->val > lists[i]->val) {
+					shiftdown(lists, p);
+				}
+			}
+		}
+	}
+
+	void shiftdown(vector<ListNode*> &lists, int p) {
+		int left = p * 2 + 1;
+		int right = p * 2 + 2;
+		if (left >= num)
+			return;
+		int small = left;
+		if (right < num) {
+			if (lists[left]->val>lists[right]->val)
+				small = right;
+		}
+		if (lists[p]->val > lists[small]->val) {
+			ListNode *temp = lists[p];
+			lists[p] = lists[small];
+			lists[small] = temp;
+			shiftdown(lists, small);
+		}
+		else
+			return;
+	}
+	//从堆中拿出最小的值
+	ListNode* getSmallestFromHeap(vector<ListNode*>& lists) {
+		if (lists[0] == NULL) {
+			cout << endl;
+		}
+		ListNode *ret = lists[0];
+		//如果只有一行了，那么直接输出改行的第一个节点，num--使主程序退出循环
+		if (num == 1) {
+			num--;
+			return ret;
+		}
+		lists[0] = lists[0]->next;
+		//堆头换了，对堆重建
+		if (lists[0] == NULL) {
+			lists[0] = lists[num - 1];
+			num--;
+		}
+		int p = 0;
+		while (true) {
+			int left = p * 2 + 1;
+			int right = p * 2 + 2;
+			if (left >= num)
+				break;
+			int small = left;
+			if (right < num) {
+				if (lists[right]->val < lists[left]->val)
+					small = right;
+			}
+			if (lists[small]->val < lists[p]->val) {
+				ListNode *temp = lists[p];
+				lists[p] = lists[small];
+				lists[small] = temp;
+				p = small;
+			}
+			else
+				break;
+		}
+		return ret;
+	}
+}
+
+
+Remove Nth Node From End of List 
+Given a linked list, remove the nth node from the end of list and return its head.For example,   Given linked list: 1->;2->;3->;4->;5, and n = 2.   After removing the second node from the end, the linked list becomes 1->;2->;3->;5.
+Note:Given n will always be valid.Try to do this in one pass.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* removeNthFromEnd(ListNode* head, int n) {
+        if(head == NULL)
+            return head;
+        ListNode *first = head;
+        ListNode *second = head;
+        while(n>0 && second != NULL){
+            second = second->next;
+            n--;
+        }
+        if(second == NULL){
+            first = head->next;
+            delete head;
+            head = first;
+            return head;
+        }
+        while(second->next != NULL){
+            first = first->next;
+            second = second->next;
+        }   
+        ListNode *temp = first->next;
+        first->next = temp->next;
+        delete temp;
+        return head;
+    }
+}
+
+
+Add Two Numbers 
+You are given two linked lists representing two non-negative numbers. The digits are stored in reverse order and each of their nodes contain a single digit. Add the two numbers and return it as a linked list.Input: (2 ->; 4 ->; 3) + (5 ->; 6 ->; 4)Output: 7 ->; 0 ->; 8
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
+        if(l1 == NULL || l2 == NULL)
+            return l1 == NULL? l2: l1;
+        ListNode *head = new ListNode(0);
+        ListNode *cur = head;
+        int carry = 0;
+        while(l1 != NULL && l2 != NULL){
+            carry = carry + l1->val + l2->val;
+            ListNode *node = new ListNode(carry%10);
+            cur->next = node;
+            cur = cur->next;
+            carry /= 10;
+            l1 = l1->next;
+            l2 = l2->next;
+        }
+        
+        if(l1 != NULL){
+            while(l1 != NULL){
+                carry = carry + l1->val;
+                ListNode *node = new ListNode(carry%10);
+                cur->next = node;
+                cur = cur->next;
+                carry /= 10;
+                l1 = l1->next;
+            }
+        }
+        if(l2 != NULL){
+            while(l2 != NULL){
+                carry = carry + l2->val;
+                ListNode *node = new ListNode(carry%10);
+                cur->next = node;
+                cur = cur->next;
+                carry /= 10;
+                l2 = l2->next;
+            }
+        }
+        if(carry != 0){
+            ListNode *node = new ListNode(carry);
+            cur->next = node;
+        }
+        cur = head;
+        head = head->next;
+        delete cur;
+        return head;
+    }
+}
+
+

@@ -1,0 +1,27 @@
+Contains Duplicate III 
+Given an array of integers, find out whether there are two distinct indices i and j in the array such that the difference between nums[i] and nums[j] is at most t and the difference between i and j is at most k.
+
+class Solution {
+public:
+    //采用set来维持一个K大小的窗口，set中的元素按照升序来排列，而且采用的是二叉查找数的数据结构，
+    //所以查找一个元素的时间为logk,总时间为O(nlogk)
+    bool containsNearbyAlmostDuplicate(vector<int>& nums, int k, int t) {
+        if(nums.size() == 0)
+            return false;
+        //要使用long long  因为中间的计算有可能会溢出
+        multiset<long long> mset;
+        for(int i=0; i<nums.size(); i++){
+            if(mset.size() > k)
+                mset.erase(mset.find(nums[i-k-1]));
+            //因为mset的元素为long long，所以nums[i]-t不会溢出
+            auto low = mset.lower_bound(nums[i]-t);
+            //因为nums[i]的类型为int， 直接*low<nums[i]+t时，又可能nums[i]+t会溢出，所以要使用*low - t<=nums[i]
+            if(low!=mset.end() && *low - t<=nums[i])
+                return true;
+            mset.insert(nums[i]);
+        }
+        return false;
+    }
+}
+
+

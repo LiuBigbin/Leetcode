@@ -1,0 +1,2389 @@
+Integer to English Words 
+Convert a non-negative integer to its english words representation. Given input is guaranteed to be less than 231 - 1.For example,123 ->; "One Hundred Twenty Three"12345 ->; "Twelve Thousand Three Hundred Forty Five"1234567 ->; "One Million Two Hundred Thirty Four Thousand Five Hundred Sixty Seven"  Did you see a pattern in dividing the number into chunk of words? For example, 123 and 123000.  Group the number by thousands (3 digits). You can write a helper function that takes a number less than 1000 and convert just that chunk to words.  There are many edge cases. What are some good test cases? Does your code work with input such as 0? Or 1000010? (middle chunk is zero and should not be printed out)
+
+class Solution {
+public:
+	string numberToWords(int num) {
+	    if(num==0)
+	        return "Zero";
+		vector<int> numList;
+		while (num != 0) {
+			int temp = num % 1000;
+			numList.push_back(temp);
+			num = num / 1000;
+		}
+		string result = "";
+		for (int i = numList.size() - 1; i >= 0; i--) {
+			string temp = getWordNum(numList[i]);
+			result += temp;
+			if (i> 0 && numList[i] > 0)
+				result += base[i - 1] + " ";
+		}
+		return result.substr(0, result.length()-1);
+	}
+	Solution() {
+		base.push_back("Thousand");
+		base.push_back("Million");
+		base.push_back("Billion");
+
+		one2Nineteen.push_back("One");
+		one2Nineteen.push_back("Two");
+		one2Nineteen.push_back("Three");
+		one2Nineteen.push_back("Four");
+		one2Nineteen.push_back("Five");
+		one2Nineteen.push_back("Six");
+		one2Nineteen.push_back("Seven");
+		one2Nineteen.push_back("Eight");
+		one2Nineteen.push_back("Nine");
+		one2Nineteen.push_back("Ten");
+		one2Nineteen.push_back("Eleven");
+		one2Nineteen.push_back("Twelve");
+		one2Nineteen.push_back("Thirteen");
+		one2Nineteen.push_back("Fourteen");
+		one2Nineteen.push_back("Fifteen");
+		one2Nineteen.push_back("Sixteen");
+		one2Nineteen.push_back("Seventeen");
+		one2Nineteen.push_back("Eighteen");
+		one2Nineteen.push_back("Nineteen");
+
+		twenty2Ninety.push_back("Twenty");
+		twenty2Ninety.push_back("Thirty");
+		twenty2Ninety.push_back("Forty");
+		twenty2Ninety.push_back("Fifty");
+		twenty2Ninety.push_back("Sixty");
+		twenty2Ninety.push_back("Seventy");
+		twenty2Ninety.push_back("Eighty");
+		twenty2Ninety.push_back("Ninety");
+	}
+	//获得一千以内的数的英语表达式
+	string getWordNum(int num) {
+		if (num == 0)
+			return "";
+		string result = "";
+		int hundred = num / 100;
+		if (hundred != 0)
+			result += one2Nineteen[hundred - 1] + " " + "Hundred ";
+		int inHundred = num % 100;
+		if (inHundred == 0)
+			return result;
+		if (inHundred <= 19)
+			result += one2Nineteen[inHundred - 1] + " ";
+		else {
+			int ten = inHundred / 10;
+			result += twenty2Ninety[ten - 2] + " ";
+			int inTen = inHundred % 10;
+			if(inTen != 0)
+				result += one2Nineteen[inTen - 1] + " ";
+		}
+		return result;
+	}
+private:
+		vector<string> base;
+	vector<string> one2Nineteen;
+	vector<string> twenty2Ninety;
+}
+
+
+Basic Calculator II 
+Implement a basic calculator to evaluate a simple expression string.The expression string contains only non-negative integers, +, -, *, / operators and empty spaces  . The integer division should truncate toward zero.You may assume that the given expression is always valid.Some examples:"3+2*2" = 7" 3/2 " = 1" 3+5 / 2 " = 5
+Note: Do not use the eval built-in library function.
+Credits:Special thanks to @ts for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    /*
+    两个要点：
+    
+    1、无括号时，顺序执行
+    
+    2、有括号时，先执行括号中的
+    
+    两个栈：
+    
+    一个存放操作数，每次进栈要注意，如果操作符栈顶元素为'+'/'-'，则需要立即计算。
+    
+    一个存放操作符（包括括号），每次出现')'时，不断进行出栈计算再进栈，直到弹出'('，说明当前括号内计算完毕。
+    */
+    int calculate(string s) {
+        if(s.length() == 0)
+            return 0;
+        stack<int> num;
+        stack<char> op;
+        for(int i=0; i<s.size(); i++){
+            if(s[i] == ' ')
+                continue;
+            if(s[i] == '(')
+                op.push(s[i]);
+            else if(s[i] == ')'){
+                while(op.size() && op.top() != '('){
+                    char ope = op.top();
+                    op.pop();
+                    int right = num.top();
+                    num.pop();
+                    int left = num.top();
+                    num.pop();
+                    if(ope == '+')
+                        left += right;
+                    else
+                        left -= right;
+                    num.push(left);
+                }
+                op.pop();
+            }
+            //当前的符号为—或是+时符号栈里面的所有操作符号都要先进行计算
+            else if(s[i] == '-' || s[i] == '+'){
+                //因为当栈顶符号为+或-时，遇到*或是/，不用先进行计算，所以符号栈有可能积累多个符号，所以要逐个先计算
+                while(op.size() != 0 && (op.top() == '-' || op.top() == '+' || op.top() == '*' || op.top() == '/')){
+                    char ope = op.top();
+                    op.pop();
+                    int right = num.top();
+                    num.pop();
+                    int left = num.top();
+                    num.pop();
+                    if(ope == '+')
+                        left += right;
+                    else if(ope == '*')
+                        left *= right;
+                    else if(ope == '/')
+                        left /= right;
+                    else
+                        left -= right;
+                    num.push(left);
+                    
+                }
+                op.push(s[i]); 
+                    
+            }
+            
+            else if(s[i] == '*' || s[i] == '/'){
+                //当当前的符号为*或/时，如果符号栈中的栈顶符号为*或是/，那么则要进行计算，为+或是-的话，不需要
+                //因为每次遇到*或是/时，都会先进行计算，所以栈顶最多只有一个*或是/符号
+                if(op.size() != 0 && (op.top() == '*' || op.top() == '/')){
+                    char ope = op.top();
+                    op.pop();
+                    int right = num.top();
+                    num.pop();
+                    int left = num.top();
+                    num.pop();
+                    if(ope == '*')
+                        left *= right;
+                    else
+                        left /= right;
+                    num.push(left);
+                }
+                op.push(s[i]); 
+            }
+            else{
+                int val = s[i++] - '0';
+                while(i<s.size() && isdigit(s[i]))
+                   val = val*10 + s[i++]-'0';
+                i--;
+                num.push(val);
+            }
+        } 
+        
+        while(op.size()){
+            char ope = op.top();
+            op.pop();
+            int right = num.top();
+            num.pop();
+            int left = num.top();
+            num.pop();
+            if(ope == '+')
+                left += right;
+            else if(ope == '*')
+                left *= right;
+            else if(ope == '/')
+                left /= right;
+            else
+                left -= right;
+            num.push(left);
+        }
+        return num.top();
+    }
+}
+
+
+Shortest Palindrome 
+Given a string S, you are allowed to convert it to a palindrome by adding characters in front of it. Find and return the shortest palindrome you can find by performing this transformation.For example: Given "aacecaaa", return "aaacecaaa".Given "abcd", return "dcbabcd".
+Credits:Special thanks to @ifanchu for adding this problem and creating all test cases. Thanks to @Freezen for additional test cases.
+
+class Solution {
+public:
+    /*超时！超时！超时！！！
+    //从右开始查找，找到第一个以左边为终点的回文，那么将第一个的下一个元素到最右边的元素
+    //倒排复制到字符串的最左边就是所要求的字符串
+    string shortestPalindrome(string s) {
+        if(s.size() <= 1)
+            return s;
+        int right = s.size()-1;
+        while(right>0){
+            if(isPalindrome(s, right))
+                break;
+            right--;
+        }
+        string ret = "";
+        for(int i=s.size()-1; i>right; i--)
+            ret += s[i];
+        return ret + s;
+    }
+    bool isPalindrome(string &s, int right){
+        int medium = (right+1)/2;
+        for(int i=0; i<medium; i++, right--){
+            if(s[i] != s[right])
+                return false;
+                
+        }
+        return true;
+    }
+    */
+         //利用KMP算法的思想，将s转换为ret=s+"#"+reverse(s),如果s的前面回文的话，那ret的前缀和后缀将会出现相同的子串，
+         //如果s前面没有回文的话，那么ret的前缀和后缀将不会出现相同的子串。
+         //注意：要采用s+"#"+recverse(s)的方式，不能采用s+reverse(s)+"#"的方式，因为有可能s+reverse()s的结果是回文，
+         //例如：aabba，s+reverse(s)后变成：aabbaabbaa，此时虽然s前面没有回文，但整个s+reverse(s)变成了回文，而且前后缀有相同的
+         //子串！！！！
+    	 string shortestPalindrome(string s) {
+		 if (s.size() <= 1)
+			 return s;
+		 string ret = s;
+		 ret += "#";
+		 for (int i = s.size() - 1; i >= 0; i--)
+			 ret += s[i];
+		 
+		 int *next = new int[ret.size()+1];
+		 next[0] = 0;
+		 next[1] = 0;
+		 int j = 0;
+		 //获得next数组值
+		 for (int i = 1; i<ret.length(); i++) {
+			 while (j>0 && ret[j] != ret[i])
+				 j = next[j];
+			 if (ret[j] == ret[i])
+				 j++;
+			 next[i + 1] = j;
+		 }
+		 int length = next[ret.size()];
+		 ret = "";
+		 for (int i = s.size() - 1; i >= length; i--) {
+			 ret += s[i];
+		 }
+		 if (length != 0)
+			 ret += s;
+		 else
+			 ret += s.substr(1, s.size() - 1);
+		 return ret;
+	 }
+}
+
+
+Compare Version Numbers 
+Compare two version numbers version1 and version2.If version1 &amp;gt; version2 return 1, if version1 &amp;lt; version2 return -1, otherwise return 0.You may assume that the version strings are non-empty and contain only digits and the . character.The . character does not represent a decimal point and is used to separate number sequences.For instance, 2.5 is not "two and a half" or "half way to version three", it is the fifth second-level revision of the second first-level revision.Here is an example of version numbers ordering:0.1 &amp;lt; 1.1 &amp;lt; 1.2 &amp;lt; 13.37
+Credits:Special thanks to @ts for adding this problem and creating all test cases.
+
+class Solution {
+public:
+	int compareVersion(string version1, string version2) {
+		vector<string> version1V = stringToNumbers(version1);
+		vector<string> version2V = stringToNumbers(version2);
+		if (version1V.size() != version2V.size()) {
+			int diff = abs((int)(version1V.size() - version2V.size()));
+			if (version1V.size()<version2V.size()) {
+				for (int k = 0; k<diff; k++)
+					version1V.push_back("0");
+			}
+			else {
+				for (int k = 0; k<diff; k++)
+					version2V.push_back("0");
+			}
+		}
+		for (int i = 0; i<version1V.size(); i++) {
+			if (version1V[i].size() != version2V[i].size())
+				return version1V[i].size()>version2V[i].size() ? 1 : -1;
+			for (int j = 0; j<version1V[i].size(); j++) {
+				if (version1V[i][j] != version2V[i][j])
+					return version1V[i][j]>version2V[i][j] ? 1 : -1;
+			}
+
+		}
+		return 0;
+	}
+
+	//将s以.分开，此处不可以为整数类型的，有可能版本号会很长，造成整数溢出
+	vector<string> stringToNumbers(string s) {
+		vector<string> result;
+		if (s.size() == 0)
+			return result;
+		string temp = "";
+		for (int i = 0; i<s.size(); i++) {
+			if (s[i] == '.') {
+				if (temp == "")
+					temp += '0';
+				result.push_back(temp);
+				temp = "";
+			}
+			else {
+				if (temp == "" && s[i] == '0')
+					continue;
+				temp += s[i];
+			}
+		}
+		if (temp == "")
+			temp += '0';
+		result.push_back(temp);
+		return result;
+	}
+}
+
+
+Reverse Words in a String 
+Given an input string, reverse the string word by word.For example,Given s = "the sky is blue",return "blue is sky the".Update (2015-02-12):For C programmers: Try to solve it in-place in O(1) space.click to show clarification.Clarification:What constitutes a word?A sequence of non-space characters constitutes a word.Could the input string contain leading or trailing spaces?Yes. However, your reversed string should not contain leading or trailing spaces.How about multiple spaces between two words?Reduce them to a single space in the reversed string.
+
+void reverseWords(char *s) {
+    int length = 0;
+    while(s[length] != '\0')length++;
+    for(int i=0, j=length-1; i<j; i++, j--){
+        char temp = s[i];
+        s[i] = s[j];
+        s[j] = temp;
+    }
+    
+    //接下来对每一个单词进行翻转
+    int begin = -1;
+    int end = length;
+    for(int i=0; i<length; i++){
+        //找到每个单词的begin
+        while(i<length && s[i] == ' ')i++;
+        if(i == length)
+            break;
+        begin = i;
+        //找到每一个单词的结尾
+        while(i<length && s[i]!=' ')i++;
+        end = i-1;
+        //开始翻转单词
+        for(int j=begin, k=end; j<k; j++, k--){
+            char temp = s[j];
+            s[j] = s[k];
+            s[k] = temp;
+        }
+        
+    }
+    
+    //接下来对字符串进行规范化处理，去掉前后空格，以及单词直接只能保留一个空格
+    int index = 0;
+    bool can_space = false;
+    for(int i=0; i<length; i++){
+        if(s[i] == ' ' && !can_space)
+            continue;
+        if(s[i] == ' ' && can_space){
+            can_space = false;
+            s[index] = s[i];
+            index++;
+            continue;
+        }
+        s[index] = s[i];
+        can_space = true;
+        index++;
+    }
+    if(s[index-1] == ' ')
+        index--;
+    s[index] = '\0';
+
+
+
+Word Ladder II 
+Given two words (beginWord and endWord), and a dictionary's word list, find all shortest transformation sequence(s) from beginWord to endWord, such that:Only one letter can be changed at a timeEach intermediate word must exist in the word listFor example,Given:beginWord = "hit"endWord = "cog"wordList = ["hot","dot","dog","lot","log"]Return  [    ["hit","hot","dot","dog","cog"],    ["hit","hot","lot","log","cog"]  ]
+Note:All words have the same length.All words contain only lowercase alphabetic characters.
+
+class Solution {
+public:
+    /*
+	//先找出最短的转换长度，再根据这个长度来计算可行的解，可以利用这个长度进行剪枝，这样可以减少不需要的空间和时间
+	vector<vector<string>> findLadders(string beginWord, string endWord, unordered_set<string> &wordList) {
+		if (beginWord == endWord)
+			return{ { beginWord, endWord } };
+		wordList.insert(endWord);
+		int shortest = getShortestLength(beginWord, endWord, wordList);
+		vector<vector<string>>ret;
+		if (shortest == -1)
+			return ret;
+		unordered_set<string> visited;
+		vector<string> temp;
+		temp.push_back(beginWord);
+		visited.insert(beginWord);
+		findLadders(beginWord, endWord, wordList, visited, ret, temp, shortest-1);
+		return ret;
+	}
+
+	//广搜
+	int getShortestLength(string beginWord, string endWord, unordered_set<string> &wordList) {
+		int length = 1;
+		queue<string> cur;
+		
+		unordered_set<string> visited;
+		cur.push(beginWord);
+		visited.insert(beginWord);
+		while (cur.size() != 0) {
+			queue<string> next;
+			while (cur.size() != 0) {
+				string word = cur.front();
+				cur.pop();
+				for (int i = 0; i<word.length(); i++) {
+					char wordi = word[i];
+					for (int j = 0; j<26; j++) {
+						word[i] = 'a' + j;
+						if (word == endWord)
+							return length + 1;
+						if (wordList.count(word) != 0 && visited.count(word) == 0) {
+							visited.insert(word);
+							next.push(word);
+						}
+					}
+					word[i] = wordi;
+				}
+			}
+			length++;
+			cur = next;
+		}
+		return -1;
+	}
+	//深搜找出所有可能解,超时！！！
+
+	void findLadders(string beginWord, string endWord, unordered_set<string> &wordList, unordered_set<string> &visited, vector<vector<string>> &ret, vector<string>&temp, int length) {
+		if (length == 0)
+			return;
+		
+		for (int i = 0; i<beginWord.length(); i++) {
+			char wordi = beginWord[i];
+			vector<string> bt;
+			for (int j = 0; j<26; j++) {
+				beginWord[i] = 'a' + j;
+				if (beginWord == endWord) {
+					temp.push_back(beginWord);
+					ret.push_back(temp);
+					temp.pop_back();
+					return;
+				}
+				if (wordList.count(beginWord) != 0 && visited.count(beginWord) == 0) {
+					temp.push_back(beginWord);
+					visited.insert(beginWord);
+					bt.push_back(beginWord);
+					findLadders(beginWord, endWord, wordList, visited, ret, temp, length - 1);
+					temp.pop_back();
+					//visited.erase(beginWord);
+				}
+			}
+			for(int i=0; i<bt.size(); i++)
+			    visited.erase(bt[i]);
+			beginWord[i] = wordi;
+		}
+	}
+	*/
+	//与上一个不同的是这里直接的使用在广搜时所用的unordered_map<string, int> visited;在进行深搜的时候直接的利用
+	//这其来对节点进行剪枝，也就是说深搜时，只搜索visited中的节点。visited中的int存储的是对应的word在广搜时所出现的
+	//深度，如果在深搜的时候有对应的word出现在visited中但是其深度不是visited中的值的时候也可以对其进行剪枝处理
+	/*TMD   还是超时啊！！！！
+	vector<vector<string>> findLadders(string beginWord, string endWord, unordered_set<string> &wordList) {
+		if (beginWord == endWord)
+			return{ { beginWord, endWord } };
+		wordList.insert(endWord);
+		unordered_map<string, int> visited;
+		int shortest = getShortestLength(beginWord, endWord, wordList, visited);
+		vector<vector<string>>ret;
+		if (shortest == -1)
+			return ret;
+
+		vector<string> temp;
+		temp.push_back(beginWord);
+		findLadders(beginWord, endWord, visited, ret, temp, shortest - 1, 2);
+		return ret;
+	}
+
+	//广搜
+	int getShortestLength(string beginWord, string endWord, unordered_set<string> &wordList, unordered_map<string, int> &visited) {
+		int length = 1;
+		queue<string> cur;
+		cur.push(beginWord);
+		visited[beginWord] = 1;
+		while (cur.size() != 0) {
+			queue<string> next;
+			while (cur.size() != 0) {
+				string word = cur.front();
+				cur.pop();
+				for (int i = 0; i<word.length(); i++) {
+					char wordi = word[i];
+					for (int j = 0; j<26; j++) {
+						word[i] = 'a' + j;
+						if (word == endWord)
+							return length + 1;
+						if (wordList.count(word) != 0 && visited.count(word) == 0) {
+							visited[word] = length + 1;
+							next.push(word);
+						}
+					}
+					word[i] = wordi;
+				}
+			}
+			length++;
+			cur = next;
+		}
+		return -1;
+	}
+	//深搜找出所有可能解
+	void findLadders(string beginWord, string endWord, unordered_map<string, int> &visited, vector<vector<string>> &ret, vector<string>&temp, int length, int deep) {
+		if (deep - 1 > length)
+			return;
+
+		for (int i = 0; i<beginWord.length(); i++) {
+			char wordi = beginWord[i];
+			vector<string> bt;
+			for (int j = 0; j<26; j++) {
+				beginWord[i] = 'a' + j;
+				if (beginWord == endWord) {
+					temp.push_back(beginWord);
+					ret.push_back(temp);
+					temp.pop_back();
+					return;
+				}
+				if (visited.count(beginWord) != 0 && visited[beginWord] == deep) {
+					temp.push_back(beginWord);
+
+					bt.push_back(beginWord);
+					findLadders(beginWord, endWord,  visited, ret, temp, length, deep + 1);
+					temp.pop_back();
+					//visited.erase(beginWord);
+				}
+			}
+
+			beginWord[i] = wordi;
+		}
+	}
+	*/
+	//另外一个思路，在广搜查找最短的转换路径长度时，记录每一个访问到的节点的前驱节点，这样的话
+	//只需要从endWord节点开始，深搜其前驱节点知道beginWord为止，所有路径都是可行解，这样的深搜
+	//完全没有冗余
+    vector<vector<string>> findLadders(string beginWord, string endWord, unordered_set<string> &wordList) {
+		if (beginWord == endWord)
+			return{ { beginWord, endWord } };
+		wordList.insert(endWord);
+		unordered_map<string, vector<string>> preword;
+		int shortest = getShortestLength(beginWord, endWord, wordList, preword);
+		vector<vector<string>>ret;
+		if (shortest == -1)
+			return ret;
+
+		vector<string> temp(shortest);
+		temp[shortest-1] = endWord;
+		findLadders(beginWord, endWord, ret, temp, preword, shortest-2);
+		return ret;
+	}
+
+	//广搜
+	int getShortestLength(string beginWord, string endWord, unordered_set<string> &wordList, unordered_map<string, vector<string>> &preword) {
+		int length = 1;
+		queue<string> cur;
+		cur.push(beginWord);
+		unordered_map<string, int> visited;
+		visited[beginWord] = 1;
+		int retlength = 0;
+		bool getthelength = false;
+		while (cur.size() != 0) {
+			queue<string> next;
+			while (cur.size() != 0) {
+				string word = cur.front();
+				string temp = word;
+				cur.pop();
+				getthelength = false;
+				for (int i = 0; i<word.length(); i++) {
+					char wordi = word[i];
+					if(getthelength)
+					    break;
+					for (int j = 0; j<26; j++) {
+						word[i] = 'a' + j;
+						//为了得到endword的所有前驱word，在的到最短的长度后，还要继续遍历该层所剩下的其他word
+						if (word == endWord) {
+							preword[word].push_back(temp);
+							retlength = length+1;
+							getthelength = true;
+							break;
+						}
+
+						if (wordList.count(word) != 0) {
+							if (visited.count(word) == 0 || (visited.count(word) != 0 && visited[word] == length + 1))
+								preword[word].push_back(temp);
+							if (visited.count(word) == 0) {
+								visited[word] = length + 1;
+								next.push(word);
+							}
+						}
+					}
+					word[i] = wordi;
+				}
+			}
+			if(retlength != 0)
+			    return retlength;
+			length++;
+			cur = next;
+		}
+		return -1;
+	}
+	//深搜找出所有可能解
+	void findLadders(string endWord, string word, vector<vector<string>> &ret, vector<string>&temp, unordered_map<string, vector<string>> &preword, int index) {
+		if (word == endWord) {
+			ret.push_back(temp);
+			return;
+		}
+		vector<string> prevec = preword[word];
+		for (int i = 0; i<prevec.size(); i++) {
+			temp[index] = prevec[i];
+			findLadders(endWord, prevec[i], ret, temp, preword, index-1);
+ 
+		}
+
+	}
+}
+
+
+Valid Palindrome 
+Given a string, determine if it is a palindrome, considering only alphanumeric characters and ignoring cases.For example,"A man, a plan, a canal: Panama" is a palindrome."race a car" is not a palindrome.
+Note:Have you consider that the string might be empty? This is a good question to ask during an interview.For the purpose of this problem, we define empty string as valid palindrome.
+
+class Solution {
+public:
+    bool isPalindrome(string s) {
+        if(s.size() == 0)
+            return true;
+        int i = 0;
+        int j = s.size()-1;
+        while(i<j){
+            //排除掉字母和数值
+            while(i<j && (s[i]<47 || (57<s[i] && s[i]<65) || (90<s[i]&&s[i]<97) || s[i]>122))i++;
+            while(i<j && (s[j]<47 || (57<s[j] && s[j]<65) || (90<s[j]&&s[j]<97) || s[j]>122))j--;
+            if(s[i] == s[j] || s[i]+32 == s[j] || s[j]+32 == s[i]){
+                i++;
+                j--;
+                continue;
+            }
+                
+            return false;
+        }
+        return true;
+    }
+}
+
+
+Distinct Subsequences 
+Given a string S and a string T, count the number of distinct subsequences of T in S.A subsequence of a string is a new string which is formed from the original string by deleting some (can be none) of the characters without disturbing the relative positions of the remaining characters. (ie, "ACE" is a subsequence of "ABCDE" while "AEC" is not).Here is an example:S = "rabbbit", T = "rabbit"Return 3.
+
+class Solution {
+public:
+    //动态规划的方法，length[i][j] = :
+    //if(t[i] == s[j]) then length[i-1][j-1]+length[i][j-1]
+    //else  then length[i-1][j-1];
+    int numDistinct(string s, string t) {
+        if(t.length() == 0)
+            return 1;
+        if(s.length() == 0)
+            return 0;
+        int row = t.size();
+        int col = s.length();
+        int **length = new int*[row+1];
+        
+        for (int i = 0; i <= row; i++)
+			length[i] = new int[col + 1];
+		//当S为空时，所有值为0
+		for (int i = 0; i <= row; i++)
+			length[i][0] = 0;
+		//当t为空时，所有值为1， 这个循环必须在上一个循环的下面，因为要确保length[0][0] = 1;
+		for (int i = 0; i <= col; i++)
+			length[0][i] = 1;
+		//length的下标是长度，所以要+1
+        for(int i=0; i<row; i++)    //遍历T
+            for(int j=0; j<col; j++){    //遍历S
+                if(t[i] != s[j])
+                    length[i+1][j+1] = length[i+1][j];
+                else
+                    length[i+1][j+1] = length[i+1][j] + length[i][j];
+                    
+            }
+        return length[row][col];
+    }
+}
+
+
+Interleaving String 
+Given s1, s2, s3, find whether s3 is formed by the interleaving of s1 and s2.For example,Given:s1 = "aabcc",s2 = "dbbca",When s3 = "aadbbcbcac", return true.When s3 = "aadbbbaccc", return false.
+
+class Solution {
+public:
+    bool isInterleave(string s1, string s2, string s3) {
+        if(s3.length() != (s1.length()+s2.length()))
+            return false;
+        bool **caninterleave = new bool*[s1.length()+1];
+        for(int i=0; i<=s1.length(); i++)
+            caninterleave[i] = new bool[s2.length()+1];
+            
+        for(int i=0; i<s1.length(); i++){
+            caninterleave[i+1][0] = (s1.substr(0, i+1)==s3.substr(0, i+1));
+        }
+        for(int i=0; i<s2.length(); i++)
+            caninterleave[0][i+1] = (s2.substr(0, i+1)==s3.substr(0, i+1));
+        caninterleave[0][0] = true;
+        
+        for(int i=0; i<s1.length(); i++)
+            for(int j=0; j<s2.length(); j++){
+                if(s3[i+j+1] != s1[i] && s3[i+j+1] != s2[j])
+                    caninterleave[i+1][j+1] = false;
+                else{
+                    if(s3[i+j+1] == s1[i] && s3[i+j+1] == s2[j])
+                        caninterleave[i+1][j+1] = (caninterleave[i][j+1] || caninterleave[i+1][j]);
+                    else if(s3[i+j+1] == s1[i])
+                        caninterleave[i+1][j+1] = caninterleave[i][j+1];
+                    else 
+                        caninterleave[i+1][j+1] = caninterleave[i+1][j];
+                }
+            }
+        return caninterleave[s1.length()][s2.length()];
+    }
+}
+
+
+Restore IP Addresses 
+Given a string containing only digits, restore it by returning all possible valid IP address combinations.For example:Given "25525511135",return ["255.255.11.135", "255.255.111.35"]. (Order does not matter)
+
+class Solution {
+public:
+    vector<string> restoreIpAddresses(string s) {
+        if(s.size()<=3)
+            return {};
+        vector<string> ret;
+        string temp = "";
+        restoreIpAddresses(ret, temp, s, 0, 0);
+        return ret;
+        
+    }
+    
+    void restoreIpAddresses(vector<string> &ret, string temp, string &s, int start, int count){
+        if((s.size()-start)>(4-count)*3 || start == s.size())
+            return;
+        if(count == 3){
+            if(s.size()-start>=4 || (start<s.size()-1 && s[start] == '0'))
+                return;
+            if(getnumber(s.substr(start, s.size()-start)) <= 255)
+                ret.push_back(temp+s.substr(start, s.size()-start));
+            return;
+        }
+        if(s[start] == '0')
+            restoreIpAddresses(ret, temp + "0" + "." , s, start+1, count+1);
+        else{
+            string medium = s.substr(start, 1);
+            restoreIpAddresses(ret, temp + medium + "." , s, start+1, count+1);
+            medium = s.substr(start, 2);
+            restoreIpAddresses(ret, temp + medium + "." , s, start+2, count+1);
+            medium = s.substr(start, 3);
+            if(getnumber(medium)<=255)
+                restoreIpAddresses(ret, temp + medium + "." , s, start+3, count+1);
+        }
+        
+    }
+    
+    int getnumber(string s){
+        int num = 0;
+        for(int i=0; i<s.size(); i++)
+            num = num*10 + s[i]-'0';
+        return num;
+    }
+}
+
+
+Decode Ways 
+A message containing letters from A-Z is being encoded to numbers using the following mapping:'A' ->; 1'B' ->; 2...'Z' ->; 26Given an encoded message containing digits, determine the total number of ways to decode it.For example,Given encoded message "12",it could be decoded as "AB" (1 2) or "L" (12).The number of ways decoding "12" is 2.
+
+class Solution {
+public:
+    //递归、递归加备忘录、动态规划三种都可以
+    //采用动态规划的方法
+    //思路：从右到左遍历，如果s[i]可以和s[i+1]组合，那么从i到最后面的子窜的可能编码数量为f[i+1]+f[i+2]
+    //否则的话f[i] = f[i+1];
+    //因为只涉及到i的前面两个数，所以可以不用申请数组，直接申明两个变量来记录前面的两个值就好了！！！
+    //麻烦的就是0的出现，因为可以解码的情况只有10和20，其他情况下0的出现都会导致不能解码，结果为0。
+    int numDecodings(string s) {
+        if(s.size() == 0 || s[0] == '0')
+            return 0;
+        int cur = 1;
+        int firstpre = 1;
+        int secondpre = 1;
+        int i = 0;
+        if(s[s.size()-1] == '0'){
+            if(s[s.size()-2] == '2' || s[s.size()-2] == '1')
+                i = s.size()-3;
+            else
+                return 0;
+        }
+        else{
+            s = s+'_';
+            i = s.size()-3;
+        }
+            
+        for(; i>=0; i--){
+            if(s[i] == '0' ){
+                if(s[i-1] == '1' || s[i-1] == '2'){
+                    cur = firstpre;
+                    secondpre = firstpre;
+                    firstpre = cur;
+                    i--;
+                }
+                else
+                    return 0;
+            }
+            else if(s[i]>='3' || (s[i] == '2' && s[i+1] > '6') || s[i+2] == '0'){
+                cur = firstpre;
+                secondpre = firstpre;
+                firstpre = cur;
+            }
+            else{
+                cur = firstpre + secondpre;
+                secondpre = firstpre;
+                firstpre = cur;
+            }
+        }
+        return cur;
+    }
+}
+
+
+Scramble String 
+Given a string s1, we may represent it as a binary tree by partitioning it to two non-empty substrings recursively.Below is one possible representation of s1 = "great":    great   /    \  gr    eat / \    /  \g   r  e   at           / \          a   tTo scramble the string, we may choose any non-leaf node and swap its two children.For example, if we choose the node "gr" and swap its two children, it produces a scrambled string "rgeat".    rgeat   /    \  rg    eat / \    /  \r   g  e   at           / \          a   tWe say that "rgeat" is a scrambled string of "great".Similarly, if we continue to swap the children of nodes "eat" and "at", it produces a scrambled string "rgtae".    rgtae   /    \  rg    tae / \    /  \r   g  ta  e       / \      t   aWe say that "rgtae" is a scrambled string of "great".Given two strings s1 and s2 of the same length, determine if s2 is a scrambled string of s1.
+
+class Solution {
+public:
+    //采用递归的方式, 最直接的思路就是将s1分成两部分s1l, s1r, 将s2也分成s2l, s2r，以及s2ll、s2rr
+    //s2ll为从s2的右边开始按照s1l的长度分割出来的子串，剩下的作为s2rr，然后循环判断：
+    //(isScramble(s1l, s2l)&&isScramble(s1r, s2r)) || (isScramble(s1l, s2rr)&&isScramble(s1r, s2ll))
+    //16ms
+    /*
+    bool isScramble(string s1, string s2) {
+        if(s1.length() != s1.length())
+            return false;
+        if(s1 == s2)
+            return true;
+        string temps1 = s1;
+        string temps2 = s2;
+        //先排序，看看s1和s2里面的字符是否都是一样的，否则的话，直接返回false，减少循环
+        sort(temps1.begin(), temps1.end());
+        sort(temps2.begin(), temps2.end());
+        if(temps1 != temps2)
+            return false;
+        bool ret = false;
+        for(int i=1; i<s1.length(); i++){
+            string s1l = s1.substr(0, i);
+            string s1r = s1.substr(i, s1.length()-i);
+            
+            string s2l = s2.substr(0, i);
+            string s2r = s2.substr(i, s2.length()-i);
+            
+            string s2ll = s2.substr(0, s2.length()-i);
+            string s2rr = s2.substr(s2.length()-i, i);
+            
+            ret = (isScramble(s1l, s2l)&&isScramble(s1r, s2r)) || (isScramble(s1l, s2rr)&&isScramble(s1r, s2ll));
+            //只要又一次是true，就说明s1和s2可以匹配
+            if(ret)
+                return true;
+        }
+        //找不到的情况下返回false
+        return false;
+    }
+    */
+    //采用动态规划的方法 reslut[k][i][j]表示长度为k的子串，s1以i开始，s2以j开始，能不能匹配的到，能匹配的条件
+    //跟循环的条件是一样的
+    //16ms
+    bool isScramble(string s1, string s2) {
+        if(s1.length() != s1.length())
+            return false;
+        if(s1 == s2)
+            return true;
+        int len = s1.size() + 1;    
+        bool*** result = new bool**[len];
+        for(int i=0; i<len; i++)
+            result[i] = new bool*[len];
+        for(int i=0; i<len; i++)
+            for(int j=0; j<len; j++)
+                result[i][j] = new bool[len];
+        for(int i=s1.length()-1; i>=0; i--)
+            for(int j=s2.length(); j>=0; j--){
+                result[1][i][j] = (s1[i] == s2[j]);
+            }
+        for(int k=2; k<=s1.length(); k++)
+            for(int i=s1.length()-k; i>=0; i--)
+                for(int j=s2.length()-k; j>=0; j--){
+                    bool r = false;
+                    //将长度为k的子串进行分割，看看每一部分是否可以匹配，只要有一种分割的的方法可以匹配，就说名匹配成功
+                    for(int m=1; m<k; m++)
+                        if(result[m][i][j]&&result[k-m][i+m][j+m] || result[m][i][j+k-m]&&result[k-m][i+m][j]){
+                            r = true;
+                            break;
+                        }
+                    result[k][i][j] = r;    
+                }
+        return result[s1.length()][0][0];
+    }
+}
+
+
+Minimum Window Substring 
+Given a string S and a string T, find the minimum window in S which will contain all the characters in T in complexity O(n).For example,S = "ADOBECODEBANC"T = "ABC"Minimum window is "BANC".
+Note:If there is no such window in S that covers all characters in T, return the empty string "".If there are multiple such windows, you are guaranteed that there will always be only one unique minimum window in S.
+
+class Solution {
+public:
+	string minWindow(string s, string t) {
+		if (s.length() == 0 || t.length() == 0)
+			return "";
+		int tsize = t.length();
+		//记录T中每一个字符所出现的次数
+		unordered_map<char, int> tmap;
+		//记录当前的窗口中每一个在T的出现多的字符的总出现次数
+		unordered_map<char, int> wmap;
+		for (int i = 0; i<t.size(); i++)
+			if (tmap.count(t[i]) == 0)
+				tmap[t[i]] = 1;
+			else
+				tmap[t[i]]++;
+		unordered_map<char, int> temp = tmap;
+		//当前窗口的右边界
+		int index = 0;
+		//当前窗口的左边界
+		int start = -1;
+		//最小的窗口的左右边界
+		int startindex = -1, endindex = -1;
+		//最小窗口的长度
+		int length = 0;
+		//找第一个窗口
+		while (index<s.size() && temp.size()>0) {
+			if (tmap.count(s[index]) != 0) {
+				if (start == -1)
+					start = index;
+				if (wmap.count(s[index]) == 0)
+					wmap[s[index]] = 1;
+				else
+					wmap[s[index]]++;
+				if(temp.count(s[index]) != 0){
+				    if (temp[s[index]] == 1)
+					    temp.erase(s[index]);
+			    	else if (temp[s[index]] > 1)
+					    temp[s[index]]--;
+				}
+				
+			}
+			index++;
+		}
+		//找不到的情况下
+		if (index == s.size() && temp.size() != 0)
+			return "";
+		//找到了，先对窗口进行压缩，没找到一个新的窗口都需要对其进行压缩，以保证新的窗口没有长度的冗余
+		//接下来在进行窗口的大小比较
+		while (tmap.count(s[start]) == 0 || wmap[s[start]]>tmap[s[start]]){
+			if(wmap.count(s[start]) != 0)
+			    wmap[s[start]]--;
+			start++;
+		}
+		if (index == s.length() && temp.size() == 0){
+		    return s.substr(start, index-start);
+		}
+			
+		length = index - start;
+		startindex = start, endindex = index - 1;
+		for (; index<s.size(); index++) {
+			if (tmap.count(s[index]) != 0) {
+				wmap[s[index]]++;
+				//向前移动start
+				if (s[index] == s[start]) {
+					//如果当前的元素不在T中出现，或是出现了，但是在当前的窗口出现的次数比在tmap中的还大
+					//那么可以继续压缩start
+					while (tmap.count(s[start]) == 0 || wmap[s[start]]>tmap[s[start]]){
+					    if(wmap.count(s[start]) != 0)
+					        wmap[s[start]]--;
+					    start++;
+					}
+						
+					if (length>index - start + 1) {
+						length = index - start + 1;
+						startindex = start;
+						endindex = index;
+					}
+				}
+			}
+		}
+		return  s.substr(startindex, endindex - startindex + 1);
+	}
+}
+
+
+Edit Distance 
+Given two words word1 and word2, find the minimum number of steps required to convert word1 to word2. (each operation is counted as 1 step.)You have the following 3 operations permitted on a word:a) Insert a characterb) Delete a characterc) Replace a character
+
+class Solution {
+public:
+    /*
+    //按照字面的理解所得出的算法
+    int minDistance(string word1, string word2) {
+        if(word1.size() == 0)
+            return word2.size();
+        if(word2.size() == 0)
+            return word1.size();
+        int **f = new int*[word1.size()+1];
+        for(int i=0; i<=word1.size(); i++){
+            f[i] = new int[word2.size()+1];
+        }
+        for(int i=0; i<=word2.size(); i++)
+            f[0][i] = i;
+        for(int i=0; i<=word1.size(); i++)
+            f[i][0] = i;
+        for(int i=1; i<=word1.size(); i++)
+            for(int j=1; j<=word2.size(); j++){
+                if(word1[i-1] == word2[j-1]){
+                    f[i][j] = f[i-1][j-1]>(f[i-1][j]+1)? (f[i-1][j]+1): f[i-1][j-1];
+                    f[i][j] = f[i][j]>(f[i][j-1]+1)? (f[i][j-1]+1): f[i][j];
+                }
+                else{
+                    f[i][j] = (f[i-1][j-1]+1)>(f[i-1][j]+1)? (f[i-1][j]+1): (f[i-1][j-1]+1);
+                    f[i][j] = f[i][j]>(f[i][j-1]+1)? (f[i][j-1]+1): f[i][j];
+                }
+                    
+            }
+        return f[word1.size()][word2.size()];
+                
+    }
+    */
+    /*
+    1. f[0, j] = j;
+    2. f[i, 0] = i;
+    3. f[i, j] = f[i-1, j - 1] if A[i] == B[j]
+    4. f[i, j] = min(f[i-1, j - 1], f[i, j - 1], f[i-1, j]) + 1  if A[i] != B[j]
+    */
+    int minDistance(string word1, string word2) {
+        if(word1.size() == 0)
+            return word2.size();
+        if(word2.size() == 0)
+            return word1.size();
+        int **f = new int*[word1.size()+1];
+        for(int i=0; i<=word1.size(); i++){
+            f[i] = new int[word2.size()+1];
+        }
+        for(int i=0; i<=word2.size(); i++)
+            f[0][i] = i;
+        for(int i=0; i<=word1.size(); i++)
+            f[i][0] = i;
+        for(int i=1; i<=word1.size(); i++)
+            for(int j=1; j<=word2.size(); j++){
+                if(word1[i-1] == word2[j-1]){
+                    f[i][j] = f[i-1][j-1];
+                    //f[i][j] = f[i][j]>(f[i][j-1]+1)? (f[i][j-1]+1): f[i][j];
+                }
+                else{
+                    f[i][j] = (f[i-1][j-1]+1)>(f[i-1][j]+1)? (f[i-1][j]+1): (f[i-1][j-1]+1);
+                    f[i][j] = f[i][j]>(f[i][j-1]+1)? (f[i][j-1]+1): f[i][j];
+                }
+                    
+            }
+        return f[word1.size()][word2.size()];
+                
+    }
+}
+
+
+Simplify Path 
+Given an absolute path for a file (Unix-style), simplify it.For example,path = "/home/", =>; "/home"path = "/a/./b/../../c/", =>; "/c"click to show corner cases.Corner Cases:Did you consider the case where path = "/../"?In this case, you should return "/".Another corner case is the path might contain multiple slashes '/' together, such as "/home//foo/".In this case, you should ignore redundant slashes and return "/home/foo".
+
+class Solution {
+public:
+    //命名中允许有.符号存在，如/.a.，/.为当前路径，/..为上一个路径
+    string simplifyPath(string path) {
+        if(path.size() == 0)
+           return "";
+          stack<int> indexstack;
+          string ret = "/";
+          int start = 1;
+          indexstack.push(0);
+          //在path的末尾加上'/',就可以处理/.和/..的情况了
+          path = path+'/';
+          for(int i=1; i<path.size(); i++){
+              while(i<path.size() && path[i] != '/')
+                  i++;
+              if(i == path.size())
+                  break;
+              //去掉‘//’类型和去掉'./'类型，类型'./'只出现在'/./'中
+              if(path[i-1] == '/' || (path[i-1] == '.' && path[i-2] == '/')){
+                  start = i+1;
+                  continue;
+              }
+              //处理'../'类型，类型'../'也只出现在'/../'类型中
+              if(path[i-1] == '.' && path[i-2] == '.' && path[i-3] == '/'){
+                  int firstindex = indexstack.top();
+                  if(firstindex == 0){
+                      start = i+1;
+                      continue;
+                  }
+                  start = i+1;    
+                  indexstack.pop();
+                  int secondindex = indexstack.top();
+                  ret = ret.substr(0, secondindex+1);
+              }
+              else{
+                  
+                  ret += path.substr(start, i+1-start);
+                  start = i+1;
+                  indexstack.push(ret.size()-1);
+              }
+            
+          }
+          ret += path.substr(start, path.size()-start);
+          //去掉末尾的'/'
+          if(ret.size() > 1 && ret[ret.size()-1] == '/')
+              ret = ret.substr(0, ret.size()-1);
+          return ret;
+    }
+}
+
+
+Text Justification 
+Given an array of words and a length L, format the text such that each line has exactly L characters and is fully (left and right) justified. You should pack your words in a greedy approach; that is, pack as many words as you can in each line. Pad extra spaces ' ' when necessary so that each line has exactly L characters.Extra spaces between words should be distributed as evenly as possible. If the number of spaces on a line do not divide evenly between words, the empty slots on the left will be assigned more spaces than the slots on the right.For the last line of text, it should be left justified and no extra space is inserted between words.For example,words: ["This", "is", "an", "example", "of", "text", "justification."]L: 16.Return the formatted lines as:[   "This    is    an",   "example  of text",   "justification.  "]
+Note: Each word is guaranteed not to exceed L in length.click to show corner cases.Corner Cases:A line other than the last line might contain only one word. What should you do in this case?In this case, that line should be left-justified.
+
+class Solution {
+public:
+   	vector<string> fullJustify(vector<string>& words, int maxWidth) {
+		if (maxWidth == 0)
+			return{""};
+		vector<string> linevec;
+		vector<string> ret;
+		int length = maxWidth;
+		for (const string &word : words) {
+			if ((int)word.length() <= length) {
+				linevec.push_back(word);
+				length = length - word.length() - 1;
+				continue;
+			}
+			//剩下的空间
+			length += linevec.size();
+			if (linevec.size() > 1) {
+				int avgnumspac = length / (linevec.size() - 1);
+				int rest = length % (linevec.size() - 1);
+				string line = "";
+				for (int i = 0; i<linevec.size() - 1; i++) {
+					for (int j = 0; j<avgnumspac; j++)
+						linevec[i] += " ";
+					if (i<rest)
+						linevec[i] += " ";
+					line += linevec[i];
+				}
+				line += linevec[linevec.size() - 1];
+				ret.push_back(line);
+			}
+			else {
+				string line = linevec[0];
+				for (int i = 0; i < length; i++)
+					line += " ";
+				ret.push_back(line);
+			}
+			
+			length = maxWidth;
+			linevec.clear();
+			linevec.push_back(word);
+			length -= (word.length() + 1);
+		}
+		//最后一行
+		string line = "";
+		length += 1;
+		for (int i = 0; i<linevec.size() - 1; i++) {
+			line += (linevec[i] + " ");
+		}
+		line += linevec[linevec.size() - 1];
+		for (int i = 0; i<length; i++)
+			line += " ";
+		ret.push_back(line);
+
+		return ret;
+	}
+}
+
+
+Valid Number 
+Validate if a given string is numeric.Some examples:"0" =>; true"   0.1  " =>; true"abc" =>; false"1 a" =>; false"2e10" =>; true
+Note: It is intended for the problem statement to be ambiguous. You should gather all requirements up front before implementing one.Update (2015-02-10):The signature of the C++ function had been updated. If you still see your function signature accepts a const char * argument, please click the reload button  to reset your code definition.
+
+class Solution {
+public:
+    //e后面的数值不能有小数点,只能允许有一个e出现
+    //允许00003这样的数值
+    //允许3.这样的数值
+    //允许.3这样的数值
+    bool isNumber(string s) {
+        bool can_doc = true;
+        bool can_e = true;
+        if(s.size() == 0)
+            return false;
+        //去掉前面的空格
+        int index = 0;
+        while(index<s.size() && s[index] == ' ')index++;
+        if(index == s.size())
+            return false;
+        int end = s.size()-1;
+        while(end>=0 && s[end] == ' ') end--;
+        //忽略第一个正负符号
+        if(s[index] == '-' || s[index] == '+')
+            index++;
+        if(s[index] == '.'){
+            index++;
+            can_doc = false;
+        }
+        if(index>end)
+            return false;
+        //第一个字符不允许为e
+        if(s[index] == 'e')
+            return false;
+        for(; index<=end; index++){
+            if('0'<=s[index] && s[index]<='9')
+                continue;
+            //e后面的数值不允许有小数点
+            if(s[index] == 'e'){
+                if(!can_e)
+                    return false;
+                can_e = false;
+                can_doc = false;
+                if(index == end)
+                    return false;
+                if(s[index+1] == '-' || s[index+1] == '+')
+                    index++;
+                if(index == end)
+                    return false;
+                continue;
+            }
+            //只允许一个小数点
+            if(s[index] == '.'){
+                if(!can_doc)
+                    return false;
+                can_doc = false;
+                
+                continue;
+            }
+            return false;
+            
+        }
+        return true;
+    }
+}
+
+
+Add Binary 
+Given two binary strings, return their sum (also a binary string).For example,a = "11"b = "1"Return "100".
+
+class Solution {
+public:
+    string addBinary(string a, string b) {
+        int smallLength = a.size()>b.size()? b.size(): a.size();
+        
+        string result = "";
+        int carry = 0;
+        int aEnd = a.size()-1;
+        int bEnd = b.size()-1;
+        for(int i=smallLength-1; i>=0; i--){
+            carry = (a[aEnd--]-'0') + (b[bEnd--]-'0') + carry;
+            result = (char)(carry%2 +'0') + result;
+            carry /= 2;
+        }
+        if(aEnd == -1){
+            for(; bEnd>=0; bEnd--){
+                carry = (b[bEnd]-'0') + carry;
+                result = (char)(carry%2+'0') + result;
+                carry /= 2;
+            }
+        }
+        if(bEnd == -1){
+            for(; aEnd>=0; aEnd--){
+                carry = (a[aEnd]-'0') + carry;
+                result = (char)(carry%2+'0') + result;
+                carry /= 2;
+            }
+        }
+       if(carry != 0)
+          result = (char)(carry+'0') + result;
+         return result;
+    }
+}
+
+
+Length of Last Word 
+Given a string s consists of upper/lower-case alphabets and empty space characters ' ', return the length of last word in the string.If the last word does not exist, return 0.
+Note: A word is defined as a character sequence consists of non-space characters only.For example, Given s = "Hello World",return 5.
+
+class Solution {
+public:
+    int lengthOfLastWord(string s) {
+        int length = 0;
+        for(int i=s.size()-1; i>=0; i--){
+            if(length ==0 && s[i] == ' ')
+                continue;
+            if(length !=0 && s[i] == ' ')
+                return length;
+            length++;    
+        }
+        return length;
+    }
+}
+
+
+Group Anagrams 
+Given an array of strings, group anagrams together.For example, given: ["eat", "tea", "tan", "ate", "nat", "bat"], Return:[  ["ate", "eat","tea"],  ["nat","tan"],  ["bat"]]
+Note:For the return value, each inner list's elements must follow the lexicographic order.All inputs will be in lower-case.
+
+class Solution {
+public:
+    /*下面的算法有点问题，对于bob和boo这样的例子，会哈希到同一个index中
+    //符合规则的word如果可以哈希到同一个值的话，那么就好办了，只需要对哈希后的数组进行排序就可以了
+    //因为之母只有a-z，所以使用位哈希的方法，如果字母出现，那么其对应的位的值为1，这样符合规则的word
+    //将会哈希到同一个值
+    vector<vector<string>> groupAnagrams(vector<string>& strs) {
+        if(strs.size() == 0)
+            return {{}};
+        map<int, vector<string>> retmap;
+        for(int i=0; i<strs.size(); i++){
+            string word = strs[i];
+            //word最后哈希的值
+            int index = 0;
+            for(int j=0; j<word.length(); j++){
+                int shifnum = word[j]-'a';
+                index |= (1<<shifnum);
+            }
+            if(retmap.count(index) != 0){
+                retmap[index].push_back(word);
+            }
+            else{
+                vector<string> vs;
+                vs.push_back(word);
+                retmap[index] = vs;
+            }
+        }
+        
+        map<int, vector<string>>::iterator it;
+        vector<vector<string>> ret;
+        for(it=retmap.begin(); it!=retmap.end(); it++){
+            sort(it->second.begin(), it->second.end());
+            ret.push_back(it->second);
+        }
+        return ret;
+    }
+    */
+    //对每一个word进行排序，符合规则的word最后的排序结果是一样的，将该结果映射到ret的下标，再将word归类到里面去
+    vector<vector<string>> groupAnagrams(vector<string>& strs) {
+        if(strs.size() == 0)
+            return {{}};
+        unordered_map<string, int> indexmap;
+        vector<vector<string>> ret;
+        for(int i=0; i<strs.size(); i++){
+            string temp = strs[i];
+            sort(temp.begin(), temp.end());
+            if(indexmap.count(temp) != 0){
+                ret[indexmap[temp]].push_back(strs[i]);
+            }
+            else{
+                vector<string> v;
+                v.push_back(strs[i]);
+                indexmap[temp] = ret.size();
+                ret.push_back(v);
+            }
+        }
+        for(int i=0; i<ret.size(); i++)
+            sort(ret[i].begin(), ret[i].end());
+        return ret;
+    }
+    
+}
+
+
+Wildcard Matching 
+Implement wildcard pattern matching with support for '?' and '*'.'?' Matches any single character.'*' Matches any sequence of characters (including the empty sequence).The matching should cover the entire input string (not partial).The function prototype should be:bool isMatch(const char *s, const char *p)Some examples:isMatch("aa","a") → falseisMatch("aa","aa") → trueisMatch("aaa","aa") → falseisMatch("aa", "*") → trueisMatch("aa", "a*") → trueisMatch("ab", "?*") → trueisMatch("aab", "c*a*b") → false
+
+class Solution {
+public:
+    //动态规划f[i][j]存储p[i:-1]能否匹配s[j:-1]
+    //状态转换方程：
+    //if(p[i] = [a-z]) f[i][j] = p[i]==s[j]&&f[i+1][j+1]
+    //if(p[i] == '?') f[i][j] = f[i+1][j+1]
+    //if(p[i] == '*') for(j<=k<=s.length) if(f[i+1][k]) f[i+1][j] = true
+    bool isMatch(string s, string p) {
+        if(s.length()==0 && p.length()==0)
+            return true;
+        if(p.length() == 0)
+            return false;
+        bool **f = new bool*[p.length()+1];
+        for(int i=0; i<=p.length(); i++)
+            f[i] = new bool[s.length()+1];
+        for(int i=0; i<p.length(); i++)
+            f[i][s.length()] = false;
+        for(int i=0; i<s.length(); i++)
+            f[p.length()][i] = false;
+        f[p.length()][s.length()] = true;
+        //处理p='****', s=""类型的情况
+        int length = p.length()-1;
+        while(p[length] == '*'){
+            f[length][s.length()] = true;
+            length--;
+        }
+        for(int i=p.length()-1; i>=0; i--){
+            for(int j=s.length()-1; j>=0; j--){
+                if(p[i] == '?')
+                    f[i][j] = f[i+1][j+1];
+                else if('a'<=p[i] && p[i]<='z')
+                    f[i][j] = p[i]==s[j]&&f[i+1][j+1];
+                else{
+                    f[i][j] = false;
+                    for(int k=j; k<=s.length(); k++){
+                        if(f[i+1][k]){
+                            f[i][j] = true;
+                            break;
+                        }
+                    }
+                    
+                }
+            }
+        }
+        return f[0][0];
+    }
+}
+
+
+Multiply Strings 
+Given two numbers represented as strings, return multiplication of the numbers as a string.
+Note: The numbers can be arbitrarily large and are non-negative.
+
+class Solution {
+public:
+    string multiply(string num1, string num2) {
+        if(num1 == "0" || num2 == "0")
+            return "0";
+        reverse(num1.begin(), num1.end());
+        reverse(num2.begin(), num2.end());
+        
+        int length = num1.size()+num2.size();
+        string ret = "";
+        for(int i=0; i<length; i++){
+            ret += "0";
+        }
+        int carry = 0;
+        int index;
+        for(int i=0; i<num1.size(); i++){
+            index = i;
+            carry = 0;
+            for(int j=0; j<num2.size(); j++, index++){
+                carry += (num1[i]-'0')*(num2[j]-'0');
+                carry += (ret[index]-'0');
+                ret[index] = (carry%10+'0');
+                carry /= 10;
+            }
+            if(carry != 0)
+                ret[index] = carry+'0';
+        }
+       
+        reverse(ret.begin(), ret.end());
+        index = 0;
+        while(ret[index] == '0')
+            index++;
+        return ret.substr(index, ret.length()-index);
+    }
+}
+
+
+Count and Say 
+The count-and-say sequence is the sequence of integers beginning as follows:1, 11, 21, 1211, 111221, ...1 is read off as "one 1" or 11.11 is read off as "two 1s" or 21.21 is read off as "one 2, then one 1" or 1211.Given an integer n, generate the nth sequence.
+Note: The sequence of integers will be represented as a string.
+
+class Solution {
+public:
+    string countAndSay(int n) {
+        if(n == 1)
+            return "1";
+        string pre = "1";
+        string cur = "";
+        int count = 1;
+        int start = 0;
+        for(int i=2; i<=n; i++){
+            cur = "";
+            for(int j=0; j<pre.size(); j++){
+                count = 1;
+                start = j;
+                while(j<pre.size()-1 && pre[j+1] == pre[start]){
+                    j++;
+                    count++;
+                }
+               
+                cur += count+'0';
+                cur += pre[start];
+            }
+            pre = cur;
+        }
+        return cur;
+    }
+}
+
+
+Longest Valid Parentheses 
+Given a string containing just the characters '(' and ')', find the length of the longest valid (well-formed) parentheses substring.For "(()", the longest valid parentheses substring is "()", which has length = 2.Another example is ")()())", where the longest valid parentheses substring is "()()", which has length = 4.
+
+class Solution {
+public:
+    //从左到右遍历字符串，遍历过程中只标记左括号的数量left、上一个可匹配的字段的长度，以及其结束的下标，如果遍历的过程中
+    //left==0 那么说明已经匹配到一个子段了，此时要看看该子段能否与上一个匹配的子段合并，可以的话合并成更长的子段。不行的话
+    //更新prelength和preend，继续遍历
+    int longestValidParentheses(string s) {
+        if(s.size() == 0)
+            return 0;
+        int longest = 0;
+        //左括号的数量
+        int left = 0;
+        //当前的长度
+        int curlength = 0;
+        //上一个可匹配的子段的长度
+        int prelength = 0;
+        //上一个可匹配的子段的结束下标
+        int preend = -1;
+        int start = 0;
+        //忽略字符串s的头部不合法的右括号
+        while(start<s.size() && s[start] == ')')start++;
+        int end = s.size()-1;
+        //忽略字符串s尾部不合法的左括号
+        while(end>=0 && s[end] == '(')end--;
+        if(end < start)
+            return 0;
+        for(int i=start; i<=end; i++){
+            if(left == 0 && s[i] == ')')
+                continue;
+            if(s[i] == '('){
+                left++;
+                continue;
+            }
+            if(s[i] == ')'){
+                curlength++;
+                left--;
+                //完成了新的一小段的匹配，要看看是否可以跟上一个匹配拼接在一起，可以的话，
+                //要拼接在一起，构成更长的一段
+                if(left == 0){
+                    if(i-curlength*2 == preend)
+                        prelength = prelength + curlength;
+                    else
+                        prelength = curlength;
+                    preend = i;
+                    if(longest<prelength)
+                        longest = prelength;
+                    curlength = 0;
+                }
+            }
+        }
+        //如果左括号的数量为0，说明最后的curlength是一个合法的子段
+        if(left == 0){
+            if(curlength > longest)
+                longest = curlength;
+            return longest*2;
+        }
+        //left不为0，说明当前的到的curlength所代表的子段不是合法的，此时最简单的方法就是将当前的子段
+        //翻转过来，对翻转后的子段进行重新的匹配计算
+        //例子：(()(((((()
+        else{
+            string reverse = "";
+            //这里不能简单的直接翻转，还要进行括号的左->右 和 右->左变换
+            for (int i = s.size() - 1; i > preend; i--) {
+				if (s[i] == ')')
+					reverse += '(';
+				else
+					reverse += ')';
+			}
+			//注意，这里得到的是长度，因为函数longestValidParentheses返回的是最后的长度，而longest的到的还是没有乘以2的长度
+			//所以这里的curlength要除以2
+            curlength = longestValidParentheses(reverse);
+            if(curlength/2 > longest)
+                longest = curlength/2;
+            return longest*2;
+           
+        }
+    }
+
+}
+
+
+Substring with Concatenation of All Words 
+You are given a string, s, and a list of words, words, that are all of the same length. Find all starting indices of substring(s) in s that is a concatenation of each word in words exactly once and without any intervening characters.For example, given:s: "barfoothefoobarman"words: ["foo", "bar"]You should return the indices: [0,9].(order does not matter).
+
+class Solution {
+public:
+    //很原始的方法，效率很低,大概需要1000毫秒的时间
+    /*
+    vector<int> findSubstring(string s, vector<string>& words) {
+        if(words.size() == 0 || s.size() == 0 || s.size() < words[0].size()*words.size() )
+            return {};
+        multiset<string> wset;
+        multiset<string> temp;
+        for(int i=0; i<words.size(); i++)
+            wset.insert(words[i]);
+        temp = wset;
+        vector<int> ret;
+        int begin = 0;
+        int wordlength = words[0].size();
+        for(int i=0; i<=s.size()-wordlength; i++){
+            //不增加这一句的时候会超时
+            if(begin > s.size()-wordlength*words.size())
+                break;
+            string word = s.substr(i, wordlength);
+            if(temp.find(word) != temp.end()){
+                temp.erase(temp.find(word));
+                i += wordlength-1;
+                if(temp.empty()){
+                    ret.push_back(begin);
+                    i = begin;
+                    begin = i+1;
+                    temp = wset;
+                }
+                
+            }
+            else{
+                if(temp.size() < wset.size()){
+                    i = begin;
+                    temp = wset;
+                    begin++;
+                }
+                else{
+                    begin = i+1;
+                    temp = wset;
+                }
+            }
+        }
+        return ret;
+    }
+    */
+    //只需要76毫秒的时间
+    //其实可以直接的将字符串根据words中每一个单词的长度给划分成很多个单词，然后再逐个的匹配words中的单词
+    //在这里，其实划分的方法是固定的，如果words[0].length = L,其实的划分下标为i， 那么划分的方法为i从[0, L-1]
+    //我们就可以遍历这几种不同的方法得到的单词串，来获得答案
+    vector<int> findSubstring(string s, vector<string>& words) {
+        if(words.size() == 0 || s.size() == 0 || s.size() < words[0].size()*words.size() )
+            return {};
+        multiset<string> wset;
+        multiset<string> temp;
+        for(int i=0; i<words.size(); i++)
+            wset.insert(words[i]);
+        temp = wset;
+        vector<int> ret;
+        int begin = 0;
+        int wordlength = words[0].size();
+        for(int i=0; i<wordlength; i++){
+            begin = i;
+            temp = wset;
+            for(int j=i; j<=s.size()-wordlength; j+=wordlength){
+                string word = s.substr(j, wordlength);
+                if(temp.find(word) != temp.end()){
+                    temp.erase(temp.find(word));
+                    if(temp.empty()){
+                        ret.push_back(begin);
+                        //这里很关键，必须右移一个单词的长度，以下一个单词多作为起始点，并将移除的单词重新插入到temp中
+                        temp.insert(s.substr(begin, wordlength));
+                        begin = begin+wordlength;
+                    }
+                }
+                else{
+                    //这里也很关键，有需要右移一个单词，而且还要重新匹配符当前匹配不了的单词，这也是为什么j要先减去一个单词
+                    //长度的原因，但是，必须在begin<j, 的情况下才可以这样，当begin==j时，相当于以j为起始点的单词不在words中，
+                    //所以此时需要继续往右移动一个单词了，所以此时j不需要再减去一个单词的长度
+                    if(begin < j){
+                        j -= wordlength;
+                        temp.insert(s.substr(begin, wordlength));
+                    }
+                    begin = begin+wordlength;
+                }
+            }
+        }
+        return ret;
+    }
+}
+
+
+Implement strStr() 
+Implement strStr().Returns the index of the first occurrence of needle in haystack, or -1 if needle is not part of haystack.
+
+class Solution {
+public:
+    //采用KMP算法
+    int strStr(string haystack, string needle) {
+        if(needle.length() == 0)
+            return 0;
+        int *next = new int[needle.length()+1];
+        next[0]=0;
+        next[1] = 0;
+        int j = 0;
+        //获得next数组值,
+        for(int i=1;i<needle.length(); i++){
+            while(j>0 && needle[j] != needle[i])
+                j = next[j];
+            if(needle[j] == needle[i])
+                j++;
+            next[i+1] = j;
+        }
+        
+        int targetIndex = 0;
+        int needleIndex = 0;
+        for(; targetIndex<haystack.length(); targetIndex++){
+            while(needleIndex>0 && haystack[targetIndex] != needle[needleIndex])
+                needleIndex = next[needleIndex];
+            if(haystack[targetIndex] == needle[needleIndex])
+                needleIndex++;
+            if(needleIndex == needle.length())
+                return targetIndex-needleIndex+1;
+        }
+        return -1;
+    }
+    
+    
+    
+}
+
+
+Generate Parentheses 
+Given n pairs of parentheses, write a function to generate all combinations of well-formed parentheses.For example, given n = 3, a solution set is:"((()))", "(()())", "(())()", "()(())", "()()()"
+
+class Solution {
+public:
+    vector<string> generateParenthesis(int n) {
+        if(n == 0)
+            return {};
+        
+        vector<string> ret;
+        _generateParenthesis(ret, "", n, 0);
+        return ret;
+    }
+    
+    void _generateParenthesis(vector<string> &ret, string s, int left, int right ){
+        if(left>0){
+            _generateParenthesis(ret, s+'(', left-1, right+1);
+        }
+        if(right>0){
+            _generateParenthesis(ret, s+')', left, right-1);
+        }
+        if(left == 0 && right == 0)
+            ret.push_back(s);
+    }
+}
+
+
+Valid Parentheses 
+Given a string containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.The brackets must close in the correct order, "()" and "()[]{}" are all valid but "(]" and "([)]" are not.
+
+class Solution {
+public:
+    bool isValid(string s) {
+        
+        stack<char> valid;
+        for(int i=0; i<s.size(); i++){
+            if(s[i] == '(' || s[i] == '{' || s[i] == '[')
+                valid.push(s[i]);
+            else{
+                if(valid.size() == 0)
+                    return false;
+                char top = valid.top();
+                valid.pop();
+                if(s[i] == ')' && top != '(')
+                    return false;
+                if(s[i] == ']' && top != '[')
+                    return false;
+                if(s[i] == '}' && top != '{')
+                    return false;
+            }
+        }
+        if(valid.size() == 0)
+            return true;   
+        return false;
+            
+    }
+}
+
+
+Letter Combinations of a Phone Number 
+Given a digit string, return all possible letter combinations that the number could represent.A mapping of digit to letters (just like on the telephone buttons) is given below.Input:Digit string "23"Output: ["ad", "ae", "af", "bd", "be", "bf", "cd", "ce", "cf"].
+Note:Although the above answer is in lexicographical order, your answer could be in any order you want.
+
+class Solution {
+public:
+    vector<string> letterCombinations(string digits) {
+        if(digits.size() == 0)
+            return {};
+        for(int i=0; i<digits.size(); i++)
+            if(digits[i] == '0' || digits[i] == 1)
+                return {};
+                
+        vector<vector<char>> dtl;
+        vector<char> v2;
+        v2.push_back('a');
+        v2.push_back('b');
+        v2.push_back('c');
+         vector<char> v3;
+        v3.push_back('d');
+        v3.push_back('e');
+        v3.push_back('f');
+         vector<char> v4;
+        v4.push_back('g');
+        v4.push_back('h');
+        v4.push_back('i');
+         vector<char> v5;
+        v5.push_back('j');
+        v5.push_back('k');
+        v5.push_back('l');
+         vector<char> v6;
+        v6.push_back('m');
+        v6.push_back('n');
+        v6.push_back('o');
+         vector<char> v7;
+        v7.push_back('p');
+        v7.push_back('q');
+        v7.push_back('r');
+        v7.push_back('s');
+         vector<char> v8;
+        v8.push_back('t');
+        v8.push_back('u');
+        v8.push_back('v');
+         vector<char> v9;
+        v9.push_back('w');
+        v9.push_back('x');
+        v9.push_back('y');
+        v9.push_back('z');
+        dtl.push_back(v2);
+        dtl.push_back(v3);
+        dtl.push_back(v4);
+        dtl.push_back(v5);
+        dtl.push_back(v6);
+        dtl.push_back(v7);
+        dtl.push_back(v8);
+        dtl.push_back(v9);
+        vector<string> ret;
+        
+        _letterCombinations(digits, 0, "", ret, dtl);
+        return ret;
+        
+    }
+    
+    void _letterCombinations(string &digits, int start, string temp, vector<string> &ret, vector<vector<char> > &dtl){
+        if(start == digits.size()){
+            ret.push_back(temp);
+            return ;
+        }
+            
+        int index = digits[start]-'0'-2;
+        for(int i=0; i<dtl[index].size(); i++){
+            _letterCombinations(digits, start+1, temp+dtl[index][i], ret, dtl);
+        }
+    }
+}
+
+
+Longest Common Prefix 
+Write a function to find the longest common prefix string amongst an array of strings.
+
+class Solution {
+public:
+    string longestCommonPrefix(vector<string>& strs) {
+        if(strs.size() == 0)
+            return "";
+        int smallest = INT_MAX;
+        for(int i=0; i<strs.size(); i++){
+            if(smallest > strs[i].size())
+                smallest = strs[i].size();
+        }
+        string result = "";
+        for(int j=0; j<smallest; j++){
+            for(int k=1; k<strs.size(); k++){
+                if(strs[k][j] != strs[0][j])
+                    return result;
+            }
+            result += strs[0][j];
+        }
+        return result;
+    }
+}
+
+
+Roman to Integer 
+Given a roman numeral, convert it to an integer.Input is guaranteed to be within the range from 1 to 3999.
+
+class Solution {
+public:
+    int romanToInt(string s) {
+        if(s.length() == 0)
+            return 0;
+        int number = 0;
+        //记录前一个值
+        int predata = 0;
+        for(int i=s.length()-1; i>=0; i--){
+            int data = charToInt(s[i]);
+            //如果当前的值小于上一个值，那么要减去当前的值，否则加上当前的值
+            if(data<predata)
+                number -= data;
+            else
+                number += data;
+            predata = data;
+        }
+        return number;
+    }
+    
+    int charToInt(char roma){
+        int data = 0;  
+  
+        switch (roma) {  
+            case 'I':  
+                data = 1;  
+                break;  
+            case 'V':  
+                data = 5;  
+                break;  
+            case 'X':  
+                data = 10;  
+                break;  
+            case 'L':  
+                data = 50;  
+                break;  
+            case 'C':  
+                data = 100;  
+                break;  
+            case 'D':  
+                data = 500;  
+                break;  
+            case 'M':  
+                data = 1000;  
+                break;  
+        }  
+  
+        return data;  
+    }
+}
+
+
+Integer to Roman 
+Given an integer, convert it to a roman numeral.Input is guaranteed to be within the range from 1 to 3999.
+
+class Solution {
+public:
+    //转换的时候有两个特殊的值4和9，对于9，如果当前对应的是十位(X),那么转换后转换后应该是XC,(X跳过L加C)，
+    //如果是百位C，那么应该是CM（C跳过D加M）；为4的时候，如果是十位，为XL(X直加上后面的一位)，其他位数的
+    //也是同样的道理
+    string intToRoman(int num) {
+        if(num == 0)
+            return "";
+        string ret = "";
+        int i=0;
+        while(num){
+            int val = num%10;
+            num /= 10;
+            string romanstr = valToRoma(val, i);
+            ret = romanstr + ret;
+            i += 2;
+        }
+       return ret; 
+        
+    }
+    
+    string valToRoma(int val, int i){
+        string ret = "";
+        if(val == 4)
+            ret = ret+roman[i]+roman[i+1];
+        else if(val == 9)
+            ret = ret+roman[i]+roman[i+2];
+        else if(val == 5)
+            ret = ret+roman[i+1];
+        if(ret != "")
+            return ret;
+        if(val<4)
+            for(int j=0; j<val; j++)
+                ret += roman[i];
+        else{
+            ret += roman[i+1];
+            for(int j=0; j<val-5; j++)
+               ret += roman[i];
+        }
+        return ret;   
+
+    }
+    
+private:
+    char roman[7] = {'I', 'V', 'X', 'L', 'C', 'D', 'M'};
+}
+
+
+Regular Expression Matching 
+Implement regular expression matching with support for '.' and '*'.'.' Matches any single character.'*' Matches zero or more of the preceding element.The matching should cover the entire input string (not partial).The function prototype should be:bool isMatch(const char *s, const char *p)Some examples:isMatch("aa","a") → falseisMatch("aa","aa") → trueisMatch("aaa","aa") → falseisMatch("aa", "a*") → trueisMatch("aa", ".*") → trueisMatch("ab", ".*") → trueisMatch("aab", "c*a*b") → true
+
+class Solution {
+public:
+    //动态规划的方法
+    //转换方程：f[i][j]表示字符串p从i开始能不能匹配字符串s从j开始
+    //f[i][j] = if(p[i] == '.' then = f[i+1][j+1]) else if(a<=p[i]<=z then =  p[i] == s[j]&&P[i+1][j+1]) else 
+    //if(p[i-1] == '.') then f[i-1][j] = f[i+1][h](j<=h<=s.length-1)
+    //if(a<=p[i-1]<=z) then f[i-1][j] = f[i+1][k](j<=k<=s.length-1 && s[k] == p[i-1])
+    bool isMatch(string s, string p) {
+        //s、p长度为0的时候返回true
+        if(s.length() ==0 && p.length() == 0)
+            return true;
+   	    if (p.length() == 0)
+			return false;
+		bool **f = new bool*[p.length() + 1];
+		for (int i = 0; i<=p.length(); i++) {
+			f[i] = new bool[s.length() + 1];
+		}
+		for (int i = s.length() - 1; i >= 0; i--)
+			f[p.length()][i] = false;
+		for (int i = p.length() - 1; i >= 0; i--)
+			f[i][s.length()] = false;
+
+		f[p.length()][s.length()] = true;
+		//p的最后一个元素独立出来计算，方便后面的循环在使用p[i+1]是不需要进行字符串溢出判断
+		for (int j = s.length() - 1; j >= 0; j--) {
+			f[p.length() - 1][j] = p[p.length() - 1] == s[j] && f[p.length()][j + 1];
+		}
+		//对于以[a-z]*/.*结尾的情况进行独立判断，以处理[a-z]*/.*适合s=""的情况 
+		//例如p=ab*  s=a
+		if(p.length()>=2 && p[p.length()-1] == '*'){
+		    if(p[p.length()-2] != '.')
+		        f[p.length()-2][s.length()] = true;
+		    else{
+		        for(int i=s.length(); i>=0; i--)
+		            f[p.length()-2][i] = true;
+		    }
+		}
+        for(int i=p.length()-1; i>=0; i--){
+            //当前元素为'*',直接跳过
+            if(p[i] == '*'){
+                continue;
+            }
+            //这里需要j=s.length(), 不能为j=s.length()-1, 因为对于s="", 而p="f*F*"的情况，结果是true
+            //如果是j=s.length()-1的话，那么将不会进入循环，最后返回的值将是false
+            for(int j=s.length(); j>=0; j--){
+                //如果后面的元素不是'*',那么直接的单个元素匹配
+                if(p[i+1] != '*' ){
+                    if(p[i] == '.')
+                        f[i][j] = f[i+1][j+1];
+                    else 
+                        f[i][j] = p[i]==s[j]&&f[i+1][j+1];
+                }
+                //p[i+1] = '*'的情况,进行模式匹配
+                else{
+                    //对于.*，这种情况，只要f[i+2][k]有一个为true，那么f[i][j]就为true
+                    //j<=k<s.length()
+                    if(p[i] == '.'){
+                        for(int k=j; k<=s.length(); k++)
+                            if(f[i+2][k]){
+                                f[i][j] = true;
+                                break;
+                            }
+                    }
+                    //对于[a-z]*,这种情况，那么如果f[i+2][j]为true,那么就为true，如果不是的话
+                    //在p[i] == s[k]的情况下，只要f[i+2][k+1]为true的话，那么f[i][j]就为true
+                    else{
+                        if(f[i+2][j])
+                            f[i][j] = true;
+                        else{
+                            for (int k = j; k <= s.length(); k++) {
+								if (p[i] == s[k]) {
+									if (f[i + 2][k + 1]) {
+										f[i][j] = true;
+										break;
+									}
+								}
+                                else{
+                                    f[i][j] = false;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                    }
+                }
+            }
+        }
+        return f[0][0];
+    }
+}
+
+
+String to Integer (atoi) 
+Implement atoi to convert a string to an integer.
+Hint: Carefully consider all possible input cases. If you want a challenge, please do not see below and ask yourself what are the possible input cases.Notes: It is intended for this problem to be specified vaguely (ie, no given input specs). You are responsible to gather all the input requirements up front. Update (2015-02-10):The signature of the C++ function had been updated. If you still see your function signature accepts a const char * argument, please click the reload button  to reset your code definition.spoilers alert... click to show requirements for atoi.Requirements for atoi:The function first discards as many whitespace characters as necessary until the first non-whitespace character is found. Then, starting from this character, takes an optional initial plus or minus sign followed by as many numerical digits as possible, and interprets them as a numerical value.The string can contain additional characters after those that form the integral number, which are ignored and have no effect on the behavior of this function.If the first sequence of non-whitespace characters in str is not a valid integral number, or if no such sequence exists because either str is empty or it contains only whitespace characters, no conversion is performed.If no valid conversion could be performed, a zero value is returned. If the correct value is out of the range of representable values, INT_MAX (2147483647) or INT_MIN (-2147483648) is returned.
+
+class Solution {
+public:
+    int myAtoi(string str) {
+        if(str.size() == 0)
+            return 0;
+        int native = 1;
+        long long num = 0;
+        int index = 0;
+        //除去前面的空号
+        for(; index<str.size(); index++){
+            if(str[index] == ' ')
+                continue;
+		    break;
+        }
+        //第一个元素不是+、-、0-9时，直接返回0
+		if(str[index] != '-' && str[index] != '+' && (str[index]<48 || str[index] > 57))
+			return 0;
+		if(str[index] == '-'){
+			native = -1;
+			index++;
+		}
+		else if(str[index] == '+'){
+		    index++;
+		}
+        for(;index<str.size(); index++){
+            //字符串中如果出现了非0-9的数值，则返回前面的数值，后面的直接忽略。
+			if(str[index]<48 || str[index] >57)
+				break;
+            num = num*10+(str[index]-'0');
+            //有可能num会溢出，所以只要是num大于INT_MAX+1就直接退出了，因为INT_MAX+1会溢出，所以要使用num-1>INT_MAX
+            if(num-1>INT_MAX)
+                break;
+        }
+        if(native == -1 && -num<INT_MIN)
+            return INT_MIN;
+        if(native == 1 && num>INT_MAX)
+            return INT_MAX;
+        
+        return num*native;
+    }
+}
+
+
+ZigZag Conversion 
+The string "PAYPALISHIRING" is written in a zigzag pattern on a given number of rows like this: (you may want to display this pattern in a fixed font for better legibility)P   A   H   NA P L S I I GY   I   RAnd then read line by line: "PAHNAPLSIIGYIR"Write the code that will take a string and make this conversion given a number of rows:string convert(string text, int nRows);convert("PAYPALISHIRING", 3) should return "PAHNAPLSIIGYIR".
+
+class Solution {
+public:
+    string convert(string s, int numRows) {
+        if(s.size() == 0)
+            return "";
+        if(numRows == 1)
+            return s;
+        vector<string> rows;
+		for(int k=0; k<numRows; k++)
+			rows.push_back("");
+        bool back = false;
+        int rowNumber = 0;
+        for(int i=0; i<s.size(); i++){
+			
+            rows[rowNumber] += s[i];
+            if(rowNumber == numRows-1)
+                back = true;
+            if(rowNumber == 0)
+                back = false;
+            if(back)
+                rowNumber--;
+            else
+                rowNumber++;
+        }
+        string result = "";
+        for(int j=0; j<rows.size(); j++)
+            result+=rows[j];
+        return result;
+    }
+}
+
+
+Longest Palindromic Substring 
+Given a string S, find the longest palindromic substring in S. You may assume that the maximum length of S is 1000, and there exists one unique longest palindromic substring.
+
+class Solution {
+public:
+    //采用动态规划的方法,时间复杂度为O(N^2),空间复杂度为O(N^2)：
+    //Define P[ i, j ] ← true iff the substring Si … Sj is a palindrome, otherwise false.
+    //P[ i, j ] ← ( P[ i+1, j-1 ] and Si = Sj )
+    /*
+    string longestPalindrome(string s) {
+        if(s.size() <= 1)
+            return s;
+        int len = 1;
+        int start = 0;
+        int size = s.size();
+        
+        bool p[1000][1000] = {false};  
+        
+        
+        //采用下面的方式来申请内存时，会发生内存超出，直接的采用上面的数组声明就不会
+        //看来以后在声明数组的时候，如果在知道空间大小的情况下，还是要直接的申请数组，而不能采用new的方式！！！！！
+        //bool **p = new bool*[size];
+        //for(int i=0; i<size; i++){
+        //    p[i] = new bool[size];
+        //}
+        
+        for (int i = 0; i < size; i++) {  
+            p[i][i] = true;  
+        }
+        for(int i=0; i<size-1; i++){
+            p[i][i+1] = (s[i] == s[i+1]);
+            if(p[i][i+1] && 2>len){
+                    len = 2;
+                    start = i;
+                }
+        }
+        for(int k=3; k<=size; k++){
+            for(int i=0; i<=size-k; i++){
+                p[i][i+k-1] = (p[i+1][i+k-2] && s[i] == s[i+k-1]);
+                if(p[i][i+k-1] && k>len){
+                    len = k;
+                    start = i;
+                }
+            }
+        }
+        return s.substr(start, len);
+    }
+    */
+    
+    
+    /*
+    时间复杂度为O(N²), 空间复杂度为O(1)的算法-从中间向两边展开
+    回文字符串显然有个特征是沿着中心那个字符轴对称。比如aha沿着中间的h轴对称，a沿着中间的a轴对称。那么aa呢？
+    沿着中间的空字符''轴对称。所以对于长度为奇数的回文字符串，它沿着中心字符轴对称，对于长度为偶数的回文字符
+    串，它沿着中心的空字符轴对称。对于长度为N的候选字符串，我们需要在每一个可能的中心点进行检测以判断是否构成
+    回文字符串，这样的中心点一共有2N-1个(2N-1=N-1 + N)。
+    检测的具体办法是，从中心开始向两端展开，观察两端的字符是否相同
+    */
+    /*
+    string longestPalindrome(string s) {
+        if(s.size() <= 1)
+            return s;
+        int size = s.size();
+        string ret = s.substr(0, 1);
+        for(int i=0; i<size-1; i++){
+            string s1 = getPalindrom(s, i, i);
+            string s2 = getPalindrom(s, i, i+1);
+            if(ret.length() < s1.length())
+                ret = s1;
+            if(ret.length() < s2.length()){
+                ret = s2;
+            }
+        }
+        return ret;
+    }
+    
+    string getPalindrom(string s, int left, int right){
+        int size = s.size();
+        while(left>=0 && right<size && s[left] == s[right]){
+            left--;
+            right++;
+        }
+        return s.substr(left+1, right-left-1);
+    }
+    */
+    
+    /*
+    时间复杂度为O(N),空间复杂度为O(N)的算法
+    
+    */
+     string longestPalindrome(string s) {
+         if(s.size() <= 1)
+            return s;
+         
+         string T = transform(s);
+         //记录以下标i为中心的回文的长度的一半，即中心到edge R的距离
+         int *p = new int[T.size()];
+         //中心的起始为0， edge R的起始也为0；
+         int C = 0, R = 0;
+         //字符串T以特殊符号$作为结尾，这里要i<T.size()-1，不能遍历到$,因为该字符使用来是的下面的while循环条件不符合而截至循环的，
+         //从而使得数组不会产生溢出！！！！
+         for(int i=0; i<T.size()-1; i++){
+             //根据中心以及当前的下标，获得其相对于中心C的镜像下标
+             int mirror_i = 2*C - i;
+             //对于每一个新的下标i，获得其p[i],当i<R时，有两种情况：
+             //1: p[mirror_i] < (R-i),那么直接的将p[i] = p[mirror_i];
+             //2: p[mirror_i] > (R-i),表明已经不在回文对称性的范围内了，此时p[i]的值最小为R-i，至于多少就只能继续遍历
+             //当i>R时,此时已经不在上一个回文的范围内，所以要继续遍历看看以i为中点的回文是什么，并更新新的回文中心
+             //C = i, R = i+p[i];
+             p[i] = R>i? min(p[mirror_i], R-i): 0;
+             //获得以i为下标的回文的具体长度p[i],当i<R时,循环的条件将不成立，所以不进入循环
+             while(T[i-p[i]-1] == T[i+p[i]+1])
+                 p[i]++;
+             if(i+p[i] > R){
+                 C = i;
+                 R = i+p[i];
+             }
+         }
+         //index记录最长回文的中心下标,记住，这里的是T字符串的小标，还要转成s的下标
+         int index = 0;
+         int largest = 0;
+         //只能遍历到T.size()-1，不能到特殊符号$
+         for(int i=0; i<T.size()-1; i++){
+             if(largest < p[i]){
+                 largest = p[i];
+                 index = i;
+             }
+         }
+         return s.substr((index-largest-1)/2, largest);
+     }
+     
+     string transform(string s){
+         string ret = "^";
+         for(int i=0; i<s.size(); i++){
+             ret += "#"+s.substr(i, 1);
+         }
+         return ret+"#$";
+     }
+}
+
+
+Longest Substring Without Repeating Characters 
+Given a string, find the length of the longest substring without repeating characters. For example, the longest substring without repeating letters for "abcabcbb" is "abc", which the length is 3. For "bbbbb" the longest substring is "b", with the length of 1.
+
+class Solution {
+public:
+    //212ms
+    int lengthOfLongestSubstring(string s) {
+        if(s.size() == 0)
+            return 0;
+        map<char, int> search;
+        int length = 0;
+        int longest = 0;
+        for(int i=0; i<s.size(); i++){
+            if(search.find(s[i]) == search.end()){
+                search[s[i]] = i;
+                length++;
+                continue;
+            }
+            //找到前面出现过的字符，获得字符在s中的下标index，直接的删除search中index以及前面的字符
+            if(longest<length)
+                longest = length;
+            int index = search[s[i]];
+            for(int j=index; j>=0; j--){
+                if(search.find(s[j]) == search.end() || search[s[j]] > index)
+                    break;
+                else{
+                    search.erase(s[j]);
+                    length--;
+                }
+            }
+            search[s[i]] = i;
+            length++;
+        }
+        return longest>length? longest: length;
+    }
+    
+    // 16ms
+    /*
+    int lengthOfLongestSubstring(string s) {
+        //记录每一个字符出现在s中出现的最新位置
+        vector<int> dict(256, -1);
+        //start为目前最长的不同子字符串的其实下标
+        int maxLen = 0, start = -1;
+        for (int i = 0; i != s.length(); i++) {
+            //当当前的字符已经在前面出现过，那么更改start
+            if (dict[s[i]] > start)
+                start = dict[s[i]];
+            dict[s[i]] = i;
+            maxLen = max(maxLen, i - start);
+        }
+        return maxLen;
+    }
+    */
+    
+}
+
+

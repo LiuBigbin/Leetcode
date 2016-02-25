@@ -1,0 +1,572 @@
+H-Index 
+Given an array of citations (each citation is a non-negative integer) of a researcher, write a function to compute the researcher's h-index.According to the definition of h-index on Wikipedia: "A scientist has index h if h of his/her N papers have at least h citations each, and the other N − h papers have no more than h citations each."For example, given citations = [3, 0, 6, 1, 5], which means the researcher has 5 papers in total and each of them had received 3, 0, 6, 1, 5 citations respectively. Since the researcher has 3 papers with at least 3 citations each and the remaining two with no more than 3 citations each, his h-index is 3.
+Note: If there are several possible values for h, the maximum one is taken as the h-index.  An easy approach is to sort the array first.  What are the possible values of h-index?  A faster approach is to use extra space.
+Credits:Special thanks to @jianchao.li.fighter for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    
+    bool static desc(const int &a, const int &b){
+        return a>b;
+    }
+    
+    //先降序排序，只要第i（从1开始）个元素的值小于i，那么i-1就是要求的值
+    int hIndex(vector<int>& citations) {
+        sort(citations.begin(), citations.end(), desc);
+        int i;
+        for(i=1; i<=citations.size(); i++){
+            if(citations[i-1] < i)
+                return i-1;
+        }
+        return i-1;
+    }
+    /*还没调试成功
+    //利用快排的思想，找到中轴值d，使得数组的左边元素值大于右边的元素值，
+    //如果有i个大于d值，当d>i+1,那么要找的元素在数组的右边，否则的话在左边
+    int hIndex(vector<int>& citations) {
+        if(citations.size() == 0)
+            return 0;
+        int first = 0;
+        int end = citations.size()-1;
+        while(first<end){
+            //以first所在的元素作为中轴值
+            int i = first;
+            int j = end;
+            int total = 0;
+            int median = 0;
+            while(i<j){
+                while(i<j && citations[++i] >= citations[first]) total++;
+                while(j>i && citations[j] < citations[first]) j--;
+                if(i<j){
+                    int temp = citations[i];
+                    citations[i] = citations[j];
+                    citations[j] = temp;
+                    total++;
+                }
+            }
+            if(citations[i] > citations[first]){
+                 int temp = citations[i];
+                 citations[i] = citations[first];
+                 citations[first] = temp;
+                 median = i;
+                 total++;
+            }
+           else{
+               int temp = citations[i-1];
+               citations[i-1] = citations[first];
+               citations[first] = temp;
+               median = i-1;
+           }
+            
+            if(citations[median] >= total+1)
+                first = i+1;
+            else
+                end = i-1;
+        }
+        if(citations[first] == 0)
+            return 0;
+        return first+1;
+    }
+    */
+}
+
+
+Valid Anagram 
+Given two strings s and t, write a function to determine if t is an anagram of s. For example,s = "anagram", t = "nagaram", return true.s = "rat", t = "car", return false.
+Note:You may assume the string contains only lowercase alphabets.Follow up:What if the inputs contain unicode characters? How would you adapt your solution to such case?
+
+class Solution {
+public:
+/*  妈蛋，并不是只有一个小字串不同，可以有很多个不同的小字串，而且互换的不一定是回文，可以任意位置互换
+    bool isAnagram(string s, string t) {
+        if(s.size() != t.size())
+            return false;
+        int i = 0;
+        int start = 0;
+        while(i<s.size()){
+            //找到第一个不一样的元素
+            while(i<s.size() && s[i] == t[i])i++;
+                if(i == s.size())
+                    return true;
+            start = i;
+            for(i++; i<s.size(); i++){
+                //如果找到第一个回文的话，推出循环，i++
+                if(isPalindrome(s, t, start, i)){
+                    break;
+                }
+            }
+            if(i==s.size())
+                return false;
+            i++;
+        }
+        
+        
+       
+        return true;
+    }
+    
+private:
+    //查看start到end之间的元素是不是回文
+    bool isPalindrome(string s, string t, int start, int end){
+        for(int j=start, k = end; j<=end; j++, k--){
+            if(s[j] != t[k])
+                return false;
+        }
+        return true;
+    }
+*/
+
+bool isAnagram(string s, string t) {
+        if(s.size() != t.size())
+            return false;
+        map<char, int> sMap;
+        map<char, int> tMap;
+        for(int i=0; i<s.size(); i++){
+            if(sMap.find(s[i]) != sMap.end())
+                sMap[s[i]]++;
+            else{
+                sMap[s[i]] = 1;
+                
+            }
+            if(tMap.find(t[i]) != tMap.end())
+                tMap[t[i]]++;
+            else
+                tMap[t[i]] = 1;
+        }
+        
+        for(map<char, int>::iterator it=sMap.begin(); it!=sMap.end(); it++){
+            if(it->second != tMap[it->first])
+                return false;
+        }
+        return true;
+    }
+ 
+}
+
+
+Largest Number 
+Given a list of non negative integers, arrange them such that they form the largest number.For example, given [3, 30, 34, 5, 9], the largest formed number is 9534330.
+Note: The result may be very large, so you need to return a string instead of an integer.
+Credits:Special thanks to @ts for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    //将所有的整数转为字符串，然后按照字典排序将所有字符串排序，在一个一个连起来就是结果了
+    string largestNumber(vector<int>& nums) {
+        if(nums.size() == 0)
+            return "";
+        vector<string> numStr;
+        int countOfZero = 0;
+        for(int i=0; i<nums.size(); i++){
+            string temp = "";
+            if(nums[i] == 0){
+                numStr.push_back("0");
+                countOfZero++;
+                continue;
+            }
+            while(nums[i]){
+                temp = (char)(nums[i]%10 + '0') + temp;
+                nums[i] /= 10;
+            }
+            numStr.push_back(temp);
+        }
+        //如果所有数值都是0的话，直接输出0；
+        if(countOfZero == numStr.size())
+            return "0";
+        //将numStr排序
+        sort(numStr.begin(), numStr.end(), cmp);
+        string ret = "";
+        for(int i=0; i<numStr.size(); i++){
+            ret += numStr[i];
+        }
+        return ret;
+        
+    }
+    
+    //排序用的比较函数,这里要用static，不然sort函数中不能使用cmp函数
+    static bool cmp(string &a, string &b){
+        string ab = a+b;
+        string ba = b+a;
+        return ab>ba;
+    }
+}
+
+
+Maximum Gap 
+Given an unsorted array, find the maximum difference between the successive elements in its sorted form.Try to solve it in linear time/space.Return 0 if the array contains less than 2 elements.You may assume all elements in the array are non-negative integers and fit in the 32-bit signed integer range.
+Credits:Special thanks to @porker2008 for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    //线性的排序只有桶排序、计数排序和基数排序，最合适的是桶排序，然而这里如果使用原始的
+    //桶排序的话，那么将会有很多的内存浪费，会造成超内存问题，可以想一下，将数组排好序后
+    //我们想要求的也就是最大的间隔，以间隔来切数组的话，那么数组将类似于聚类一样，间隔小
+    //的元素作为一堆，堆内的各个元素的间隔可以忽略，因为不是所要求的最大值，最大的间隔
+    //是在堆之间，所以只需要求出堆之间的间隔就好，那么问题就来了，这个想法跟桶排序有个
+    //毛关系啊，如果我们这样看呢：一个堆就是一个桶，将所有的元素映射到对应的桶里面，每一个
+    //桶里面只需要记住该桶的元素的最大值和最小值，用于计算堆之间的间隔，这样的话就好像跟
+    //桶排序有那么一点点关系了！！！那么怎样计算桶的个数呢，如果数组的数值范围在A-B之间，
+    //那么真正的桶排序需要用到B-A个桶，这样直接的话，会造成内存不够，再说我们不需要所有元素都
+    //存在桶里面，每个桶只需要存两个元素就好了。对于有N个元素的数组，其最大的间隔的值将不会小于
+    //len = (B-A)/(N-1)+1,那么我们可以根据这个距离来计算桶的个数：(B-A)/len+1 !!!
+    /* 16ms
+    int maximumGap(vector<int>& nums) {
+        if(nums.size() < 2)
+            return 0;
+        int min=INT_MAX, max=INT_MIN;
+        for(int i=0; i<nums.size(); i++){
+            if(min>nums[i])
+                min = nums[i];
+            if(max<nums[i])
+                max = nums[i];
+        }
+        int len = (max-min)/(nums.size()-1)+1;
+        int number = (max-min)/len+1;
+        vector<vector<int>> ret(number, vector<int>(2, -1));
+        for(int i=0; i<nums.size(); i++){
+            int index = (nums[i]-min)/len;
+            if(ret[index][0] == -1){
+                ret[index][0] = nums[i];
+                ret[index][1] = nums[i];
+                continue;
+            }
+            if(ret[index][0]>nums[i])
+                ret[index][0] = nums[i];
+            if(ret[index][1]<nums[i])
+                ret[index][1] = nums[i];
+            
+        }
+        
+        int maxdiff = 0;
+        int i = 0;
+        //找到第一个不为空的桶
+        while(ret[i][0] == -1)
+            i++;
+        for(; i<number; i++){
+            int j = i+1;
+            //找到下一个不为空的桶
+            while(j<number && ret[j][0] == -1) j++;
+            if(j == number)
+                break;
+            if(maxdiff<ret[j][0]-ret[i][1])
+                maxdiff = ret[j][0]-ret[i][1];
+            i = j-1;
+            
+        }
+        //只有一个桶的情况下
+        if(maxdiff < ret[i][1]-ret[i][0])
+            maxdiff = ret[i][1]-ret[i][0];
+        return maxdiff;
+    }
+    */
+    //直接的排序 也是16ms
+    int maximumGap(vector<int>& nums) {
+        if(nums.size() < 2)
+            return 0;
+            
+        sort(nums.begin(), nums.end());
+        int max = 0;
+        for(int i=1; i<nums.size(); i++){
+            if(max<nums[i]-nums[i-1])
+               max = nums[i]-nums[i-1];
+        }
+        return max;
+    }
+}
+
+
+Sort List 
+Sort a linked list in O(n log n) time using constant space complexity.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* sortList(ListNode* head) {
+       return mergeSort(head);
+    }
+    
+    ListNode* mergeSort(ListNode* head){
+        if(head == NULL){
+            return NULL;
+        }
+        if(head->next == NULL)
+            return head;
+        ListNode* first = head;
+		ListNode* second = NULL;
+		ListNode* cur = head->next;
+		ListNode* quick = head->next;
+		ListNode* pre = head;
+		while (quick->next != NULL) {
+			cur = cur->next;
+			pre = pre->next;
+			quick = quick->next;
+			if (quick->next == NULL)
+				break;
+			quick = quick->next;
+		}
+		pre->next = NULL;
+        first = mergeSort(first);
+        second = mergeSort(cur);
+        if(first == NULL)
+            return second;
+        if(second == NULL)
+            return first;
+        if (first != NULL && second != NULL) {
+			if (first->val < second->val) {
+				head = first;
+				first = first->next;
+			}
+			else {
+				head = second;
+				second = second->next;
+			}
+			    
+		}
+        cur = head;
+        while(first!=NULL && second!=NULL){
+            if(first->val<second->val){
+                cur->next = first;
+                first = first->next;
+                cur = cur->next;
+            }
+            else{
+                cur->next = second;
+                second = second->next;
+                cur = cur->next;
+            }
+        }
+        if(first == NULL)
+            cur->next = second;
+        else
+            cur->next = first;
+        return head;
+    }
+}
+
+
+Insertion Sort List 
+Sort a linked list using insertion sort.
+
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode(int x) : val(x), next(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* insertionSortList(ListNode* head) {
+        if(head == NULL)
+            return NULL;
+        ListNode *tail = head;
+        ListNode* cur = head->next;
+        tail->next = NULL;
+        while(cur != NULL){
+            ListNode * temp = head;
+            ListNode * pre = head;
+            if(head->val > cur->val){
+                head = cur;
+                cur = cur->next;
+                head->next = temp;
+                continue;
+            }
+            if(tail->val < cur->val){
+                tail->next = cur;
+                tail = cur;
+                cur = cur->next;
+                tail->next = NULL;
+                continue;
+            }
+            while(temp != tail){
+                if(temp->val < cur->val){
+                    pre = temp;
+                    temp = temp->next;
+                }
+                else
+                    break;
+            }
+            
+            ListNode *t = pre->next;
+            pre->next = cur;
+            cur = cur->next;
+            pre->next->next = t;
+
+        }
+        return head;
+    }
+}
+
+
+Sort Colors 
+Given an array with n objects colored red, white or blue, sort them so that objects of the same color are adjacent, with the colors in the order red, white and blue.Here, we will use the integers 0, 1, and 2 to represent the color red, white, and blue respectively.
+Note:You are not suppose to use the library's sort function for this problem.click to show follow up.Follow up:A rather straight forward solution is a two-pass algorithm using counting sort.First, iterate the array counting number of 0's, 1's, and 2's, then overwrite array with total number of 0's, then 1's and followed by 2's.Could you come up with an one-pass algorithm using only constant space?
+
+class Solution {
+public:
+    //采用计算排除，因为这里只有三个不同的元素，所以可以直接的采用计算排序，
+    //先算出每一个元素的出现次数，再从最小的元素开始每一个元素出现几次就写几次
+    //这里就不写计算排序算法的实现了，这里采用的是:
+    //
+    //因为最后的结果是0在最前面，2在最后面，所以记住1的其实位置以及2的其实位置，每次遇到0，那么直接将0
+    //与1的其实位置交换，1的起始位置右移，遇到1直接跳过，遇到2将2与2的其实位置的的前一个位置交换，此时要判断该位置的
+    //值是否为0，是的话，采取0与1交换的方法，如果是1的话，直接跳过
+    void sortColors(vector<int>& nums) {
+        if(nums.size() == 0)
+            return ;
+        int index1 = -1;
+        int index2 = nums.size()-1;
+        while(index2>0 && nums[index2] == 2)index2--;
+        if(index2 == -1)
+            return ;
+        index2++;
+        //i<index2,因为到2的起始位置的时候，后面都已经是2了，没必要遍历了
+        for(int i=0; i<index2; i++){
+            //元素为1，直接跳过
+            if(nums[i] == 1){
+                if(index1 == -1)
+                   index1 = i;
+                continue;
+            }
+                
+            //0与1交换
+            if(nums[i] == 0 && index1 != -1){
+                nums[index1] = 0;
+                nums[i] = 1;
+                index1++;
+                continue;
+            }
+            //元素为2时，交换
+            if(nums[i] == 2){
+                nums[i] = nums[index2-1];
+                nums[index2-1] = 2;
+                index2--;
+                if(nums[i] == 1 && index1 == -1)
+                    index1 = i;
+                else if(nums[i] == 0 && index1 != -1){
+                    nums[index1] = 0;
+                    nums[i] = 1;
+                    index1++;
+                }
+                //这一步很关键，因为2的起始位置的前一位换成了2，有可能前一位的前一位以及其前面的元素是2，所以这里要遍历
+                //一下，保证index2是最新的2的起始位置
+                while(nums[index2] == 2)index2--;
+                index2++;
+            }
+        }
+    }
+}
+
+
+Insert Interval 
+Given a set of non-overlapping intervals, insert a new interval into the intervals (merge if necessary).You may assume that the intervals were initially sorted according to their start times.Example 1:Given intervals [1,3],[6,9], insert and merge [2,5] in as [1,5],[6,9].Example 2:Given [1,2],[3,5],[6,7],[8,10],[12,16], insert and merge [4,9] in as [1,2],[3,10],[12,16].This is because the new interval [4,9] overlaps with [3,5],[6,7],[8,10].
+
+/**
+ * Definition for an interval.
+ * struct Interval {
+ *     int start;
+ *     int end;
+ *     Interval() : start(0), end(0) {}
+ *     Interval(int s, int e) : start(s), end(e) {}
+ * };
+ */
+class Solution {
+public:
+    vector<Interval> insert(vector<Interval>& intervals, Interval newInterval) {
+        vector<Interval> ret;
+        if(intervals.size() == 0){
+            ret.push_back(newInterval);
+            return ret;
+        }
+            
+        int i=0;
+        while(i<intervals.size() && intervals[i].end<newInterval.start){
+            ret.push_back(intervals[i]);
+            i++;
+        }
+        if(i == intervals.size()){
+            ret.push_back(newInterval);
+            return ret;
+        }
+        if(intervals[i].start<=newInterval.start)
+            newInterval.start = intervals[i].start;
+        if(newInterval.end<intervals[i].start){
+            ret.push_back(newInterval);
+            ret.push_back(intervals[i]);
+        }
+            
+        else if(newInterval.end<=intervals[i].end){
+            newInterval.end = intervals[i].end;
+            ret.push_back(newInterval);
+        }
+        else{
+            i++;
+            while(i<intervals.size() && intervals[i].end<newInterval.end)
+                i++;
+            if(i==intervals.size()){
+                ret.push_back(newInterval);
+                return ret;
+            }
+            if(intervals[i].start<=newInterval.end){
+                newInterval.end = intervals[i].end;
+                ret.push_back(newInterval);
+            }
+            else{
+                ret.push_back(newInterval);
+                ret.push_back(intervals[i]);
+            }
+        }
+        while(++i<intervals.size())
+            ret.push_back(intervals[i]);
+        return ret;
+       
+    }
+}
+
+
+Merge Intervals 
+Given a collection of intervals, merge all overlapping intervals.For example,Given [1,3],[2,6],[8,10],[15,18],return [1,6],[8,10],[15,18].
+
+/**
+ * Definition for an interval.
+ * struct Interval {
+ *     int start;
+ *     int end;
+ *     Interval() : start(0), end(0) {}
+ *     Interval(int s, int e) : start(s), end(e) {}
+ * };
+ */
+class Solution {
+public:
+    vector<Interval> merge(vector<Interval>& intervals) {
+        if(intervals.size() == 0)
+            return {};
+        sort(intervals.begin(), intervals.end(), cmp);
+        vector<Interval> ret;
+        Interval temp = intervals[0];
+        for(int i=1; i<intervals.size(); i++){
+            if(intervals[i].start<= temp.end){
+                temp.end = intervals[i].end>temp.end? intervals[i].end: temp.end;
+                continue;
+            }
+            ret.push_back(temp);
+            temp = intervals[i];
+        }
+        ret.push_back(temp);
+        return ret;
+    }
+    
+    static bool cmp(Interval &a, Interval &b){
+        return a.start<b.start;
+    }
+}
+
+

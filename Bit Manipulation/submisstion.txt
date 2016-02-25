@@ -1,0 +1,299 @@
+Missing Number 
+Given an array containing n distinct numbers taken from 0, 1, 2, ..., n, find the one that is missing from the array.For example,Given nums = [0, 1, 3] return 2.
+Note:Your algorithm should run in linear runtime complexity. Could you implement it using only constant extra space complexity?
+Credits:Special thanks to @jianchao.li.fighter for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    int missingNumber(vector<int>& nums) {
+        int total = 0;
+        int count = 0;
+        for(int i=0; i<nums.size(); i++){
+            total += i+1;
+            count += nums[i];
+        }
+        return total-count;
+    }
+}
+
+
+Single Number III 
+Given an array of numbers nums, in which exactly two elements appear only once and all the other elements appear exactly twice. Find the two elements that appear only once.For example:Given nums = [1, 2, 1, 3, 2, 5], return [3, 5].
+Note:The order of the result is not important. So in the above example, [5, 3] is also correct.Your algorithm should run in linear runtime complexity. Could you implement it using only constant space complexity?
+Credits:Special thanks to @jianchao.li.fighter for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    //该问题为2*n+2的问题，我们先将其分为2*n+1的问题，先将数组异或得到XOR，找出XOR中最后一位bit值为1的下标，
+    //根据该下标是否为1，将原数组分为两个2*n+1的数组。
+    vector<int> singleNumber(vector<int>& nums) {
+        vector<int> result;
+        if(nums.size() == 0)
+            return result;
+        int XOR = 0;
+        for(int i=0; i<nums.size(); i++)
+            XOR ^= nums[i];
+        //找出XOR中最后一个bit为1的小标的值
+        int index = XOR&(~(XOR-1));
+        int num1 = 0;
+        int num2 = 0;
+        for(int j=0; j<nums.size(); j++){
+            if((nums[j] & index) == index)
+                num1 ^= nums[j];
+            else
+                num2 ^= nums[j];
+        }
+        result.push_back(num1);
+        result.push_back(num2);
+        return result;
+    }
+}
+
+
+Power of Two 
+Given an integer, write a function to determine if it is a power of two.
+Credits:Special thanks to @jianchao.li.fighter for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    bool isPowerOfTwo(int n) {
+        if(n == 0)
+            return false;
+        while(n != 1){
+            if(n%2 != 0){
+                return false;
+            }
+            n /= 2;      
+                
+        }
+            
+       return true;
+    }
+}
+
+
+Bitwise AND of Numbers Range 
+Given a range [m, n] where 0 <;= m <;= n <;= 2147483647, return the bitwise AND of all numbers in this range, inclusive.For example, given the range [5, 7], you should return 4.
+Credits:Special thanks to @amrsaqr for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    
+    //超时！！！
+    /*
+    int rangeBitwiseAnd(int m, int n) {
+        if(m == 0)
+            return 0;
+        int ret = m;
+        m++;
+        while(m<=n){
+            ret &= m;
+            m++;
+        }
+        return ret;
+    }
+    */
+    
+    //直接的找出m和n的共同前缀
+    int rangeBitwiseAnd(int m, int n) {
+        if(m == 0)
+            return 0;
+        int bit = 0;
+        while(m!=n){
+            m>>=1;
+            n>>=1;
+            bit++;
+        }
+        return m<<bit;;
+    }
+}
+
+
+Number of 1 Bits 
+Write a function that takes an unsigned integer and returns the number of ’1' bits it has (also known as the Hamming weight).For example, the 32-bit integer ’11' has binary representation 00000000000000000000000000001011, so the function should return 3.
+Credits:Special thanks to @ts for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    int hammingWeight(uint32_t n) {
+        int number = 0;
+        while(n){
+            number+=(n&1);
+            n >>=1;
+        }
+        return number;
+    }
+}
+
+
+Reverse Bits 
+Reverse bits of a given 32 bits unsigned integer.For example, given input 43261596 (represented in binary as 00000010100101000001111010011100), return 964176192 (represented in binary as 00111001011110000010100101000000).Follow up:If this function is called many times, how would you optimize it?Related problem: Reverse Integer
+Credits:Special thanks to @ts for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    uint32_t reverseBits(uint32_t n) {
+        if(n == 0)
+            return n;
+        int reverse = 0;
+        for(int i=0; i<32; i++){
+            reverse <<= 1;
+            reverse |= (n&1);
+            n >>= 1;
+        }
+    }
+}
+
+
+Repeated DNA Sequences 
+All DNA is composed of a series of nucleotides abbreviated as A, C, G, and T, for example: "ACGAATTCCG". When studying DNA, it is sometimes useful to identify repeated sequences within the DNA.Write a function to find all the 10-letter-long sequences (substrings) that occur more than once in a DNA molecule.For example,Given s = "AAAAACCCCCAAAAACCCCCCAAAAAGGGTTT",Return:["AAAAACCCCC", "CCCCCAAAAA"].
+
+class Solution {
+public:
+    //这道题是要写出所有出现次数超过1的十个字符长度的子序列，所以必须遍历到所有十字符长的子序列
+    //对于遍历可以有两种情况：
+    //1：从位置i开始，每十个字符切断，i的取值范围为[0,9], 这是所有子串的情况
+    //2：从0开始，长度为十，遍历到n-10
+    //这里采用第二中遍历的方法，而且，为了节约内存，不是直接的存储十个长度的字符串，而是使用位来存储
+    //因为这里的字符只有四种情况，且ACGT四个字符的二进制表示只有后面的三位不一样，所以我们可以只使用
+    //后三位的bit来表示他们
+    vector<string> findRepeatedDnaSequences(string s) {
+        if(s.size() <= 10)
+            return {};
+        int mask = 0x3fffffff;
+        unordered_map<int, int> m;
+        int i=0;
+        int cur = 0;
+        vector<string> ret;
+        while(i<s.size()){
+            cur = ((cur<<3)|(s[i++]&0x7))&mask;
+            //只记录所有墙面出现过一次的，出现过大于一次的已经在之前记录了，就不需要再记录
+            if(m[cur]++ == 1)
+                ret.push_back(s.substr(i-10, 10));
+        }
+        return ret;
+    }
+}
+
+
+Majority Element 
+Given an array of size n, find the majority element. The majority element is the element that appears more than &amp;lfloor; n/2 &amp;rfloor; times.You may assume that the array is non-empty and the majority element always exist in the array.
+Credits:Special thanks to @ts for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    //两个不同的元素抵消掉，最后剩下的就是那个众数
+    int majorityElement(vector<int>& nums) {
+        if(nums.size()==1)
+            return nums[0];
+        int count = 0;
+        int start = 0; 
+        int index = 1;
+        for(; index<nums.size(); index++){
+            if(nums[start] == nums[index]){
+                count++;
+                if(count>nums.size()/2)
+                    return nums[start];
+            }
+                
+            else{
+                if(count == 0){
+                    start = ++index;
+                }
+                else{
+                    count--;
+                }
+            }
+        }
+         return nums[start];
+    }
+}
+
+
+Single Number II 
+Given an array of integers, every element appears three times except for one. Find that single one.
+Note:Your algorithm should have a linear runtime complexity. Could you implement it without using extra memory?
+
+class Solution {
+public:
+    int singleNumber(vector<int>& nums) {
+        int one = 0, two = 0, three = 0;
+        for(int i=0; i<nums.size(); i++){
+            three = two&nums[i];
+            two = (two^three) | (one&nums[i]);
+            one = one^nums[i]^three;
+            
+        }
+        return one;
+    }
+}
+
+
+Single Number 
+Given an array of integers, every element appears twice except for one. Find that single one.
+Note:Your algorithm should have a linear runtime complexity. Could you implement it without using extra memory?
+
+class Solution {
+public:
+    int singleNumber(vector<int>& nums) {
+        if(nums.size() == 0)
+            return 0;
+        int ret = nums[0] ;
+        for(int i=1; i<nums.size(); i++){
+            ret ^= nums[i];
+        }
+        
+        return ret;
+    }
+}
+
+
+Subsets 
+Given a set of distinct integers, nums, return all possible subsets.
+Note:Elements in a subset must be in non-descending order.The solution set must not contain duplicate subsets.For example,If nums = [1,2,3], a solution is:[  [3],  [1],  [2],  [1,2,3],  [1,3],  [2,3],  [1,2],  []]
+
+class Solution {
+public:
+   //递归，8ms
+   /*
+    vector<vector<int>> subsets(vector<int>& nums) {
+        if(nums.size() == 0)
+            return {};
+        vector<vector<int> > ret;
+        vector<int> temp;
+        sort(nums.begin(), nums.end());
+        _subsets(ret, temp, nums, 0);
+        return ret;
+    }
+    void _subsets(vector<vector<int> > &ret, vector<int> &temp, vector<int> &nums, int index){
+        if(index == nums.size())
+            ret.push_back(temp);
+        else{
+            _subsets(ret, temp, nums, index+1);
+            
+            temp.push_back(nums[index]);
+            _subsets(ret, temp, nums, index+1);
+            temp.pop_back();
+        }
+    }
+    */
+    //非递归方式 4ms
+    vector<vector<int>> subsets(vector<int>& nums) {
+        sort(nums.begin(),nums.end());
+
+        vector<int> s;
+        vector<vector<int>> result(1,s);
+        int n = nums.size(),j;
+
+        for(int i = 0 ; i+1<1<<n;i++)
+        {
+            for(j = 0; (i>>j)&1;j++) s.pop_back();
+            s.push_back(nums[n - j - 1]);
+            result.push_back(s);
+        }
+
+        return result;
+    }
+}
+
+

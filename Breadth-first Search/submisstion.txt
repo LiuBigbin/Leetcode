@@ -1,0 +1,858 @@
+Perfect Squares 
+Given a positive integer n, find the least number of perfect square numbers (for example, 1, 4, 9, 16, ...) which sum to n.For example, given n = 12, return 3 because 12 = 4 + 4 + 4; given n = 13, return 2 because 13 = 4 + 9.
+Credits:Special thanks to @jianchao.li.fighter for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    //使用递归
+    int numSquares(int n) {
+        double square = sqrt(n);
+        square = (int)square;
+        return _numSquare(n, square);
+    }
+    /*
+    //超时
+    int _numSquare(int n, int begin){
+        if(begin*begin == n)
+            return 1;
+        if(begin == 1)
+            return n;
+        else{
+            if(begin*begin < n){
+                return min(_numSquare(n-begin*begin, begin) +1, _numSquare(n, begin-1));
+            }
+            else{
+                return _numSquare(n, begin-1);
+            }
+        }
+            
+    }
+    */
+    /*
+    //内存不够
+        int _numSquare(int n, int begin){
+        int** f = new int*[begin+1];
+		for(int a=0; a<=begin; a++)
+			f[a] = new int[n+1];
+         for(int j=1; j<=n; j++){
+            f[1][j] = j;
+           
+        }
+        for(int b=1; b<=begin; b++)
+			 f[b][0] = 0;
+        
+        for(int i=2; i<=begin; i++)
+            for(int j=1; j<=n; j++){
+                if(i*i<=j)
+                    f[i][j] = f[i][j-i*i]+1 > f[i-1][j]? f[i-1][j]:f[i][j-i*i]+1;
+                else
+                    f[i][j] = f[i-1][j];
+            }
+     return f[begin][n];
+    }
+    */
+    //采用滚动数组
+    	int _numSquare(int n, int begin){
+        int* f = new int[n+1];
+		
+        for(int j=0; j<=n; j++){
+            f[j] = j;
+           
+        }
+        for(int i=2; i<=begin; i++)
+            for(int j=1; j<=n; j++){
+                if(i*i<=j)
+                    f[j] = f[j-i*i]+1 > f[j]? f[j]:f[j-i*i]+1;
+                else
+                    f[j] = f[j];
+            }
+     return f[n];
+    
+    }
+    
+}
+
+
+Course Schedule II 
+There are a total of n courses you have to take, labeled from 0 to n - 1.Some courses may have prerequisites, for example to take course 0 you have to first take course 1, which is expressed as a pair: [0,1]Given the total number of courses and a list of prerequisite pairs, return the ordering of courses you should take to finish all courses.There may be multiple correct orders, you just need to return one of them. If it is impossible to finish all courses, return an empty array.For example:2, [[1,0]]There are a total of 2 courses to take. To take course 1 you should have finished course 0. So the correct course order is [0,1]4, [[1,0],[2,0],[3,1],[3,2]]There are a total of 4 courses to take. To take course 3 you should have finished both courses 1 and 2. Both courses 1 and 2 should be taken after you finished course 0. So one correct course order is [0,1,2,3]. Another correct ordering is[0,2,1,3].
+Note:The input prerequisites is a graph represented by a list of edges, not adjacency matrices. Read more about how a graph is represented.click to show more hints.Hints:This problem is equivalent to finding the topological order in a directed graph. If a cycle exists, no topological ordering exists and therefore it will be impossible to take all courses.Topological Sort via DFS - A great video tutorial (21 minutes) on Coursera explaining the basic concepts of Topological Sort.Topological sort could also be done via BFS.
+
+class Solution {
+public:
+    //是有一部分的课程需要先修其他的课，并不是所有的课程都需要先修
+    vector<int> findOrder(int numCourses, vector<pair<int, int>>& prerequisites) {
+        if(numCourses == 0)
+            return {};
+        
+        vector<vector<int>> graph(numCourses, vector<int>(0));
+        vector<int> inDegree(numCourses, 0);
+        queue<int> que;
+        vector<int> ret;
+        for(auto p: prerequisites){
+            graph[p.second].push_back(p.first);
+            inDegree[p.first]++;
+        }
+        for(int i=0; i<numCourses; i++){
+            if(inDegree[i] == 0)
+                que.push(i);
+        }
+        
+        while(!que.empty()){
+            int v = que.front();
+            que.pop();
+            ret.push_back(v);
+            for(int i=0; i<graph[v].size(); i++){
+                inDegree[graph[v][i]]--;
+                if(inDegree[graph[v][i]] == 0)
+                    que.push(graph[v][i]);
+            }
+        }
+        //存在环的话，直接返回空数组
+        for(int i=0; i<inDegree.size(); i++){
+            if(inDegree[i] != 0)
+                return {};
+        }
+        //如果所有的课程都出现，那么直接返回
+        if(ret.size() == numCourses)
+            return ret;
+        //有一些课程没有出现，所以要找出没有出现的课程，该部分课程不需要先修课，所以可以直接放在要返回的数组的前端
+        //再将ret复制在后面，然后返回
+        int *a = new int[numCourses];
+        vector<int> result;
+        for(int i=0; i<numCourses; i++)
+            a[i] = 0;
+        for(int i=0; i<ret.size(); i++){
+            a[ret[i]] = 1;
+        }
+        for(int i=0; i<numCourses; i++){
+            if(a[i] == 0)
+                result.push_back(i);
+        }
+        for(int i=0; i<ret.size(); i++)
+            result.push_back(ret[i]);
+        return result;
+    }
+}
+
+
+Course Schedule 
+There are a total of n courses you have to take, labeled from 0 to n - 1.Some courses may have prerequisites, for example to take course 0 you have to first take course 1, which is expressed as a pair: [0,1]Given the total number of courses and a list of prerequisite pairs, is it possible for you to finish all courses?For example:2, [[1,0]]There are a total of 2 courses to take. To take course 1 you should have finished course 0. So it is possible.2, [[1,0],[0,1]]There are a total of 2 courses to take. To take course 1 you should have finished course 0, and to take course 0 you should also have finished course 1. So it is impossible.
+Note:The input prerequisites is a graph represented by a list of edges, not adjacency matrices. Read more about how a graph is represented.click to show more hints.Hints:This problem is equivalent to finding if a cycle exists in a directed graph. If a cycle exists, no topological ordering exists and therefore it will be impossible to take all courses.Topological Sort via DFS - A great video tutorial (21 minutes) on Coursera explaining the basic concepts of Topological Sort.Topological sort could also be done via BFS.
+
+class Solution {
+public:
+    //拓扑排序,用一个队列存入度为0的节点，依次出队，将与出队节点相连的节点的入度减1，
+    //如果入度减为0，将其放入队列中，直到队列为空。如里最后还有入度不为0的节点的话，说明有环，否则无环。
+    bool canFinish(int numCourses, vector<pair<int, int>>& prerequisites) {
+        if(numCourses <= 1)
+            return true;
+        vector<vector<int> > graph(numCourses, vector<int>(0));
+        vector<int> inDegree(numCourses, 0);
+        queue<int> que;
+        for(auto p: prerequisites){
+            graph[p.second].push_back(p.first);
+            inDegree[p.first]++;
+        }
+        for(int i=0; i<inDegree.size(); i++)
+            if(inDegree[i] == 0)
+                que.push(i);
+                
+        while(!que.empty()){
+            int v = que.front();
+            que.pop();
+            for(int i=0; i<graph[v].size(); i++){
+                inDegree[graph[v][i]]--;
+                if(inDegree[graph[v][i]] == 0)
+                    que.push(graph[v][i]);
+            }
+                
+        }
+        
+        for(int i=0; i<inDegree.size(); i++){
+            if(inDegree[i] != 0)
+                return false;
+        }
+        
+        return true;
+    }
+}
+
+
+Number of Islands 
+Given a 2d grid map of '1's (land) and '0's (water), count the number of islands. An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. You may assume all four edges of the grid are all surrounded by water.Example 1:11110110101100000000Answer: 1Example 2:11000110000010000011Answer: 3
+Credits:Special thanks to @mithmatt for adding this problem and creating all test cases.
+
+class Solution {
+public:
+    //如果遇到1，就广度搜索，同时将1改为2，搜索完后，岛的数目+1
+    int numIslands(vector<vector<char>>& grid) {
+        if(grid.size() == 0)
+            return 0;
+        int island = 0;
+        for(int i=0; i<grid.size(); i++)
+            for(int j=0; j<grid[0].size(); j++){
+                if(grid[i][j] == '1'){
+                    search(grid, i, j);
+                    island++;
+                }
+            }
+        return island;
+    }
+    
+    void search(vector<vector<char> > &grid, int i, int j){
+        grid[i][j] = '2';
+        //上
+        if(i-1>=0 && grid[i-1][j] == '1')
+            search(grid, i-1, j);
+        //下
+        if(i+1<grid.size() && grid[i+1][j] == '1')
+            search(grid, i+1, j);
+        //左
+        if(j-1>=0 && grid[i][j-1] == '1')
+           search(grid, i, j-1);
+        //右
+        if(j+1<grid[0].size() && grid[i][j+1] == '1')
+            search(grid, i, j+1);
+    }
+}
+
+
+Binary Tree Right Side View 
+Given a binary tree, imagine yourself standing on the right side of it, return the values of the nodes you can see ordered from top to bottom.For example:Given the following binary tree,   1            <;--- /   \2     3         <;--- \     \  5     4       <;---You should return [1, 3, 4].
+Credits:Special thanks to @amrsaqr for adding this problem and creating all test cases.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    //宽度搜索，只记录每一层最右边的节点的值
+    vector<int> rightSideView(TreeNode* root) {
+        if(root == NULL)
+            return {};
+        vector<int> ret;
+        vector<TreeNode *> cur;
+        vector<TreeNode *> next;
+        cur.push_back(root);
+        while(cur.size() > 0){
+            ret.push_back(cur[cur.size()-1]->val);
+            next.clear();
+            for(int i=0; i<cur.size(); i++){
+                if(cur[i]->left != NULL)
+                    next.push_back(cur[i]->left);
+                if(cur[i]->right != NULL)
+                    next.push_back(cur[i]->right);
+            }
+            cur = next;
+        }
+    return ret;
+    }
+}
+
+
+Clone Graph 
+Clone an undirected graph. Each node in the graph contains a label and a list of its neighbors.OJ's undirected graph serialization:Nodes are labeled uniquely.We use # as a separator for each node, and , as a separator for node label and each neighbor of the node.As an example, consider the serialized graph {0,1,2#1,2#2,2}.The graph has a total of three nodes, and therefore contains three parts as separated by #.First node is labeled as 0. Connect node 0 to both nodes 1 and 2.Second node is labeled as 1. Connect node 1 to node 2.Third node is labeled as 2. Connect node 2 to node 2 (itself), thus forming a self-cycle.Visually, the graph looks like the following:       1      / \     /   \    0 --- 2         / \         \_/
+
+/**
+ * Definition for undirected graph.
+ * struct UndirectedGraphNode {
+ *     int label;
+ *     vector<UndirectedGraphNode *> neighbors;
+ *     UndirectedGraphNode(int x) : label(x) {};
+ * };
+ */
+class Solution {
+public:
+    //因为每一个节点的label唯一，所以可以根据label来判断该节点是否已经遍历过
+    UndirectedGraphNode *cloneGraph(UndirectedGraphNode *node) {
+        if(node == NULL)
+            return NULL;
+    //存储那些节点已经访问了
+    unordered_map<int, UndirectedGraphNode*> isvisited;
+    UndirectedGraphNode *graph;
+    copygraph(isvisited, graph, node);
+    return graph;
+    
+    }
+    
+    void copygraph(unordered_map<int, UndirectedGraphNode*> &isvisited, UndirectedGraphNode *&copy, UndirectedGraphNode*graph){
+        if(graph == NULL){
+            copy = NULL;
+            return;
+        }
+        //已经构建过该节点
+        if(isvisited.find(graph->label) != isvisited.end()){
+            copy =  isvisited[graph->label];
+            return;
+        }
+        
+        //构建节点
+        copy = new UndirectedGraphNode(graph->label);
+        isvisited[graph->label] = copy;
+        //勾结节点的邻居
+        vector<UndirectedGraphNode*> neighbors;
+        for(int i=0; i<graph->neighbors.size(); i++){
+            UndirectedGraphNode* neigb = NULL;
+            copygraph(isvisited, neigb, graph->neighbors[i]);
+            neighbors.push_back(neigb);
+        }
+        copy->neighbors = neighbors;
+    }
+}
+
+
+Surrounded Regions 
+Given a 2D board containing 'X' and 'O', capture all regions surrounded by 'X'.A region is captured by flipping all 'O's into 'X's in that surrounded region.For example,X X X XX O O XX X O XX O X XAfter running your function, the board should be:X X X XX X X XX X X XX O X X
+
+class Solution {
+public:
+
+    //出现运行时错误，出现的例子在run code时，却可以得到正确的答案，自己将出错的例子在vs中运行时，出现
+    //栈溢出错误！！！
+    /*
+    void solve(vector<vector<char>>& board) {
+        if(board.size() == 0)
+            return ;
+        int rowN = board.size();
+        int colN = board[0].size();
+        for(int i=0; i<colN; i++){
+            if(board[0][i] == 'O')
+                solve(board, 0, i);
+        }
+        for(int i=0; i<rowN; i++){
+            if(board[i][colN-1] == 'O')
+               solve(board, i, colN-1);  
+        }
+        for(int i=0; i<colN; i++){
+            if(board[rowN-1][i] == 'O')
+               solve(board, rowN-1, i);  
+        }
+            
+        for(int i=0; i<rowN; i++){
+            if(board[i][0] == 'O')
+               solve(board, i, 0); 
+        }
+            
+        for(int i=0; i<rowN; i++){
+            for(int j=0; j<colN; j++){
+                if(board[i][j] == '1'){
+                    board[i][j] = 'O';
+                }
+                else if(board[i][j] == 'O')
+                        board[i][j] = 'X';
+            }
+        }
+            
+    }
+    */
+    
+    void solve(vector<vector<char>>& board) {
+        if(board.size() == 0)
+            return ;
+        int rowN = board.size();
+        int colN = board[0].size();
+        //最上面一行
+        for(int i=0; i<colN; i++){
+            if(board[0][i] == 'O')
+                board[0][i] = '1';
+        }
+        //最右边一行
+        for(int i=0; i<rowN; i++){
+            if(board[i][colN-1] == 'O')
+               board[i][colN-1] = '1'; 
+        }
+        //最下边一行
+        for(int i=0; i<colN; i++){
+            if(board[rowN-1][i] == 'O')
+               board[rowN-1][i] = '1';  
+        }
+         
+        //最左边一行   
+        for(int i=0; i<rowN; i++){
+            if(board[i][0] == 'O')
+               board[i][0] = '1'; 
+        }
+       
+        for(int i=1; i<rowN-1; i++){
+            for(int j=1; j<colN-1; j++){
+                if(board[i][j] == 'X' || board[i][j] == '1')
+                    continue;
+                if(board[i][j-1] == '1' || board[i][j+1]== '1' || board[i-1][j] == '1' || board[i+1][j] == '1'){
+                    solve(board, i, j);
+                }
+            }
+        }
+        //根据标记修改矩阵
+        for(int i=0; i<rowN; i++){
+            for(int j=0; j<colN; j++){
+                if(board[i][j] == '1'){
+                    board[i][j] = 'O';
+                }
+                else if(board[i][j] == 'O')
+                        board[i][j] = 'X';
+            }
+        }
+            
+    }
+    
+    void solve(vector<vector<char>>& board, int row, int col){
+        if(row == board.size() || col == board[0].size() || row == -1 || col == -1)
+            return;
+        if(board[row][col] == 'X' || board[row][col] == '1')
+           return;
+         board[row][col] = '1';
+        //遍历四个邻居
+        solve(board, row-1, col);
+        solve(board, row+1, col);
+        solve(board, row, col-1);
+        solve(board, row, col+1);
+    }
+}
+
+
+Word Ladder II 
+Given two words (beginWord and endWord), and a dictionary's word list, find all shortest transformation sequence(s) from beginWord to endWord, such that:Only one letter can be changed at a timeEach intermediate word must exist in the word listFor example,Given:beginWord = "hit"endWord = "cog"wordList = ["hot","dot","dog","lot","log"]Return  [    ["hit","hot","dot","dog","cog"],    ["hit","hot","lot","log","cog"]  ]
+Note:All words have the same length.All words contain only lowercase alphabetic characters.
+
+class Solution {
+public:
+    /*
+	//先找出最短的转换长度，再根据这个长度来计算可行的解，可以利用这个长度进行剪枝，这样可以减少不需要的空间和时间
+	vector<vector<string>> findLadders(string beginWord, string endWord, unordered_set<string> &wordList) {
+		if (beginWord == endWord)
+			return{ { beginWord, endWord } };
+		wordList.insert(endWord);
+		int shortest = getShortestLength(beginWord, endWord, wordList);
+		vector<vector<string>>ret;
+		if (shortest == -1)
+			return ret;
+		unordered_set<string> visited;
+		vector<string> temp;
+		temp.push_back(beginWord);
+		visited.insert(beginWord);
+		findLadders(beginWord, endWord, wordList, visited, ret, temp, shortest-1);
+		return ret;
+	}
+
+	//广搜
+	int getShortestLength(string beginWord, string endWord, unordered_set<string> &wordList) {
+		int length = 1;
+		queue<string> cur;
+		
+		unordered_set<string> visited;
+		cur.push(beginWord);
+		visited.insert(beginWord);
+		while (cur.size() != 0) {
+			queue<string> next;
+			while (cur.size() != 0) {
+				string word = cur.front();
+				cur.pop();
+				for (int i = 0; i<word.length(); i++) {
+					char wordi = word[i];
+					for (int j = 0; j<26; j++) {
+						word[i] = 'a' + j;
+						if (word == endWord)
+							return length + 1;
+						if (wordList.count(word) != 0 && visited.count(word) == 0) {
+							visited.insert(word);
+							next.push(word);
+						}
+					}
+					word[i] = wordi;
+				}
+			}
+			length++;
+			cur = next;
+		}
+		return -1;
+	}
+	//深搜找出所有可能解,超时！！！
+
+	void findLadders(string beginWord, string endWord, unordered_set<string> &wordList, unordered_set<string> &visited, vector<vector<string>> &ret, vector<string>&temp, int length) {
+		if (length == 0)
+			return;
+		
+		for (int i = 0; i<beginWord.length(); i++) {
+			char wordi = beginWord[i];
+			vector<string> bt;
+			for (int j = 0; j<26; j++) {
+				beginWord[i] = 'a' + j;
+				if (beginWord == endWord) {
+					temp.push_back(beginWord);
+					ret.push_back(temp);
+					temp.pop_back();
+					return;
+				}
+				if (wordList.count(beginWord) != 0 && visited.count(beginWord) == 0) {
+					temp.push_back(beginWord);
+					visited.insert(beginWord);
+					bt.push_back(beginWord);
+					findLadders(beginWord, endWord, wordList, visited, ret, temp, length - 1);
+					temp.pop_back();
+					//visited.erase(beginWord);
+				}
+			}
+			for(int i=0; i<bt.size(); i++)
+			    visited.erase(bt[i]);
+			beginWord[i] = wordi;
+		}
+	}
+	*/
+	//与上一个不同的是这里直接的使用在广搜时所用的unordered_map<string, int> visited;在进行深搜的时候直接的利用
+	//这其来对节点进行剪枝，也就是说深搜时，只搜索visited中的节点。visited中的int存储的是对应的word在广搜时所出现的
+	//深度，如果在深搜的时候有对应的word出现在visited中但是其深度不是visited中的值的时候也可以对其进行剪枝处理
+	/*TMD   还是超时啊！！！！
+	vector<vector<string>> findLadders(string beginWord, string endWord, unordered_set<string> &wordList) {
+		if (beginWord == endWord)
+			return{ { beginWord, endWord } };
+		wordList.insert(endWord);
+		unordered_map<string, int> visited;
+		int shortest = getShortestLength(beginWord, endWord, wordList, visited);
+		vector<vector<string>>ret;
+		if (shortest == -1)
+			return ret;
+
+		vector<string> temp;
+		temp.push_back(beginWord);
+		findLadders(beginWord, endWord, visited, ret, temp, shortest - 1, 2);
+		return ret;
+	}
+
+	//广搜
+	int getShortestLength(string beginWord, string endWord, unordered_set<string> &wordList, unordered_map<string, int> &visited) {
+		int length = 1;
+		queue<string> cur;
+		cur.push(beginWord);
+		visited[beginWord] = 1;
+		while (cur.size() != 0) {
+			queue<string> next;
+			while (cur.size() != 0) {
+				string word = cur.front();
+				cur.pop();
+				for (int i = 0; i<word.length(); i++) {
+					char wordi = word[i];
+					for (int j = 0; j<26; j++) {
+						word[i] = 'a' + j;
+						if (word == endWord)
+							return length + 1;
+						if (wordList.count(word) != 0 && visited.count(word) == 0) {
+							visited[word] = length + 1;
+							next.push(word);
+						}
+					}
+					word[i] = wordi;
+				}
+			}
+			length++;
+			cur = next;
+		}
+		return -1;
+	}
+	//深搜找出所有可能解
+	void findLadders(string beginWord, string endWord, unordered_map<string, int> &visited, vector<vector<string>> &ret, vector<string>&temp, int length, int deep) {
+		if (deep - 1 > length)
+			return;
+
+		for (int i = 0; i<beginWord.length(); i++) {
+			char wordi = beginWord[i];
+			vector<string> bt;
+			for (int j = 0; j<26; j++) {
+				beginWord[i] = 'a' + j;
+				if (beginWord == endWord) {
+					temp.push_back(beginWord);
+					ret.push_back(temp);
+					temp.pop_back();
+					return;
+				}
+				if (visited.count(beginWord) != 0 && visited[beginWord] == deep) {
+					temp.push_back(beginWord);
+
+					bt.push_back(beginWord);
+					findLadders(beginWord, endWord,  visited, ret, temp, length, deep + 1);
+					temp.pop_back();
+					//visited.erase(beginWord);
+				}
+			}
+
+			beginWord[i] = wordi;
+		}
+	}
+	*/
+	//另外一个思路，在广搜查找最短的转换路径长度时，记录每一个访问到的节点的前驱节点，这样的话
+	//只需要从endWord节点开始，深搜其前驱节点知道beginWord为止，所有路径都是可行解，这样的深搜
+	//完全没有冗余
+    vector<vector<string>> findLadders(string beginWord, string endWord, unordered_set<string> &wordList) {
+		if (beginWord == endWord)
+			return{ { beginWord, endWord } };
+		wordList.insert(endWord);
+		unordered_map<string, vector<string>> preword;
+		int shortest = getShortestLength(beginWord, endWord, wordList, preword);
+		vector<vector<string>>ret;
+		if (shortest == -1)
+			return ret;
+
+		vector<string> temp(shortest);
+		temp[shortest-1] = endWord;
+		findLadders(beginWord, endWord, ret, temp, preword, shortest-2);
+		return ret;
+	}
+
+	//广搜
+	int getShortestLength(string beginWord, string endWord, unordered_set<string> &wordList, unordered_map<string, vector<string>> &preword) {
+		int length = 1;
+		queue<string> cur;
+		cur.push(beginWord);
+		unordered_map<string, int> visited;
+		visited[beginWord] = 1;
+		int retlength = 0;
+		bool getthelength = false;
+		while (cur.size() != 0) {
+			queue<string> next;
+			while (cur.size() != 0) {
+				string word = cur.front();
+				string temp = word;
+				cur.pop();
+				getthelength = false;
+				for (int i = 0; i<word.length(); i++) {
+					char wordi = word[i];
+					if(getthelength)
+					    break;
+					for (int j = 0; j<26; j++) {
+						word[i] = 'a' + j;
+						//为了得到endword的所有前驱word，在的到最短的长度后，还要继续遍历该层所剩下的其他word
+						if (word == endWord) {
+							preword[word].push_back(temp);
+							retlength = length+1;
+							getthelength = true;
+							break;
+						}
+
+						if (wordList.count(word) != 0) {
+							if (visited.count(word) == 0 || (visited.count(word) != 0 && visited[word] == length + 1))
+								preword[word].push_back(temp);
+							if (visited.count(word) == 0) {
+								visited[word] = length + 1;
+								next.push(word);
+							}
+						}
+					}
+					word[i] = wordi;
+				}
+			}
+			if(retlength != 0)
+			    return retlength;
+			length++;
+			cur = next;
+		}
+		return -1;
+	}
+	//深搜找出所有可能解
+	void findLadders(string endWord, string word, vector<vector<string>> &ret, vector<string>&temp, unordered_map<string, vector<string>> &preword, int index) {
+		if (word == endWord) {
+			ret.push_back(temp);
+			return;
+		}
+		vector<string> prevec = preword[word];
+		for (int i = 0; i<prevec.size(); i++) {
+			temp[index] = prevec[i];
+			findLadders(endWord, prevec[i], ret, temp, preword, index-1);
+ 
+		}
+
+	}
+}
+
+
+Minimum Depth of Binary Tree 
+Given a binary tree, find its minimum depth.The minimum depth is the number of nodes along the shortest path from the root node down to the nearest leaf node.
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    int minDepth(TreeNode* root) {
+        if(root == NULL)
+            return 0;
+        queue<TreeNode *> cur;
+        
+        cur.push(root);
+        int depth = 1;
+        TreeNode *temp = NULL;
+        while(true){
+            queue<TreeNode *> next;
+            while(!cur.empty()){
+            temp = cur.front();
+            cur.pop();
+            if(temp->left == NULL && temp->right == NULL)
+                return depth;
+            if(temp->left != NULL)
+                next.push(temp->left);
+            if(temp->right != NULL)
+                next.push(temp->right);
+        }
+        cur = next;
+        depth++;
+        }
+        
+    }
+}
+
+
+Binary Tree Level Order Traversal II 
+Given a binary tree, return the bottom-up level order traversal of its nodes' values. (ie, from left to right, level by level from leaf to root).For example:Given binary tree {3,9,20,#,#,15,7},    3   / \  9  20    /  \   15   7return its bottom-up level order traversal as:[  [15,7],  [9,20],  [3]]confused what "{1,#,2,3}" means? >; read more on how binary tree is serialized on OJ.OJ's Binary Tree Serialization:The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.Here's an example:   1  / \ 2   3    /   4    \     5The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}". 
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    vector<vector<int>> levelOrderBottom(TreeNode* root) {
+        vector<vector<int> > result;
+        if(root == NULL)
+            return result;
+        queue<TreeNode*> cur;
+        cur.push(root);
+        _levelOrderBottom(result, cur);
+        return result;
+    }
+    
+    void _levelOrderBottom(vector<vector<int> > &result, queue<TreeNode*> cur) {
+        if(cur.empty())
+            return;
+        vector<int> level;
+        queue<TreeNode*> next;
+        TreeNode *temp;
+        while(!cur.empty()){
+            temp = cur.front();
+            cur.pop();
+            level.push_back(temp->val);
+            if(temp->left != NULL)
+                next.push(temp->left);
+            if(temp->right != NULL)
+                next.push(temp->right);
+        }
+         _levelOrderBottom(result, next);
+        result.push_back(level);
+        
+    }
+    
+}
+
+
+Binary Tree Zigzag Level Order Traversal 
+Given a binary tree, return the zigzag level order traversal of its nodes' values. (ie, from left to right, then right to left for the next level and alternate between).For example:Given binary tree {3,9,20,#,#,15,7},    3   / \  9  20    /  \   15   7return its zigzag level order traversal as:[  [3],  [20,9],  [15,7]]confused what "{1,#,2,3}" means? >; read more on how binary tree is serialized on OJ.OJ's Binary Tree Serialization:The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.Here's an example:   1  / \ 2   3    /   4    \     5The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}". 
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
+        vector<vector<int>> ret;
+        if(root == NULL){
+            return ret;
+        }
+        stack<TreeNode *> curstack;
+        bool lefttoright = true;
+        curstack.push(root);
+        while(curstack.size()){
+           stack<TreeNode *> nextstack;
+            vector<int> temp;
+            while(curstack.size()){
+                TreeNode *node = curstack.top();
+                curstack.pop();
+                if(lefttoright){
+                    if(node->left != NULL)
+                        nextstack.push(node->left);
+                    if(node->right != NULL)
+                        nextstack.push(node->right);
+                    
+                }
+                else{
+                    if(node->right != NULL)
+                        nextstack.push(node->right);
+                    if(node->left != NULL)
+                        nextstack.push(node->left);
+                }
+                temp.push_back(node->val);
+            }
+            ret.push_back(temp);
+            curstack = nextstack;
+            if(lefttoright)
+                lefttoright = false;
+            else
+                lefttoright = true;
+        }
+        return ret;
+    }
+}
+
+
+Binary Tree Level Order Traversal 
+Given a binary tree, return the level order traversal of its nodes' values. (ie, from left to right, level by level).For example:Given binary tree {3,9,20,#,#,15,7},    3   / \  9  20    /  \   15   7return its level order traversal as:[  [3],  [9,20],  [15,7]]confused what "{1,#,2,3}" means? >; read more on how binary tree is serialized on OJ.OJ's Binary Tree Serialization:The serialization of a binary tree follows a level order traversal, where '#' signifies a path terminator where no node exists below.Here's an example:   1  / \ 2   3    /   4    \     5The above binary tree is serialized as "{1,2,3,#,#,4,#,#,5}". 
+
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+ * };
+ */
+class Solution {
+public:
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        vector<vector<int> > result;
+        if(root == NULL)
+            return result;
+        queue<TreeNode*> cur;
+        TreeNode *temp = NULL;
+        cur.push(root);
+        while(true){
+            queue<TreeNode*> next;
+            vector<int> level;
+            while(!cur.empty()){
+                temp = cur.front();
+                cur.pop();
+                level.push_back(temp->val);
+                if(temp->left != NULL)
+                    next.push(temp->left);
+                if(temp->right != NULL)
+                    next.push(temp->right);
+            }
+            result.push_back(level);
+            if(next.empty())
+                break;
+            cur = next;
+        }
+        return result;
+    }
+}
+
+

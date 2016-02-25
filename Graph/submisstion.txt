@@ -1,0 +1,156 @@
+Course Schedule II 
+There are a total of n courses you have to take, labeled from 0 to n - 1.Some courses may have prerequisites, for example to take course 0 you have to first take course 1, which is expressed as a pair: [0,1]Given the total number of courses and a list of prerequisite pairs, return the ordering of courses you should take to finish all courses.There may be multiple correct orders, you just need to return one of them. If it is impossible to finish all courses, return an empty array.For example:2, [[1,0]]There are a total of 2 courses to take. To take course 1 you should have finished course 0. So the correct course order is [0,1]4, [[1,0],[2,0],[3,1],[3,2]]There are a total of 4 courses to take. To take course 3 you should have finished both courses 1 and 2. Both courses 1 and 2 should be taken after you finished course 0. So one correct course order is [0,1,2,3]. Another correct ordering is[0,2,1,3].
+Note:The input prerequisites is a graph represented by a list of edges, not adjacency matrices. Read more about how a graph is represented.click to show more hints.Hints:This problem is equivalent to finding the topological order in a directed graph. If a cycle exists, no topological ordering exists and therefore it will be impossible to take all courses.Topological Sort via DFS - A great video tutorial (21 minutes) on Coursera explaining the basic concepts of Topological Sort.Topological sort could also be done via BFS.
+
+class Solution {
+public:
+    //是有一部分的课程需要先修其他的课，并不是所有的课程都需要先修
+    vector<int> findOrder(int numCourses, vector<pair<int, int>>& prerequisites) {
+        if(numCourses == 0)
+            return {};
+        
+        vector<vector<int>> graph(numCourses, vector<int>(0));
+        vector<int> inDegree(numCourses, 0);
+        queue<int> que;
+        vector<int> ret;
+        for(auto p: prerequisites){
+            graph[p.second].push_back(p.first);
+            inDegree[p.first]++;
+        }
+        for(int i=0; i<numCourses; i++){
+            if(inDegree[i] == 0)
+                que.push(i);
+        }
+        
+        while(!que.empty()){
+            int v = que.front();
+            que.pop();
+            ret.push_back(v);
+            for(int i=0; i<graph[v].size(); i++){
+                inDegree[graph[v][i]]--;
+                if(inDegree[graph[v][i]] == 0)
+                    que.push(graph[v][i]);
+            }
+        }
+        //存在环的话，直接返回空数组
+        for(int i=0; i<inDegree.size(); i++){
+            if(inDegree[i] != 0)
+                return {};
+        }
+        //如果所有的课程都出现，那么直接返回
+        if(ret.size() == numCourses)
+            return ret;
+        //有一些课程没有出现，所以要找出没有出现的课程，该部分课程不需要先修课，所以可以直接放在要返回的数组的前端
+        //再将ret复制在后面，然后返回
+        int *a = new int[numCourses];
+        vector<int> result;
+        for(int i=0; i<numCourses; i++)
+            a[i] = 0;
+        for(int i=0; i<ret.size(); i++){
+            a[ret[i]] = 1;
+        }
+        for(int i=0; i<numCourses; i++){
+            if(a[i] == 0)
+                result.push_back(i);
+        }
+        for(int i=0; i<ret.size(); i++)
+            result.push_back(ret[i]);
+        return result;
+    }
+}
+
+
+Course Schedule 
+There are a total of n courses you have to take, labeled from 0 to n - 1.Some courses may have prerequisites, for example to take course 0 you have to first take course 1, which is expressed as a pair: [0,1]Given the total number of courses and a list of prerequisite pairs, is it possible for you to finish all courses?For example:2, [[1,0]]There are a total of 2 courses to take. To take course 1 you should have finished course 0. So it is possible.2, [[1,0],[0,1]]There are a total of 2 courses to take. To take course 1 you should have finished course 0, and to take course 0 you should also have finished course 1. So it is impossible.
+Note:The input prerequisites is a graph represented by a list of edges, not adjacency matrices. Read more about how a graph is represented.click to show more hints.Hints:This problem is equivalent to finding if a cycle exists in a directed graph. If a cycle exists, no topological ordering exists and therefore it will be impossible to take all courses.Topological Sort via DFS - A great video tutorial (21 minutes) on Coursera explaining the basic concepts of Topological Sort.Topological sort could also be done via BFS.
+
+class Solution {
+public:
+    //拓扑排序,用一个队列存入度为0的节点，依次出队，将与出队节点相连的节点的入度减1，
+    //如果入度减为0，将其放入队列中，直到队列为空。如里最后还有入度不为0的节点的话，说明有环，否则无环。
+    bool canFinish(int numCourses, vector<pair<int, int>>& prerequisites) {
+        if(numCourses <= 1)
+            return true;
+        vector<vector<int> > graph(numCourses, vector<int>(0));
+        vector<int> inDegree(numCourses, 0);
+        queue<int> que;
+        for(auto p: prerequisites){
+            graph[p.second].push_back(p.first);
+            inDegree[p.first]++;
+        }
+        for(int i=0; i<inDegree.size(); i++)
+            if(inDegree[i] == 0)
+                que.push(i);
+                
+        while(!que.empty()){
+            int v = que.front();
+            que.pop();
+            for(int i=0; i<graph[v].size(); i++){
+                inDegree[graph[v][i]]--;
+                if(inDegree[graph[v][i]] == 0)
+                    que.push(graph[v][i]);
+            }
+                
+        }
+        
+        for(int i=0; i<inDegree.size(); i++){
+            if(inDegree[i] != 0)
+                return false;
+        }
+        
+        return true;
+    }
+}
+
+
+Clone Graph 
+Clone an undirected graph. Each node in the graph contains a label and a list of its neighbors.OJ's undirected graph serialization:Nodes are labeled uniquely.We use # as a separator for each node, and , as a separator for node label and each neighbor of the node.As an example, consider the serialized graph {0,1,2#1,2#2,2}.The graph has a total of three nodes, and therefore contains three parts as separated by #.First node is labeled as 0. Connect node 0 to both nodes 1 and 2.Second node is labeled as 1. Connect node 1 to node 2.Third node is labeled as 2. Connect node 2 to node 2 (itself), thus forming a self-cycle.Visually, the graph looks like the following:       1      / \     /   \    0 --- 2         / \         \_/
+
+/**
+ * Definition for undirected graph.
+ * struct UndirectedGraphNode {
+ *     int label;
+ *     vector<UndirectedGraphNode *> neighbors;
+ *     UndirectedGraphNode(int x) : label(x) {};
+ * };
+ */
+class Solution {
+public:
+    //因为每一个节点的label唯一，所以可以根据label来判断该节点是否已经遍历过
+    UndirectedGraphNode *cloneGraph(UndirectedGraphNode *node) {
+        if(node == NULL)
+            return NULL;
+    //存储那些节点已经访问了
+    unordered_map<int, UndirectedGraphNode*> isvisited;
+    UndirectedGraphNode *graph;
+    copygraph(isvisited, graph, node);
+    return graph;
+    
+    }
+    
+    void copygraph(unordered_map<int, UndirectedGraphNode*> &isvisited, UndirectedGraphNode *&copy, UndirectedGraphNode*graph){
+        if(graph == NULL){
+            copy = NULL;
+            return;
+        }
+        //已经构建过该节点
+        if(isvisited.find(graph->label) != isvisited.end()){
+            copy =  isvisited[graph->label];
+            return;
+        }
+        
+        //构建节点
+        copy = new UndirectedGraphNode(graph->label);
+        isvisited[graph->label] = copy;
+        //勾结节点的邻居
+        vector<UndirectedGraphNode*> neighbors;
+        for(int i=0; i<graph->neighbors.size(); i++){
+            UndirectedGraphNode* neigb = NULL;
+            copygraph(isvisited, neigb, graph->neighbors[i]);
+            neighbors.push_back(neigb);
+        }
+        copy->neighbors = neighbors;
+    }
+}
+
+
